@@ -1,0 +1,44 @@
+{
+    "expand": "schema,names",
+    "startAt": 0,
+    "maxResults": 50,
+    "total": 53,
+    "issues": [
+        {
+            "key": "issue-1-key",
+            "fields": {
+                "parent": {
+                    "key": "issue-1-parent"
+                }
+                "assignee": {
+                    "displayName": "issue-1-assignee"
+                },
+                "issuetype": {
+                    "name": "issue-1-type"
+                },
+                "status": {
+                    "name": "issue-1-status"
+                },
+                "summary": "issue-1-title"
+            }
+        },
+        {
+            "key": "issue-2-key",
+            "fields": {
+                "parent": {
+                    "key": "issue-2-parent"
+                }
+                "assignee": {
+                    "displayName": "issue-2-assignee"
+                },
+                "issuetype": {
+                    "name": "issue-2-type"
+                },
+                "status": {
+                    "name": "issue-2-status"
+                },
+                "summary": "issue-2-title"
+            }
+        }
+    ]
+}
