@@ -55,7 +55,7 @@
   [{{:keys [username password server project]} :jira} query]
   (debug "Retrieving sprint status")
   (let [url   (str "https://" server "/rest/api/2/search")]
-    (client/get url {:query-params {:jql query} :basic-auth [username password]})))
+    (client/get url {:query-params {:jql query :maxResults 500} :basic-auth [username password]})))
 
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."
@@ -102,7 +102,7 @@
            (date/workdays-between date-started (date/today))
            0)))
 
-(defn with-issue-details [config issue]
+(defn- with-issue-details [config issue]
   (-> (with-history config issue)
       (with-days-in-progress)))
 
