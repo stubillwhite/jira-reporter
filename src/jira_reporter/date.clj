@@ -1,40 +1,64 @@
 (ns jira-reporter.date
+  (:require [jira-reporter.utils :refer [def-]])
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
 
 (defn- timestream [t n unit]
   (iterate (fn [x] (.plus x n unit)) t))
 
-(defn- weekday? [x]
-  (not (contains? #{DayOfWeek/SATURDAY DayOfWeek/SUNDAY} (.getDayOfWeek x))))
+(defn- working-day? [t]
+  (not (contains? #{DayOfWeek/SATURDAY DayOfWeek/SUNDAY} (.getDayOfWeek t))))
 
 (defn- before? [t]
   (fn [x] (.isBefore (.toInstant x) (.toInstant t))))
 
-(defn today 
+(defn- working-hour? [t]
+  (let [hour (.getHour t)]
+    (and (<= 9 hour 16) (not (= 13 hour)))))
+
+(def- zone-utc (ZoneId/of "UTC"))
+
+;; TODO Reset time on days comparison
+(defn today
   "The current date."
   []
-  (-> (ZonedDateTime/now (ZoneId/of "UTC"))
+  (-> (ZonedDateTime/now zone-utc)
       (.withHour 0)
       (.withMinute 0)
       (.withSecond 0)
       (.withSecond 0)
       (.withNano 0)))
 
-(defn plus-workdays
+(defn now 
+  "The current date and time."
+  []
+  (-> (ZonedDateTime/now zone-utc)))
+
+(defn plus-working-days
   "Add n workdays to Temporal object t."
   [t n]
   (->> (timestream t (if (pos? n) 1 -1) ChronoUnit/DAYS)
-       (filter weekday?)
+       (filter working-day?)
        (drop (Math/abs n))
        (first)))
 
-(defn workdays-between
+(defn working-days-between
   "Count the number of workdays between Temporal objects t1 and t2."
   [t1 t2]
   (if (.isAfter t1 t2)
-    (workdays-between t2 t1)
+    (working-days-between t2 t1)
     (->> (timestream t1 1 ChronoUnit/DAYS)
-         (filter weekday?)
+         (filter working-day?)
+         (take-while (before? t2))
+         (count))))
+
+(defn working-hours-between
+  "Count the number of working-hours between Temporal objects t1 and t2."
+  [t1 t2]
+  (if (.isAfter t1 t2)
+    (working-hours-between t2 t1)
+    (->> (timestream t1 1 ChronoUnit/HOURS)
+         (filter working-day?)
+         (filter working-hour?)
          (take-while (before? t2))
          (count))))

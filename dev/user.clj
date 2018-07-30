@@ -1,18 +1,18 @@
 (ns user
   "Tools for interactive development with the REPL. This file should
   not be included in a production build of the application."
-  (:require [clojure.java.javadoc :refer [javadoc]]
+  (:require [clojure.edn :as edn]
+            [clojure.java.javadoc :refer [javadoc]]
             [clojure.pprint :refer [pprint print-table]]
             [clojure.reflect :refer [reflect]]
             [clojure.repl :refer [apropos dir doc find-doc pst source]]
             [clojure.stacktrace :refer [print-stack-trace]]
             [clojure.test :as test]
-            [clojure.edn :as edn]
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
             [clojure.tools.trace :refer [trace-ns untrace-ns]]
-            [mount.core :as mount]
             [jira-reporter.config :refer [config]]
-            [jira-reporter.core :refer [generate-daily-report]]))
+            [mount.core :as mount]
+            [taoensso.timbre :as timbre]))
 
 (defn print-methods [x]
   (->> x
@@ -29,6 +29,7 @@
   (edn/read-string (slurp fnam)))
 
 (defn start []
+  (timbre/merge-config! {:appenders {:println {:enabled? true}}})   
   (mount/start))
 
 (defn stop []
