@@ -70,17 +70,17 @@
         gdpr?   (partial type-is? api/gdpr-types)
         closed? (partial status-is? api/closed-states)
         open?   (complement closed?)]
- (pprint/print-table
-  [{:category "Story" :open   (->> issues (filter story?) (filter open?)   (count))
-                      :closed (->> issues (filter story?) (filter closed?) (count))}
-   {:category "Task"  :open   (->> issues (filter task?)  (filter open?)   (count))
-                      :closed (->> issues (filter task?)  (filter closed?) (count))}
-   {:category "Bug"   :open   (->> issues (filter bug?)   (filter open?)   (count))
-                      :closed (->> issues (filter bug?)   (filter closed?) (count))}
-   {:category "GDPR"  :open   (->> issues (filter gdpr?)  (filter open?)   (count))
-                      :closed (->> issues (filter gdpr?)  (filter closed?) (count))}
-   {:category "Total" :open   (->> issues                 (filter open?)   (count))
-                      :closed (->> issues                 (filter closed?) (count))}])))
+    (pprint/print-table
+     [{:category "Story" :open   (->> issues (filter story?) (filter open?)   (count))
+                         :closed (->> issues (filter story?) (filter closed?) (count))}
+      {:category "Task"  :open   (->> issues (filter task?)  (filter open?)   (count))
+                         :closed (->> issues (filter task?)  (filter closed?) (count))}
+      {:category "Bug"   :open   (->> issues (filter bug?)   (filter open?)   (count))
+                         :closed (->> issues (filter bug?)   (filter closed?) (count))}
+      {:category "GDPR"  :open   (->> issues (filter gdpr?)  (filter open?)   (count))
+                         :closed (->> issues (filter gdpr?)  (filter closed?) (count))}
+      {:category "Total" :open   (->> issues                 (filter open?)   (count))
+                         :closed (->> issues                 (filter closed?) (count))}])))
 
 (defn report-time-in-state [issues]
   (println "\nLead time in working days and working hours in state")

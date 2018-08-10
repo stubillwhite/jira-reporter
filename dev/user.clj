@@ -9,7 +9,7 @@
             [clojure.stacktrace :refer [print-stack-trace]]
             [clojure.test :as test]
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
-            [clojure.tools.trace :refer [trace-ns untrace-ns]]
+            [clojure.tools.trace :refer [trace-ns untrace-ns trace-forms]]
             [jira-reporter.config :refer [config]]
             [mount.core :as mount]
             [taoensso.timbre :as timbre]))
