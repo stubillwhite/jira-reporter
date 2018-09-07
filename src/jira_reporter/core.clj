@@ -16,6 +16,10 @@
 (timbre/merge-config!
   {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
 
+(timbre/merge-config!
+ {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter-api.log"})
+              :ns-whitelist ["jira-reporter/jira-api"]}})
+
 (defn- status-is? [states issue]
   (contains? states (:status issue)))
 
@@ -62,6 +66,7 @@
    (report-issues-changed-state issues)
    (report-issues-awaiting-deployment issues))) 
 
+;; TODO: Use comp
 (defn report-issues-summary [issues]
  (println "\nIssue summary")
   (let [story?  (partial type-is? api/story-types)
@@ -98,3 +103,9 @@
   [config name]
   (let [issues (map analysis/add-derived-fields (api/get-issues-in-sprint-named config name))]
     (generate-sprint-report-from-issues issues)))
+
+;; (def api-issues (api/get-issues-in-current-sprint config))
+;; (def issues (map analysis/add-derived-fields api-issues))
+
+;; (nth api-issues 5)
+;;(clojure.pprint/pprint (take 10 issues))

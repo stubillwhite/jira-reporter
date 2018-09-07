@@ -1,34 +1,20 @@
 (ns jira-reporter.api-test
   (:require [clojure.java.io :as io]
+            [clojure.data.json :as json]
             [clojure.test :refer :all]
-            [jira-reporter.api :refer :all]
-            [jira-reporter.utils :refer [def-]]
+            [jira-reporter.api :as api :refer :all]
             [jira-reporter.jira-client :as jira-client]
-            [jira-reporter.api :as api])
-  (:import [java.time ZonedDateTime ZoneId])
-  )
+            [jira-reporter.utils :refer [def-]])
+  (:import [java.time ZonedDateTime ZoneId]))
 
 (def current-sprint-json
-  {:body (slurp (io/resource "test-current-sprint.json"))})
-
-(def issue-details-1-json
-  {:body (slurp (io/resource "test-issue-1-details.json"))})
-
-(def issue-details-2-json
-  {:body (slurp (io/resource "test-issue-2-details.json"))})
+  (decode-body {:body (slurp (io/resource "test-current-sprint.json"))}))
 
 (def- stub-test-config
   {:jira {:username "test-username"
           :password "test-password"
           :server   "test.url.com"
           :project  "test-project"}})
-
-(defn stub-get-jira-query-results [config query]
-  current-sprint-json)
-
-(defn stub-get-issue-details [config id]
-  (get {"issue-1-key" issue-details-1-json
-        "issue-2-key" issue-details-2-json} id))
 
 (defn- utc-date-time [y m d]
   (ZonedDateTime/of y m d 0 0 0 0 (ZoneId/of "UTC")))
@@ -65,7 +51,20 @@
     :assignee  "issue-2-assignee"
     :history   expected-issue-2-history}])
 
-(deftest get-issues-in-current-sprint-then-issue-status-of-open-sprint
-  (with-redefs [jira-client/get-jql-query-results stub-get-jira-query-results
-                jira-client/get-issue-details     stub-get-issue-details] 
-    (is (= expected-current-sprint-issues (get-issues-in-current-sprint stub-test-config)))))
+(defn- stub-board [id name]
+  {:id   id
+   :name name})
+
+(defn- stub-sprint [id state]
+  {:id    id
+   :state state})
+
+(def- stub-config
+  {:jira {:board "board-1-name"}})
+
+(deftest get-issues-in-current-sprint-then-decodes-issues
+  (with-redefs [jira-client/get-boards            (fn [cfg] [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
+                jira-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) [(stub-sprint 1 "active") (stub-sprint 2 "inactive")]))
+                jira-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
+    (is (= expected-current-sprint-issues (get-issues-in-current-sprint stub-config)))))
+

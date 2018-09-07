@@ -1,44 +1,78 @@
-{
-    "expand": "schema,names",
-    "startAt": 0,
-    "maxResults": 50,
-    "total": 53,
-    "issues": [
-        {
-            "key": "issue-1-key",
-            "fields": {
-                "parent": {
-                    "key": "issue-1-parent"
-                }
-                "assignee": {
-                    "displayName": "issue-1-assignee"
-                },
-                "issuetype": {
-                    "name": "issue-1-type"
-                },
-                "status": {
-                    "name": "issue-1-status"
-                },
-                "summary": "issue-1-title"
-            }
+[
+    {
+        "key": "issue-1-key",
+        "fields": {
+            "parent": "issue-1-parent",
+            "assignee": {
+                "displayName": "issue-1-assignee"
+            },
+            "issuetype": {
+                "name": "issue-1-type"
+            },
+            "status": {
+                "name": "issue-1-status"
+            },
+            "summary": "issue-1-title"
         },
-        {
-            "key": "issue-2-key",
-            "fields": {
-                "parent": {
-                    "key": "issue-2-parent"
+        "changelog": {
+            "startAt": 0,
+            "maxResults": 4,
+            "total": 4,
+            "histories": [
+                {
+                    "created": "1970-01-01T00:00:00.000+0000",
+                    "items": [
+                        {
+                            "field": "status",
+                            "fromString": "To Do",
+                            "toString": "In Progress"
+                        }
+                    ]
                 }
-                "assignee": {
-                    "displayName": "issue-2-assignee"
-                },
-                "issuetype": {
-                    "name": "issue-2-type"
-                },
-                "status": {
-                    "name": "issue-2-status"
-                },
-                "summary": "issue-2-title"
-            }
+            ]
         }
-    ]
-}
+    },
+    {
+        "key": "issue-2-key",
+        "fields": {
+            "parent": "issue-2-parent",
+            "assignee": {
+                "displayName": "issue-2-assignee"
+            },
+            "issuetype": {
+                "name": "issue-2-type"
+            },
+            "status": {
+                "name": "issue-2-status"
+            },
+            "summary": "issue-2-title"
+        },
+        "changelog": {
+            "startAt": 0,
+            "maxResults": 4,
+            "total": 4,
+            "histories": [
+                {
+                    "created": "1970-01-01T00:00:00.000+0000",
+                    "items": [
+                        {
+                            "field": "status",
+                            "fromString": "To Do",
+                            "toString": "In Progress"
+                        }
+                    ]
+                },
+                {
+                    "created": "1970-01-02T00:00:00.000+0000",
+                    "items": [
+                        {
+                            "field": "status",
+                            "fromString": "In Progress",
+                            "toString": "Closed"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]

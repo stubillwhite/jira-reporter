@@ -28,31 +28,31 @@
    ([d]
     (ZonedDateTime/of 2000 5 d 0 0 0 0 utc)))
 
- (deftest add-derived-fields-given-issue-closed-then-adds-time-in-state
-   (let [stub-closed-issue      {:history (-> []
-                                              (in-progress (utc-time 9))
-                                              (blocked     (utc-time 11))
-                                              (in-progress (utc-time 12))
-                                              (done        (utc-time 13)))}
-         expected-time-in-state {"In Progress" 3 "Blocked" 1}]
-     (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-closed-issue))))))
+(deftest add-derived-fields-given-issue-closed-then-adds-time-in-state
+  (let [stub-closed-issue      {:history (-> []
+                                             (in-progress (utc-time 9))
+                                             (blocked     (utc-time 11))
+                                             (in-progress (utc-time 12))
+                                             (done        (utc-time 13)))}
+        expected-time-in-state {:in-progress 3 :blocked 1}]
+    (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-closed-issue))))))
 
- (deftest add-derived-fields-given-issue-open-then-adds-time-in-state
-   (with-redefs [date/now (fn [] (utc-time 16))]
-     (let [stub-in-progress-issue {:history (-> []
-                                                (in-progress (utc-time 9))
-                                                (blocked     (utc-time 11))
-                                                (in-progress (utc-time 12)))}
-           expected-time-in-state {:in-progress 5 :blocked 1}]
-       (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-in-progress-issue)))))))
+(deftest add-derived-fields-given-issue-open-then-adds-time-in-state
+  (with-redefs [date/now (fn [] (utc-time 16))]
+    (let [stub-in-progress-issue {:history (-> []
+                                               (in-progress (utc-time 9))
+                                               (blocked     (utc-time 11))
+                                               (in-progress (utc-time 12)))}
+          expected-time-in-state {:in-progress 5 :blocked 1}]
+      (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-in-progress-issue)))))))
 
 (deftest add-derived-fields-given-issue-closed-then-adds-lead-time-in-days
   (let [stub-closed-issue {:history (-> []
-                                        (in-progress (utc-date 1))
-                                        (blocked     (utc-date 3))
-                                        (in-progress (utc-date 3))
-                                        (done        (utc-date 4)))}]
-     (is (= 3 (:lead-time-in-days (add-derived-fields stub-closed-issue))))))
+                                        (in-progress (utc-date 2))
+                                        (blocked     (utc-date 4))
+                                        (in-progress (utc-date 4))
+                                        (done        (utc-date 5)))}]
+     (is (= 4 (:lead-time-in-days (add-derived-fields stub-closed-issue))))))
 
 (deftest add-derived-fields-given-issue-open-then-adds-lead-time-in-days
   (with-redefs [date/now (fn [] (utc-date 5))]
