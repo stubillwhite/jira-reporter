@@ -110,5 +110,3 @@
 (def task-types         #{"Task" "Sub-task"})
 (def bug-types          #{"Bug" "Bug Sub-task"})
 (def gdpr-types         #{"GDPR Compliance"})
-
-

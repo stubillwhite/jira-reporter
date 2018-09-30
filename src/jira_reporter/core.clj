@@ -89,23 +89,24 @@
 
 (defn report-time-in-state [issues]
   (println "\nLead time in working days and working hours in state")
-  (pprint/print-table [:id :parent-id :title :lead-time-in-days :todo :in-progress :blocked :deployment :other]
+  (pprint/print-table [:id :title :lead-time-in-days :todo :in-progress :blocked :deployment :other]
                       (->> issues
                            (filter (partial type-is? api/task-types))
                            (map #(merge % (:time-in-state %))))))  
 
-(defn- generate-sprint-report-from-issues [issues]
-  (report-issues-summary issues)
-  (report-time-in-state issues))
 
 (defn generate-sprint-report
   "Generate a report for a sprint."
-  [config name]
-  (let [issues (map analysis/add-derived-fields (api/get-issues-in-sprint-named config name))]
-    (generate-sprint-report-from-issues issues)))
+  ([config name]
+   (let [issues (map analysis/add-derived-fields (api/get-issues-in-sprint-named config name))]
+     (generate-sprint-report config name issues)))
+
+  ([config name issues]
+   (report-issues-summary issues)
+   (report-time-in-state issues)))
 
 ;; (def api-issues (api/get-issues-in-current-sprint config))
 ;; (def issues (map analysis/add-derived-fields api-issues))
 
-;; (nth api-issues 5)
-;;(clojure.pprint/pprint (take 10 issues))
+;;(generate-sprint-report config "foo" issues)
+;; (generate-daily-report config issues)
