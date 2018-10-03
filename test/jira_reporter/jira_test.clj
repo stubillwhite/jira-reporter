@@ -1,14 +1,14 @@
-(ns jira-reporter.api-test
+(ns jira-reporter.jira-test
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json]
             [clojure.test :refer :all]
-            [jira-reporter.api :as api :refer :all]
-            [jira-reporter.jira-client :as jira-client]
+            [jira-reporter.jira :as jira :refer :all]
+            [jira-reporter.rest-client :as rest-client]
             [jira-reporter.utils :refer [def-]])
   (:import [java.time ZonedDateTime ZoneId]))
 
 (def current-sprint-json
-  (decode-body {:body (slurp (io/resource "test-current-sprint.json"))}))
+  (rest-client/decode-body {:body (slurp (io/resource "test-current-sprint.json"))}))
 
 (def- stub-test-config
   {:jira {:username "test-username"
@@ -63,8 +63,8 @@
   {:jira {:board "board-1-name"}})
 
 (deftest get-issues-in-current-sprint-then-decodes-issues
-  (with-redefs [jira-client/get-boards            (fn [cfg] [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
-                jira-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) [(stub-sprint 1 "active") (stub-sprint 2 "inactive")]))
-                jira-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
+  (with-redefs [rest-client/get-boards            (fn [cfg] [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
+                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) [(stub-sprint 1 "active") (stub-sprint 2 "inactive")]))
+                rest-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
     (is (= expected-current-sprint-issues (get-issues-in-current-sprint stub-config)))))
 

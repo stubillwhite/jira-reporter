@@ -1,38 +1,12 @@
-(ns jira-reporter.api
+(ns jira-reporter.jira
   (:require [clojure.data.json :as json]
             [com.rpl.specter :refer [ALL collect END select* selected? transform*]]
-            [jira-reporter.jira-client :as jira-client]
+            [jira-reporter.rest-client :as rest-client]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre])
   (:import [java.time OffsetDateTime ZoneId]))
 
 (timbre/refer-timbre)
-
-(def- iso-8601-date-time-formatter
-  (-> (java.time.format.DateTimeFormatterBuilder.)
-      (.append java.time.format.DateTimeFormatter/ISO_LOCAL_DATE_TIME)
-      (.optionalStart)
-      (.appendOffset "+HH:MM" "+00:00")
-      (.optionalEnd)
-      (.optionalStart)
-      (.appendOffset "+HHMM" "+0000")
-      (.optionalEnd)
-      (.optionalStart)
-      (.appendOffset "+HH" "Z")
-      (.optionalEnd)
-      (.toFormatter)))
-
-(defn- decode-iso-8601-date-time [s]
-  (-> (OffsetDateTime/parse s iso-8601-date-time-formatter)
-      (.atZoneSameInstant (ZoneId/of "UTC"))))
-
-(defn- decode-value [key value]
-  (if (contains? #{:created :dated} key)
-    (decode-iso-8601-date-time value)
-    value))
-
-(defn decode-body [x]
-  (json/read-str (:body x) :key-fn keyword :value-fn decode-value))
 
 (defn- extract-issue-history [json]
   (let [field-names  [:date :field :from :to ]
@@ -55,17 +29,17 @@
 
 (defn- get-board-named [config name]
   (info "Finding board named" name)
-  (let [boards (jira-client/get-boards config)]
+  (let [boards (rest-client/get-boards config)]
     (find-first #(= (:name %) name) boards)))
 
 (defn- get-active-sprint [config board-id]
   (info "Finding the active sprint")
-  (let [sprints (jira-client/get-sprints-for-board config board-id)]
+  (let [sprints (rest-client/get-sprints-for-board config board-id)]
     (find-first #(= (:state %) "active") sprints)))
 
 (defn- get-sprint-named [config board-id name]
   (info "Finding the current sprint")
-  (let [sprints (jira-client/get-sprints-for-board config board-id)]
+  (let [sprints (rest-client/get-sprints-for-board config board-id)]
     (find-first #(= (:name %) name) sprints)))
 
 (defn extract-issue [issue-json]
@@ -80,11 +54,8 @@
 
 (defn- get-issues-for-sprint [config sprint-id]
   (info "Finding issues in the sprint")
-  (->> (jira-client/get-issues-for-sprint config sprint-id)
+  (->> (rest-client/get-issues-for-sprint config sprint-id)
        (transform* [ALL] extract-issue)))
-
-;; (->> (deref jira-reporter.jira-client/debug-data) (transform* [ALL] extract-issue))
-;; (->> (deref jira-reporter.jira-client/debug-data) (first) (clojure.pprint/pprint))
 
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."

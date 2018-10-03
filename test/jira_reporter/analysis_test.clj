@@ -1,11 +1,8 @@
 (ns jira-reporter.analysis-test
-  (:require [clojure.java.io :as io]
-            [clojure.test :refer :all]
+  (:require [clojure.test :refer :all]
             [jira-reporter.analysis :refer :all]
-            [jira-reporter.api :as api]
-            [jira-reporter.jira-client :as jira-client]
-            [jira-reporter.utils :refer [def-]]
-            [jira-reporter.date :as date])
+            [jira-reporter.date :as date]
+            [jira-reporter.utils :refer [def-]])
   (:import [java.time ZonedDateTime ZoneId]))
 
  (defn- add-transition [new-state history t]

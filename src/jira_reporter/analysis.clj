@@ -1,21 +1,21 @@
 (ns jira-reporter.analysis
-  (:require [jira-reporter.api :as api]
+  (:require [jira-reporter.jira :as jira]
             [jira-reporter.date :as date]
             [jira-reporter.utils :refer [def-]])
   (:import [java.time ZonedDateTime ZoneId]))
 
 (defn- add-current-state-if-open [history]
-  (if (and (not-empty history) (not (contains? api/closed-states (-> history last :to))))
+  (if (and (not-empty history) (not (contains? jira/closed-states (-> history last :to))))
     (concat history [(-> history last (assoc :date (date/now)))])
     history))
 
 (defn- state-category [status]
   (condp contains? status
-    api/to-do-states       :todo
-    api/blocked-states     :blocked
-    api/in-progress-states :in-progress
-    api/deployment-states  :deployment
-    api/closed-states      :closed
+    jira/to-do-states       :todo
+    jira/blocked-states     :blocked
+    jira/in-progress-states :in-progress
+    jira/deployment-states  :deployment
+    jira/closed-states      :closed
     #{status}              :other))
 
 (defn- calculate-time-in-state [issue]

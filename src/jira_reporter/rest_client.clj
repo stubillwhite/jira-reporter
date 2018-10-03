@@ -1,4 +1,4 @@
-(ns jira-reporter.jira-client
+(ns jira-reporter.rest-client
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
             [taoensso.timbre :as timbre]
@@ -30,7 +30,7 @@
     (decode-iso-8601-date-time value)
     value))
 
-(defn- decode-body [x]
+(defn decode-body [x]
   (json/read-str (:body x) :key-fn keyword :value-fn decode-value))
 
 (defn- merge-in [m ks v]

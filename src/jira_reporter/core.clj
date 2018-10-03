@@ -2,7 +2,7 @@
   (:require [clojure.pprint :as pprint]
             [com.rpl.specter :refer [ALL collect END filterer select select* selected? transform putval MAP-VALS]]
             [jira-reporter.analysis :as analysis]
-            [jira-reporter.api :as api]
+            [jira-reporter.jira :as jira]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
             [jira-reporter.utils :refer [def-]]
@@ -17,7 +17,7 @@
   {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
 
 (timbre/merge-config!
- {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter-api.log"})
+ {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log"})
               :ns-whitelist ["jira-reporter/jira-api"]}})
 
 (defn- status-is? [states issue]
@@ -30,13 +30,13 @@
   (println "\nIssues blocked")
   (pprint/print-table [:id :title :assignee :lead-time-in-days]
                       (->> issues
-                           (filter (partial status-is? api/blocked-states)))))
+                           (filter (partial status-is? jira/blocked-states)))))
 
 (defn report-issues-in-progress [issues]
   (println "\nIssues in progress")
   (pprint/print-table [:id :title :assignee :lead-time-in-days]
                               (->> issues
-                                   (filter (partial status-is? api/in-progress-states)))))
+                                   (filter (partial status-is? jira/in-progress-states)))))
 
 (defn- changed-state-yesterday? [issue]
   (when-let [last-change (-> issue :history last :date)]
@@ -52,12 +52,12 @@
   (println "\nIssues awaiting deployment")
   (pprint/print-table [:id :status :title :assignee :lead-time-in-days]
                       (->> issues
-                           (filter (partial status-is? api/deployment-states)))))
+                           (filter (partial status-is? jira/deployment-states)))))
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([config]
-   (let [issues (map analysis/add-derived-fields (api/get-issues-in-current-sprint config))]
+   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-current-sprint config))]
      (generate-daily-report config issues)))
 
   ([config issues]
@@ -69,11 +69,11 @@
 ;; TODO: Use comp
 (defn report-issues-summary [issues]
  (println "\nIssue summary")
-  (let [story?  (partial type-is? api/story-types)
-        task?   (partial type-is? api/task-types)
-        bug?    (partial type-is? api/bug-types)
-        gdpr?   (partial type-is? api/gdpr-types)
-        closed? (partial status-is? api/closed-states)
+  (let [story?  (partial type-is? jira/story-types)
+        task?   (partial type-is? jira/task-types)
+        bug?    (partial type-is? jira/bug-types)
+        gdpr?   (partial type-is? jira/gdpr-types)
+        closed? (partial status-is? jira/closed-states)
         open?   (complement closed?)]
     (pprint/print-table
      [{:category "Story" :open   (->> issues (filter story?) (filter open?)   (count))
@@ -91,21 +91,21 @@
   (println "\nLead time in working days and working hours in state")
   (pprint/print-table [:id :title :lead-time-in-days :todo :in-progress :blocked :deployment :other]
                       (->> issues
-                           (filter (partial type-is? api/task-types))
+                           (filter (partial type-is? jira/task-types))
                            (map #(merge % (:time-in-state %))))))  
 
 
 (defn generate-sprint-report
   "Generate a report for a sprint."
   ([config name]
-   (let [issues (map analysis/add-derived-fields (api/get-issues-in-sprint-named config name))]
+   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-sprint-named config name))]
      (generate-sprint-report config name issues)))
 
   ([config name issues]
    (report-issues-summary issues)
    (report-time-in-state issues)))
 
-;; (def api-issues (api/get-issues-in-current-sprint config))
+;; (def api-issues (jira/get-issues-in-current-sprint config))
 ;; (def issues (map analysis/add-derived-fields api-issues))
 
 ;;(generate-sprint-report config "foo" issues)
