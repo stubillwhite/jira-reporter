@@ -2,17 +2,17 @@
   (:gen-class)
   (:require [clojure.string :as string]
             [clojure.tools.cli :as cli]
-            [clojure.tools.nrepl.server :refer [start-server stop-server]]
             [jira-reporter.config :refer [config]]
-            [jira-reporter.core :as core]
+            [jira-reporter.reports :as reports]
             [jira-reporter.utils :refer [def-]]
-            [mount.core :as mount :refer [defstate]]
+            [mount.core :as mount]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
 (def- cli-options
   [[nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
+   [nil "--sprints" "List the names of the sprints"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -35,21 +35,20 @@
       errors          {:exit-message (error-msg errors) :ok? false}
       :else           {:options options                 :ok? true})))
 
-(defn- exit [status-code message]
-  (println message)
-  (System/exit status-code))
-
-(defn- generate-report [args config]
+(defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
+    (clojure.pprint/pprint options)
     (if exit-message
-      (exit (if ok? 0 1) exit-message)
-      (if-let [sprint-name (:sprint-name options)]
-        (core/generate-sprint-report config sprint-name)
-        (core/generate-daily-report config)))))
+      (println exit-message)
+      (cond
+        (:sprints options)     (reports/generate-sprint-names-report config)
+        (:sprint-name options) (reports/generate-sprint-report config (:sprint-name options))
+        :else                  (reports/generate-daily-report config)))))
 
 (defn -main [& args]
   (info "Starting application")
   (mount/start)
-  (generate-report args config)
+  (execute-action args config)
   (mount/stop)
   (info "Done"))
+

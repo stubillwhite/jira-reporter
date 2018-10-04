@@ -30,7 +30,9 @@
     (decode-iso-8601-date-time value)
     value))
 
-(defn decode-body [x]
+(defn decode-body
+  "Returns the JIRA JSON document converted into Clojure data types."
+  [x]
   (json/read-str (:body x) :key-fn keyword :value-fn decode-value))
 
 (defn- merge-in [m ks v]
@@ -62,19 +64,21 @@
    (str "https://" server "/rest/agile/1.0")
    (apply str args)))
 
-(defn get-boards [config]
+(defn get-boards
+  "Returns a seq of all the boards."
+  [config]
   (->> (paginated-request config :get (build-url config "/board"))
        (mapcat :values)))
 
-(defn get-sprints-for-board [config board-id]
+(defn get-sprints-for-board
+  "Returns a seq of the sprints for the board with the specified ID."
+  [config board-id]
   (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint"))
        (mapcat :values)))
 
-(defn get-sprint [config sprint-id]
-  (->> (paginated-request config :get (build-url config "/sprint/" sprint-id))
-       (mapcat :values)))
-
-(defn get-issues-for-sprint [config sprint-id]
+(defn get-issues-for-sprint
+  "Returns a seq of the issues for the sprint with the specified ID."
+  [config sprint-id]
   (let [result (->> (paginated-request (merge-in (build-request config :get (build-url config "/sprint/" sprint-id "/issue"))
                                                  [:query-params]
                                                  {:expand "changelog"}))

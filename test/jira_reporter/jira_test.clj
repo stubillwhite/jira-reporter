@@ -55,16 +55,31 @@
   {:id   id
    :name name})
 
-(defn- stub-sprint [id state]
+(def- stub-boards [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
+
+(defn- stub-sprint [id name state]
   {:id    id
+   :name  name
    :state state})
+
+(def- stub-sprints [(stub-sprint 1 "stub-sprint-1-name" "active") (stub-sprint 2 "stub-sprint-2-name" "inactive")])
 
 (def- stub-config
   {:jira {:board "board-1-name"}})
 
 (deftest get-issues-in-current-sprint-then-decodes-issues
-  (with-redefs [rest-client/get-boards            (fn [cfg] [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
-                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) [(stub-sprint 1 "active") (stub-sprint 2 "inactive")]))
+  (with-redefs [rest-client/get-boards            (fn [cfg] stub-boards)
+                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))
                 rest-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
     (is (= expected-current-sprint-issues (get-issues-in-current-sprint stub-config)))))
 
+(deftest get-sprint-names-then-returns-sprint-names
+  (with-redefs [rest-client/get-boards            (fn [cfg] stub-boards)
+                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))]
+    (is (= ["stub-sprint-1-name" "stub-sprint-2-name"] (get-sprint-names stub-config)))))
+
+(deftest get-issues-in-sprint-named-then-decodes-issues
+  (with-redefs [rest-client/get-boards            (fn [cfg] stub-boards)
+                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))
+                rest-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
+    (is (= expected-current-sprint-issues (get-issues-in-sprint-named stub-config "stub-sprint-1-name")))))

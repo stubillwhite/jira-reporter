@@ -2,8 +2,7 @@
   (:require [clojure.test :refer :all]
             [jira-reporter.date :refer :all]
             [jira-reporter.utils :refer [def-]])
-  (:import [java.time ZonedDateTime ZoneId])
-  )
+  (:import [java.time ZonedDateTime ZoneId]))
 
 (def- utc (ZoneId/of "UTC"))
 

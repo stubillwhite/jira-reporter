@@ -42,7 +42,7 @@
   (let [sprints (rest-client/get-sprints-for-board config board-id)]
     (find-first #(= (:name %) name) sprints)))
 
-(defn extract-issue [issue-json]
+(defn- extract-issue [issue-json]
   {:id        (get-in issue-json [:key])
    :parent-id (get-in issue-json [:fields :parent])
    :type      (get-in issue-json [:fields :issuetype :name])
@@ -63,6 +63,13 @@
   (let [board  (get-board-named config board)
         sprint (get-active-sprint config (:id board))]
     (get-issues-for-sprint config (:id sprint))))
+
+(defn get-sprint-names
+  "Get the names of the sprints."
+  [{{:keys [board]} :jira :as config}]
+  (let [board   (get-board-named config board)
+        sprints (rest-client/get-sprints-for-board config (:id board))]
+    (map :name sprints)))
 
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."

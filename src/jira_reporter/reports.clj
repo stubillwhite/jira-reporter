@@ -1,4 +1,4 @@
-(ns jira-reporter.core
+(ns jira-reporter.reports
   (:require [clojure.pprint :as pprint]
             [com.rpl.specter :refer [ALL collect END filterer select select* selected? transform putval MAP-VALS]]
             [jira-reporter.analysis :as analysis]
@@ -11,7 +11,9 @@
 
 (timbre/refer-timbre)
 
-(timbre/merge-config! {:appenders {:println {:enabled? false}}})   
+;; TODO: Move this to somewhere core
+(timbre/merge-config!
+ {:appenders {:println {:enabled? false}}})   
 
 (timbre/merge-config!
   {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
@@ -66,6 +68,12 @@
    (report-issues-changed-state issues)
    (report-issues-awaiting-deployment issues))) 
 
+(defn generate-sprint-names-report
+  "Generate a report of the sprint names for a board."
+  ([config]
+   (doseq [name (jira/get-sprint-names config)]
+     (println name))))
+
 ;; TODO: Use comp
 (defn report-issues-summary [issues]
  (println "\nIssue summary")
@@ -104,9 +112,3 @@
   ([config name issues]
    (report-issues-summary issues)
    (report-time-in-state issues)))
-
-;; (def api-issues (jira/get-issues-in-current-sprint config))
-;; (def issues (map analysis/add-derived-fields api-issues))
-
-;;(generate-sprint-report config "foo" issues)
-;; (generate-daily-report config issues)
