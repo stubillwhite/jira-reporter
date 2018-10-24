@@ -1,8 +1,11 @@
 (ns jira-reporter.analysis
   (:require [jira-reporter.jira :as jira]
             [jira-reporter.date :as date]
-            [jira-reporter.utils :refer [def-]])
+            [jira-reporter.utils :refer [def-]]
+            [taoensso.timbre :as timbre])
   (:import [java.time ZonedDateTime ZoneId]))
+
+(timbre/refer-timbre)
 
 (defn- add-current-state-if-open [history]
   (if (and (not-empty history) (not (contains? jira/closed-states (-> history last :to))))
@@ -16,7 +19,9 @@
     jira/in-progress-states :in-progress
     jira/deployment-states  :deployment
     jira/closed-states      :closed
-    #{status}              :other))
+    (do
+      (warn "Unknown JIRA status" status)
+      :other)))
 
 (defn- calculate-time-in-state [issue]
   (let [history  (add-current-state-if-open (:history issue))

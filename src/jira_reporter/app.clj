@@ -6,9 +6,20 @@
             [jira-reporter.reports :as reports]
             [jira-reporter.utils :refer [def-]]
             [mount.core :as mount]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [taoensso.timbre.appenders.core :as appenders]))
 
 (timbre/refer-timbre)
+
+(timbre/merge-config!
+ {:appenders {:println {:enabled? false}}})   
+
+(timbre/merge-config!
+  {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
+
+(timbre/merge-config!
+ {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log" :level :trace})
+              :ns-whitelist ["jira-reporter/jira-api" "jira-reporter.rest-client"]}})
 
 (def- cli-options
   [[nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
@@ -37,7 +48,6 @@
 
 (defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
-    (clojure.pprint/pprint options)
     (if exit-message
       (println exit-message)
       (cond
