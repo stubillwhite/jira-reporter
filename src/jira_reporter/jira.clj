@@ -1,7 +1,9 @@
 (ns jira-reporter.jira
   (:require [clojure.data.json :as json]
+            [clojure.spec.alpha :as spec]
             [com.rpl.specter :refer [ALL collect END select* selected? transform*]]
             [jira-reporter.rest-client :as rest-client]
+            [jira-reporter.schema :as schema]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre])
   (:import [java.time OffsetDateTime ZoneId]))
@@ -44,7 +46,7 @@
 
 (defn- extract-issue [issue-json]
   {:id        (get-in issue-json [:key])
-   :parent-id (get-in issue-json [:fields :parent])
+   :parent-id (get-in issue-json [:fields :parent :id])
    :type      (get-in issue-json [:fields :issuetype :name])
    :status    (get-in issue-json [:fields :status :name])
    :assignee  (get-in issue-json [:fields :assignee :displayName])
@@ -52,7 +54,9 @@
    :history   (extract-issue-history issue-json)
    })
 
-(defn- get-issues-for-sprint [config sprint-id]
+(defn- get-issues-for-sprint
+  [config sprint-id]
+  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
   (info "Finding issues in the sprint")
   (->> (rest-client/get-issues-for-sprint config sprint-id)
        (transform* [ALL] extract-issue)))
@@ -60,6 +64,7 @@
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."
   [{{:keys [board]} :jira :as config}]
+  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
   (let [board  (get-board-named config board)
         sprint (get-active-sprint config (:id board))]
     (get-issues-for-sprint config (:id sprint))))

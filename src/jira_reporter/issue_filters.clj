@@ -67,3 +67,7 @@
   [issues]
   (filter (complement (partial status-is? jira/closed-states)) issues))
 
+(defn aggregate-by-story
+  "TODO"
+  [issues]
+  )
