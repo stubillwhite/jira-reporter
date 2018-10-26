@@ -4,4 +4,16 @@
  :jira {:username "CHANGEME"
         :password "CHANGEME"
         :server   "CHANGEME"
-        :project  "CHANGEME"}}
+        :board    "CHANGEME"
+        :project  "CHANGEME"}
+
+ :schema {:to-do-states       #{"To Do()" "To Do"}
+          :in-progress-states #{"In Progress"}
+          :blocked-states     #{"Blocked"}
+          :closed-states      #{"Closed - DONE" "Closed"}
+          :deployment-states  #{"Deploy to SIT" "Deploy to Prod"}
+          :story-types        #{"Story"}
+          :task-types         #{"Task" "Sub-task"}
+          :bug-types          #{"Bug" "Bug Sub-task"}
+          :gdpr-types         #{"GDPR Compliance"}}
+}

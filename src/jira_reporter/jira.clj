@@ -5,7 +5,8 @@
             [jira-reporter.rest-client :as rest-client]
             [jira-reporter.schema :as schema]
             [jira-reporter.utils :refer [def-]]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as timbre]
+            [jira-reporter.config :refer [config]])
   (:import [java.time OffsetDateTime ZoneId]))
 
 (timbre/refer-timbre)
@@ -83,13 +84,12 @@
         sprint (get-sprint-named config (:id board) name)]
     (get-issues-for-sprint config (:id sprint))))
 
-(def to-do-states       #{"To Do()" "To Do"})
-(def in-progress-states #{"In Progress"})
-(def blocked-states     #{"Blocked"})
-(def closed-states      #{"Closed - DONE" "Closed"})
-(def deployment-states  #{"Deploy to SIT" "Deploy to Prod"})
-
-(def story-types        #{"Story"})
-(def task-types         #{"Task" "Sub-task"})
-(def bug-types          #{"Bug" "Bug Sub-task"})
-(def gdpr-types         #{"GDPR Compliance"})
+(defn to-do-states       [] (get-in config [:schema :to-do-states]))
+(defn in-progress-states [] (get-in config [:schema :in-progress-states]))
+(defn blocked-states     [] (get-in config [:schema :blocked-states]))
+(defn closed-states      [] (get-in config [:schema :closed-states]))
+(defn deployment-states  [] (get-in config [:schema :deployment-states]))
+(defn story-types        [] (get-in config [:schema :story-types]))
+(defn task-types         [] (get-in config [:schema :task-types]))
+(defn bug-types          [] (get-in config [:schema :bug-types]))
+(defn gdpr-types         [] (get-in config [:schema :gdpr-types]))

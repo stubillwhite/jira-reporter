@@ -2,7 +2,7 @@
     {
         "key": "issue-1-key",
         "fields": {
-            "parent": "issue-1-parent",
+            "parent": {"id": "issue-1-parent"},
             "assignee": {
                 "displayName": "issue-1-assignee"
             },
@@ -35,7 +35,7 @@
     {
         "key": "issue-2-key",
         "fields": {
-            "parent": "issue-2-parent",
+            "parent": {"id": "issue-2-parent"},
             "assignee": {
                 "displayName": "issue-2-assignee"
             },

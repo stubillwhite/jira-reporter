@@ -1,6 +1,8 @@
 (ns jira-reporter.analysis
-  (:require [jira-reporter.jira :as jira]
+  (:require [clojure.spec.alpha :as spec]
             [jira-reporter.date :as date]
+            [jira-reporter.jira :as jira]
+            [jira-reporter.schema :as schema]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre])
   (:import [java.time ZonedDateTime ZoneId]))
@@ -8,17 +10,17 @@
 (timbre/refer-timbre)
 
 (defn- add-current-state-if-open [history]
-  (if (and (not-empty history) (not (contains? jira/closed-states (-> history last :to))))
+  (if (and (not-empty history) (not (contains? (jira/closed-states) (-> history last :to))))
     (concat history [(-> history last (assoc :date (date/now)))])
     history))
 
 (defn- state-category [status]
   (condp contains? status
-    jira/to-do-states       :todo
-    jira/blocked-states     :blocked
-    jira/in-progress-states :in-progress
-    jira/deployment-states  :deployment
-    jira/closed-states      :closed
+    (jira/to-do-states)       :todo
+    (jira/blocked-states)     :blocked
+    (jira/in-progress-states) :in-progress
+    (jira/deployment-states)  :deployment
+    (jira/closed-states)      :closed
     (do
       (warn "Unknown JIRA status" status)
       :other)))
@@ -43,8 +45,10 @@
   (assoc issue :lead-time-in-days
          (calculate-lead-time-in-days issue)))
 
-(defn add-derived-fields [issue]
-  "Augment the specified issue with derived fields."
+(defn add-derived-fields
+  "Augment the specified issue with derived fields."  
+  [issue]
+  {:post [(spec/assert ::schema/enriched-issue %)]}
   (-> issue
       (with-lead-time-in-days)
       (with-time-in-state)))
