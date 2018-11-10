@@ -1,4 +1,4 @@
-(defproject jira-reporter "0.1.0-SNAPSHOT"
+(defproject jira-reporter "0.1.2-SNAPSHOT"
 
   :description "TODO"
 
@@ -24,7 +24,7 @@
                  [com.rpl/specter "1.1.1"]
                  [org.clojure/tools.cli "0.3.7"]]
 
-  :profiles {;;:uberjar {:aot :all}
+  :profiles {:uberjar {:aot :all}
 
              :dev {:dependencies   [[org.clojure/tools.namespace "0.2.10"]]
                    :resource-paths ["test-resources"]

@@ -91,3 +91,6 @@
 ;; Things to do next
 ;; - Issues opened and closed within a sprint
 ;; - Lead times per story using an aggregate-by-story function
+
+
+;; (generate-daily-report config)

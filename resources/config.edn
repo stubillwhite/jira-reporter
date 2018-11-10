@@ -1,12 +1,13 @@
 {:nrepl {:host "0.0.0.0"
          :port 7878}
 
- :jira {:username "CHANGEME"
-        :password "CHANGEME"
-        :server   "CHANGEME"
-        :board    "CHANGEME"
-        :project  "CHANGEME"}
-
+ :jira {:username   "CHANGEME"
+        :password   "CHANGEME"
+        :server     "CHANGEME"
+        :board      "CHANGEME"
+        :project    "CHANGEME"
+        :batch-size 10}
+ 
  :schema {:to-do-states       #{"To Do()" "To Do"}
           :in-progress-states #{"In Progress"}
           :blocked-states     #{"Blocked"}
@@ -16,4 +17,4 @@
           :task-types         #{"Task" "Sub-task"}
           :bug-types          #{"Bug" "Bug Sub-task"}
           :gdpr-types         #{"GDPR Compliance"}}
-}
+ }

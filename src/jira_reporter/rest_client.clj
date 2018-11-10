@@ -38,26 +38,32 @@
 (defn- merge-in [m ks v]
   (update-in m ks #(merge % v)))
 
-(defn- build-request [{{:keys [username password]} :jira} method url]
+(defn- build-request [{{:keys [username password batch-size]} :jira} method url]
   {:method       method
    :url          url
-   :query-params {:maxResults 500}
+   :query-params {:maxResults batch-size}
    :basic-auth   [username password]})
 
+(defn- is-last-page? [response]
+  (or (not (contains? response :isLast)) (:isLast response)))
+
+(defn- is-empty-issues? [response]
+  (or (not (contains? response :issues)) (empty? (:issues response))))
+
 (defn- paginated-request
-  ([config method url]
-   (paginated-request (build-request config method url)))
+  ([config method url f-terminate?]
+   (paginated-request (build-request config method url) f-terminate?))
   
-  ([req]
-   (trace "Request: " req)
+  ([req f-terminate?]
+   (debug "Request: " req)
    (let [response (decode-body (client/request req))]
      (trace "Response:" response)
-     (if (or (not (contains? response :isLast)) (:isLast response))
+     (if (f-terminate? response)
        [response]
        (let [{:keys [maxResults startAt isLast]} response
              new-req (merge-in req [:query-params] {:maxResults maxResults
                                                     :startAt    (+ startAt maxResults)})]
-         (lazy-seq (cons response (paginated-request new-req))))))))
+         (lazy-seq (cons response (paginated-request new-req f-terminate?))))))))
 
 (defn- build-url [{{:keys [server]} :jira} & args]
   (str
@@ -67,13 +73,13 @@
 (defn get-boards
   "Returns a seq of all the boards."
   [config]
-  (->> (paginated-request config :get (build-url config "/board"))
+  (->> (paginated-request config :get (build-url config "/board") is-last-page?)
        (mapcat :values)))
 
 (defn get-sprints-for-board
   "Returns a seq of the sprints for the board with the specified ID."
   [config board-id]
-  (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint"))
+  (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 
 (defn get-issues-for-sprint
@@ -81,7 +87,7 @@
   [config sprint-id]
   (let [result (->> (paginated-request (merge-in (build-request config :get (build-url config "/sprint/" sprint-id "/issue"))
                                                  [:query-params]
-                                                 {:expand "changelog"}))
+                                                 {:expand "changelog"})
+                                       is-empty-issues?)
                     (mapcat :issues))]
     result))
-

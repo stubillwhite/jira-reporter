@@ -12,14 +12,15 @@
 (timbre/refer-timbre)
 
 (timbre/merge-config!
- {:appenders {:println {:enabled? false}}})   
+ {:level     :debug
+  :appenders {:println {:enabled? false}}})   
 
 (timbre/merge-config!
   {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
 
 (timbre/merge-config!
- {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log" :level :trace})
-              :ns-whitelist ["jira-reporter/jira-api" "jira-reporter.rest-client"]}})
+ {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log"})
+              :ns-whitelist ["jira-reporter.jira-api" "jira-reporter.rest-client"]}})
 
 (def- cli-options
   [[nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
