@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [jira-reporter.analysis :refer :all]
             [jira-reporter.date :as date]
+            [jira-reporter.config :refer [config]]
             [jira-reporter.utils :refer [def-]])
   (:import [java.time ZonedDateTime ZoneId]))
 
@@ -37,17 +38,26 @@
           :time-in-state     {}}
          m))
 
+(def- stub-config
+  {:schema {:to-do-states       #{"To Do"}
+            :in-progress-states #{"In Progress"}
+            :blocked-states     #{"Blocked"}
+            :closed-states      #{"Closed - DONE"}
+            }})
+
 (deftest add-derived-fields-given-issue-closed-then-adds-time-in-state
-  (let [stub-closed-issue      (stub-issue-with {:history (-> []
-                                                              (in-progress (utc-time 9))
-                                                              (blocked     (utc-time 11))
-                                                              (in-progress (utc-time 12))
-                                                              (done        (utc-time 13)))})
-        expected-time-in-state {:in-progress 3 :blocked 1}]
-    (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-closed-issue))))))
+  (with-redefs [config stub-config]
+    (let [stub-closed-issue      (stub-issue-with {:history (-> []
+                                                                (in-progress (utc-time 9))
+                                                                (blocked     (utc-time 11))
+                                                                (in-progress (utc-time 12))
+                                                                (done        (utc-time 13)))})
+          expected-time-in-state {:in-progress 3 :blocked 1}]
+      (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-closed-issue)))))))
 
 (deftest add-derived-fields-given-issue-open-then-adds-time-in-state
-  (with-redefs [date/now (fn [] (utc-time 16))]
+  (with-redefs [config   stub-config
+                date/now (fn [] (utc-time 16))]
     (let [stub-in-progress-issue (stub-issue-with {:history (-> []
                                                                 (in-progress (utc-time 9))
                                                                 (blocked     (utc-time 11))
@@ -56,15 +66,17 @@
       (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-in-progress-issue)))))))
 
 (deftest add-derived-fields-given-issue-closed-then-adds-lead-time-in-days
-  (let [stub-closed-issue (stub-issue-with {:history (-> []
-                                                         (in-progress (utc-date 2))
-                                                         (blocked     (utc-date 4))
-                                                         (in-progress (utc-date 4))
-                                                         (done        (utc-date 5)))})]
-     (is (= 4 (:lead-time-in-days (add-derived-fields stub-closed-issue))))))
+  (with-redefs [config stub-config]
+    (let [stub-closed-issue (stub-issue-with {:history (-> []
+                                                           (in-progress (utc-date 2))
+                                                           (blocked     (utc-date 4))
+                                                           (in-progress (utc-date 4))
+                                                           (done        (utc-date 5)))})]
+      (is (= 4 (:lead-time-in-days (add-derived-fields stub-closed-issue)))))))
 
 (deftest add-derived-fields-given-issue-open-then-adds-lead-time-in-days
-  (with-redefs [date/now (fn [] (utc-date 5))]
+  (with-redefs [config   stub-config
+                date/now (fn [] (utc-date 5))]
     (let [stub-in-progress-issue (stub-issue-with {:history (-> []
                                                                 (in-progress (utc-date 1))
                                                                 (blocked     (utc-date 3))

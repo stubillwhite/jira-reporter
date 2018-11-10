@@ -14,7 +14,7 @@
   {:jira {:username "test-username"
           :password "test-password"
           :server   "test.url.com"
-          :project  "test-project"}})
+          :board    "test-board"}})
 
 (defn- utc-date-time [y m d]
   (ZonedDateTime/of y m d 0 0 0 0 (ZoneId/of "UTC")))
