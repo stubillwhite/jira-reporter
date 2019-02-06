@@ -47,6 +47,8 @@
 
 (defn- extract-issue [issue-json]
   {:id        (get-in issue-json [:key])
+   :created   (or (get-in issue-json [:created])
+                  (get-in issue-json [:fields :created]))
    :parent-id (get-in issue-json [:fields :parent :id])
    :type      (get-in issue-json [:fields :issuetype :name])
    :status    (get-in issue-json [:fields :status :name])
@@ -76,6 +78,11 @@
   (let [board   (get-board-named config board)
         sprints (rest-client/get-sprints-for-board config (:id board))]
     (map :name sprints)))
+
+(defn get-board-names
+  "Get the names of the boards."
+  [config]
+  (map :name (rest-client/get-boards config)))
 
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."

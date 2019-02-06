@@ -38,10 +38,17 @@
      (generate-daily-report config issues)))
 
   ([config issues]
+   
    (report-issues-blocked issues)
    (report-issues-in-progress issues)
    (report-issues-changed-state issues)
    (report-issues-awaiting-deployment issues))) 
+
+(defn generate-board-names-report
+  "Generate a report of the board names."
+  ([config]
+   (doseq [name (jira/get-board-names config)]
+     (println name))))
 
 (defn generate-sprint-names-report
   "Generate a report of the sprint names for a board."
@@ -91,6 +98,5 @@
 ;; Things to do next
 ;; - Issues opened and closed within a sprint
 ;; - Lead times per story using an aggregate-by-story function
-
 
 ;; (generate-daily-report config)

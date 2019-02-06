@@ -13,7 +13,7 @@
 
 (defn- changed-state-in-the-last-day? [issue]
   (when-let [last-change (-> issue :history last :date)]
-    (= 1 (date/working-days-between last-change (date/today)))))
+    (<= (date/working-days-between last-change (date/today)) 1)))
 
 ;; Public functions
 

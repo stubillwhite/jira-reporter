@@ -82,6 +82,8 @@
   (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 
+;; TODO Get sprint by ID
+
 (defn get-issues-for-sprint
   "Returns a seq of the issues for the sprint with the specified ID."
   [config sprint-id]

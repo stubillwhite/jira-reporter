@@ -52,6 +52,17 @@
          (take-while (before? t2))
          (count))))
 
+(defn working-days-between
+  "Count the number of workdays between Temporal objects t1 and t2."
+  [t1 t2]
+  (if (.isAfter t1 t2)
+    (working-days-between t2 t1)
+    (->> (timestream t1 1 ChronoUnit/DAYS)
+         (filter working-day?)
+         (take-while (before? t2))
+         (count)
+         (max 1))))
+
 (defn working-hours-between
   "Count the number of working-hours between Temporal objects t1 and t2."
   [t1 t2]

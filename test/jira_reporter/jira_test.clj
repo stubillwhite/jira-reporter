@@ -37,6 +37,7 @@
 
 (def- expected-current-sprint-issues
   [{:id        "issue-1-key"
+    :created   (utc-date-time 1970 1 1)
     :parent-id "issue-1-parent"
     :type      "issue-1-type"
     :title     "issue-1-title"
@@ -44,6 +45,7 @@
     :assignee  "issue-1-assignee"
     :history   expected-issue-1-history},
    {:id        "issue-2-key"
+    :created   (utc-date-time 1970 1 1)
     :parent-id "issue-2-parent"
     :type      "issue-2-type"
     :title     "issue-2-title"

@@ -10,8 +10,11 @@
             [clojure.test :as test]
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
             [clojure.tools.trace :refer [trace-forms trace-ns untrace-ns]]
+            [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
+            [jira-reporter.jira :as jira]
             [jira-reporter.reports :as reports]
+            [jira-reporter.rest-client :as rest-client]
             [mount.core :as mount]
             [taoensso.timbre :as timbre]))
 
@@ -39,3 +42,15 @@
 (defn reset []
   (stop)
   (refresh :after 'user/start))
+
+;; Helper methods
+
+(defn read-issues []
+  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint config)))
+
+(defn read-raw-issues []
+  (rest-client/get-issues-for-sprint config 6456))
+
+;; (def issues (read-issues))
+;; (pprint (first issues))
+;; (reports/generate-daily-report config issues)

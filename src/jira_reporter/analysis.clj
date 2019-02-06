@@ -14,21 +14,22 @@
     (concat history [(-> history last (assoc :date (date/now)))])
     history))
 
-(defn- state-category [status]
-  (condp contains? status
+(defn- state-category [id state]
+  (condp contains? state
     (jira/to-do-states)       :todo
     (jira/blocked-states)     :blocked
     (jira/in-progress-states) :in-progress
     (jira/deployment-states)  :deployment
     (jira/closed-states)      :closed
     (do
-      (warn "Unknown JIRA status" status)
+      (warn "Unknown JIRA state" state "for issue with ID" id)
       :other)))
 
 (defn- calculate-time-in-state [issue]
-  (let [history  (add-current-state-if-open (:history issue))
+  (let [id       (:id issue)
+        history  (add-current-state-if-open (:history issue))
         add-time (fn [a b] (fnil (partial + (date/working-hours-between (:date a) (:date b))) 0))]
-    (reduce (fn [acc [a b]] (update acc (state-category (:to a)) (add-time a b)))
+    (reduce (fn [acc [a b]] (update acc (state-category id (:to a)) (add-time a b)))
             {}
             (partition 2 1 history))))
 
@@ -49,6 +50,7 @@
   "Augment the specified issue with derived fields."  
   [issue]
   {:post [(spec/assert ::schema/enriched-issue %)]}
+  (debug "Issue:" (:id issue) (:created issue))
   (-> issue
       (with-lead-time-in-days)
       (with-time-in-state)))

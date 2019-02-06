@@ -5,9 +5,6 @@
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
 
-(defn- days-offset [n]
-  (.plus (date/today) n ChronoUnit/DAYS))
-
 (defn- hours-offset [n]
   (.plus (date/today) n ChronoUnit/HOURS))
 
@@ -21,6 +18,15 @@
         stub-issue-2 (stub-issue (hours-offset -12))
         stub-issue-3 (stub-issue (hours-offset -48))]
     (is (= (changed-state-in-the-last-day [stub-issue-1 stub-issue-2 stub-issue-3]) [stub-issue-1 stub-issue-2]))))
+
+(let [stub-issue-1 (stub-issue (hours-offset -6))
+      stub-issue-2 (stub-issue (hours-offset -12))
+      stub-issue-3 (stub-issue (hours-offset -48))]
+  (changed-state-in-the-last-day [stub-issue-1 stub-issue-2 stub-issue-3]))
+
+(jira-reporter.date/working-days-between (hours-offset -72)
+                                         (hours-offset 0))
+
 
 (defn group-by-story [issues]
   (let [stories (group-by :id (stories issues))

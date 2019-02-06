@@ -28,6 +28,7 @@
 
 (defn- stub-issue-with [m]
   (merge {:id                "stub-id"
+          :created           (ZonedDateTime/now utc)
           :parent-id         "stub-parent-id"
           :type              "stub-type"
           :status            "stub-status"

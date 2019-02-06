@@ -28,6 +28,11 @@
     (is (= 10 (working-days-between t1 t2)))
     (is (= 10 (working-days-between t2 t1)))))
 
+(deftest working-days-between-then-minimum-of-one
+  (let [t1 (utc-date-time 2 5)
+        t2 (utc-date-time 2 7)]
+    (is (= 1 (working-days-between t2 t1)))))
+
 (deftest working-hours-between-then-skips-non-working-hours
   (let [t1 (utc-date-time 2 1 7)
         t2 (utc-date-time 2 1 20)]
@@ -37,3 +42,4 @@
   (let [t1 (utc-date-time 2 4 15)
         t2 (utc-date-time 2 7 11)]
     (is (= 4 (working-hours-between t2 t1)))))
+
