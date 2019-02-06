@@ -11,63 +11,48 @@
 (defn- type-is? [states issue]
   (contains? states (:type issue)))
 
-(defn- changed-state-in-the-last-day? [issue]
-  (when-let [last-change (-> issue :history last :date)]
-    (<= (date/working-days-between last-change (date/today)) 1)))
-
 ;; Public functions
 
-(defn blocked
-  "Returns issues which are blocked."
-  [issues]
-  (filter (partial status-is? (jira/blocked-states)) issues))
+(def blocked?
+  "Returns true if the issue is blocked, false otherwise."
+  (partial status-is? (jira/blocked-states)))
 
-(defn in-progress
-  "Returns issues which are in progress."
-  [issues]
-  (filter (partial status-is? (jira/in-progress-states)) issues))
+(def in-progress?
+  "Returns true if the issue is in progress, false otherwise."
+  (partial status-is? (jira/in-progress-states)))
 
-(defn changed-state-in-the-last-day
-  "Returns issues which changed state in the last day."
-  [issues]
-  (filter changed-state-in-the-last-day? issues))
+(defn changed-state-in-the-last-day?
+  "Returns true if the issue changed state in the previous day, false otherwise."
+  [issue]
+  (if-let [last-change (-> issue :history last :date)]
+    (<= (date/working-days-between last-change (date/today)) 1)
+    false))
 
-(defn awaiting-deployment
-  "Returns issues which are awaiting deployment"
-  [issues]
-  (filter (partial status-is? (jira/deployment-states)) issues))
+(def awaiting-deployment?
+  "Returns true if the issue is awaiting deployment, false otherwise."
+  (partial status-is? (jira/deployment-states)))
 
-(defn stories
-  "Returns issues which are stories."
-  [issues]
-  (filter (partial type-is? (jira/story-types)) issues))
+(def story?
+  "Returns true if the issue is a story, false otherwise."
+  (partial type-is? (jira/story-types)))
 
-(defn tasks
-  "Returns issues which are tasks."
-  [issues]
-  (filter (partial type-is? (jira/task-types)) issues))
+(def task?
+  "Returns true if the issue is a task, false otherwise."
+  (partial type-is? (jira/task-types)))
 
-(defn bugs
-  "Returns issues which are bugs."
-  [issues]
-  (filter (partial type-is? (jira/bug-types)) issues))
+(def bug?
+  "Returns true if the issue is a bug, false otherwise."
+  (partial type-is? (jira/bug-types)))
 
-(defn gdpr
-  "Returns issues which are GDPR tasks."
-  [issues]
-  (filter (partial type-is? (jira/gdpr-types)) issues))
+(def gdpr?
+  "Returns true if the issue is a GDPR issue, false otherwise."
+  (partial type-is? (jira/gdpr-types)))
 
-(defn closed
-  "Returns issues which are closed."
-  [issues]
-  (filter (partial status-is? (jira/closed-states)) issues))
+(def closed?
+  "Returns true if the issue is closed, false otherwise."
+  (partial status-is? (jira/closed-states)))
 
-(defn open
-  "Returns issues which are open."
-  [issues]
-  (filter (complement (partial status-is? (jira/closed-states))) issues))
+(def open?
+  "Returns true if the issue is not closed, false otherwise."
+  (complement closed?))
 
-(defn aggregate-by-story
-  "TODO"
-  [issues]
-  )

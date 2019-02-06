@@ -4,32 +4,34 @@
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
-            [jira-reporter.issue-filters :as issue-filters]
+            [jira-reporter.issue-filters :as issue-filters :refer [task? bug? gdpr? story? open? closed? blocked? in-progress? changed-state-in-the-last-day? awaiting-deployment?]]
             [jira-reporter.jira :as jira]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
+(def- non-story? (complement story?))
+
 (defn report-issues-blocked [issues]
   (println "\nIssues blocked")
   (pprint/print-table [:id :title :assignee :lead-time-in-days]
-                      (issue-filters/blocked issues)))
+                      (filter (every-pred non-story? blocked?) issues)))
 
 (defn report-issues-in-progress [issues]
   (println "\nIssues in progress")
   (pprint/print-table [:id :title :assignee :lead-time-in-days]
-                      (issue-filters/in-progress issues)))
+                      (filter (every-pred non-story? in-progress?) issues)))
 
 (defn report-issues-changed-state [issues]
   (println "\nIssues which changed state yesterday")
   (pprint/print-table [:id :status :title :assignee :lead-time-in-days]
-                      (issue-filters/changed-state-in-the-last-day issues)))
+                      (filter (every-pred non-story? changed-state-in-the-last-day?) issues)))
 
 (defn report-issues-awaiting-deployment [issues]
   (println "\nIssues awaiting deployment")
   (pprint/print-table [:id :status :title :assignee :lead-time-in-days]
-                      (issue-filters/awaiting-deployment issues)))
+                      (filter (every-pred non-story? awaiting-deployment?) issues)))
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
@@ -38,7 +40,6 @@
      (generate-daily-report config issues)))
 
   ([config issues]
-   
    (report-issues-blocked issues)
    (report-issues-in-progress issues)
    (report-issues-changed-state issues)
@@ -59,22 +60,22 @@
 (defn report-issues-summary [issues]
   (println "\nIssue summary")
   (pprint/print-table
-     [{:category "Story" :open   (->> issues issue-filters/stories issue-filters/open   count)
-                         :closed (->> issues issue-filters/stories issue-filters/closed count)}
-      {:category "Task"  :open   (->> issues issue-filters/tasks   issue-filters/open   count)
-                         :closed (->> issues issue-filters/tasks   issue-filters/closed count)}
-      {:category "Bug"   :open   (->> issues issue-filters/bugs    issue-filters/open   count)
-                         :closed (->> issues issue-filters/bugs    issue-filters/closed count)}
-      {:category "GDPR"  :open   (->> issues issue-filters/gdpr    issue-filters/open   count)
-                         :closed (->> issues issue-filters/gdpr    issue-filters/closed count)}
-      {:category "Total" :open   (->> issues                       issue-filters/open   count)
-                         :closed (->> issues                       issue-filters/closed count)}]))
+   [{:category "Story"   :open   (->> issues (filter (every-pred story? open?))   count)
+                         :closed (->> issues (filter (every-pred story? closed?)) count)}
+      {:category "Task"  :open   (->> issues (filter (every-pred task?  open?))   count)
+                         :closed (->> issues (filter (every-pred task?  closed?)) count)}
+      {:category "Bug"   :open   (->> issues (filter (every-pred bug?   open?))   count)
+                         :closed (->> issues (filter (every-pred bug?   closed?)) count)}
+      {:category "GDPR"  :open   (->> issues (filter (every-pred gdpr?  open?))   count)
+                         :closed (->> issues (filter (every-pred gdpr?  closed?)) count)}
+      {:category "Total" :open   (->> issues (filter open?) count)
+                         :closed (->> issues (filter closed?) count)}]))
 
 (defn report-task-time-in-state [issues]
   (println "\nTask lead time in working days and working hours in state")
   (pprint/print-table [:id :title :lead-time-in-days :todo :in-progress :blocked :deployment :other]
                       (->> issues
-                           (issue-filters/tasks)
+                           (filter non-story?)
                            (map #(merge % (:time-in-state %))))))  
 
 ;; (defn report-story-time-in-state [issues]
