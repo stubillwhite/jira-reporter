@@ -14,7 +14,7 @@
 (def- non-story? (complement story?))
 
 (defn report-stories-closed [issues]
-  (println "\nStories closed this sprint")
+  (println "\nStories delivered this sprint")
   (pprint/print-table [:id :title :points]
                       (filter (every-pred story? closed?) issues)))
 
@@ -26,33 +26,37 @@
              :tasks-open   (->> vs (filter (every-pred task? open?))   count)
              :tasks-closed (->> vs (filter (every-pred task? closed?)) count)
              :bugs-open    (->> vs (filter (every-pred bug? open?))    count)
-             :bugs-closed  (->> vs (filter (every-pred bug? closed?))  count)
-             ))))
+             :bugs-closed  (->> vs (filter (every-pred bug? closed?))  count)))))
 
 (defn report-story-metrics [issues]
-  (println "\nStory metrics")
-  (pprint/print-table [:id :title :points :tasks-open :tasks-closed :bugs-open :bugs-closed]
+  (println "\nStories in this sprint")
+  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days]
                       (story-metrics issues)))
 
 (defn report-issues-blocked [issues]
-  (println "\nIssues blocked")
-  (pprint/print-table [:id :title :assignee :lead-time-in-days]
+  (println "\nIssues currently blocked")
+  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
                       (filter (every-pred non-story? blocked?) issues)))
 
-(defn report-issues-in-progress [issues]
-  (println "\nIssues in progress")
-  (pprint/print-table [:id :title :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? in-progress?) issues)))
+(defn report-issues-started [issues]
+  (println "\nIssues started yesterday")
+  (pprint/print-table [:id :title :parent-id :assignee]
+                      (filter (every-pred non-story? changed-state-in-the-last-day? in-progress?) issues)))
 
-(defn report-issues-changed-state [issues]
-  (println "\nIssues which changed state yesterday")
-  (pprint/print-table [:id :status :title :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? changed-state-in-the-last-day?) issues)))
+(defn report-issues-in-progress [issues]
+  (println "\nIssues currently in progress")
+  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
+                      (filter (every-pred non-story? (complement changed-state-in-the-last-day?) in-progress?) issues)))
 
 (defn report-issues-awaiting-deployment [issues]
-  (println "\nIssues awaiting deployment")
-  (pprint/print-table [:id :status :title :assignee :lead-time-in-days]
+  (println "\nIssues currently awaiting deployment")
+  (pprint/print-table [:id :status :title :parent-id :assignee :lead-time-in-days]
                       (filter (every-pred non-story? awaiting-deployment?) issues)))
+
+(defn report-issues-closed [issues]
+  (println "\nIssues closed yesterday")
+  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
+                      (filter (every-pred non-story? changed-state-in-the-last-day? closed?) issues)))
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
@@ -64,10 +68,10 @@
    (report-stories-closed issues)
    (report-story-metrics issues)
    (report-issues-blocked issues)
+   (report-issues-started issues)
    (report-issues-in-progress issues)
-   (report-issues-changed-state issues)
    (report-issues-awaiting-deployment issues)
-   )) 
+   (report-issues-closed issues))) 
 
 (defn generate-board-names-report
   "Generate a report of the board names."
@@ -101,14 +105,6 @@
                       (->> issues
                            ;; (filter non-story?)
                            (map #(merge % (:time-in-state %))))))  
-
-;; (defn report-story-time-in-state [issues]
-;;   (println "\nStory lead time in working days")
-;;   (pprint/print-table [:id :title :lead-time-in-days]
-;;                       (->> issues
-;;                            (issue-filters/stories)
-;;                            (map #(merge % (:time-in-state %))))))
-
 
 (defn generate-sprint-report
   "Generate a report for a sprint."
