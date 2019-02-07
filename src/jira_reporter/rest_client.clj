@@ -70,6 +70,11 @@
    (str "https://" server "/rest/agile/1.0")
    (apply str args)))
 
+(defn get-board
+  "Returns the board with the specified ID."
+  [config id]
+  (->> (paginated-request config :get (build-url config (str "/board/" id)) is-last-page?)))
+
 (defn get-boards
   "Returns a seq of all the boards."
   [config]
@@ -79,6 +84,7 @@
 (defn get-sprints-for-board
   "Returns a seq of the sprints for the board with the specified ID."
   [config board-id]
+  (info board-id)
   (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 

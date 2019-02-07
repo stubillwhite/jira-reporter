@@ -3,7 +3,7 @@
         "key": "issue-1-key",
         "created": "1970-01-01T00:00:00.000+0000",
         "fields": {
-            "parent": {"id": "issue-1-parent"},
+            "parent": {"key": "issue-1-parent"},
             "assignee": {
                 "displayName": "issue-1-assignee"
             },
@@ -37,7 +37,7 @@
         "key": "issue-2-key",
         "created": "1970-01-01T00:00:00.000+0000",
         "fields": {
-            "parent": {"id": "issue-2-parent"},
+            "parent": {"key": "issue-2-parent"},
             "assignee": {
                 "displayName": "issue-2-assignee"
             },

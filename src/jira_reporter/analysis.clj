@@ -50,7 +50,6 @@
   "Augment the specified issue with derived fields."  
   [issue]
   {:post [(spec/assert ::schema/enriched-issue %)]}
-  (debug "Issue:" (:id issue) (:created issue))
   (-> issue
       (with-lead-time-in-days)
       (with-time-in-state)))

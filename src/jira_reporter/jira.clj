@@ -11,6 +11,9 @@
 
 (timbre/refer-timbre)
 
+;; TODO: Story points
+;; https://developer.atlassian.com/cloud/jira/platform/rest/v3/#api-api-3-issue-issueIdOrKey-properties-get
+
 (defn- extract-issue-history [json]
   (let [field-names  [:date :field :from :to ]
         field-values (select* [ALL
@@ -32,8 +35,10 @@
 
 (defn- get-board-named [config name]
   (info "Finding board named" name)
-  (let [boards (rest-client/get-boards config)]
-    (find-first #(= (:name %) name) boards)))
+  (if nil
+    (let [boards (rest-client/get-boards config)]
+      (find-first #(= (:name %) name) boards))
+    {:id 2163}))
 
 (defn- get-active-sprint [config board-id]
   (info "Finding the active sprint")
@@ -49,11 +54,12 @@
   {:id        (get-in issue-json [:key])
    :created   (or (get-in issue-json [:created])
                   (get-in issue-json [:fields :created]))
-   :parent-id (get-in issue-json [:fields :parent :id])
+   :parent-id (get-in issue-json [:fields :parent :key])
    :type      (get-in issue-json [:fields :issuetype :name])
    :status    (get-in issue-json [:fields :status :name])
    :assignee  (get-in issue-json [:fields :assignee :displayName])
    :title     (get-in issue-json [:fields :summary])
+   :points    (get-in issue-json [:fields (keyword "customfield_10002")]) ;; TODO Get from schema
    :history   (extract-issue-history issue-json)
    })
 

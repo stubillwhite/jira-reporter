@@ -13,13 +13,15 @@
 
 ;; Public functions
 
-(def blocked?
+(defn blocked?
   "Returns true if the issue is blocked, false otherwise."
-  (partial status-is? (jira/blocked-states)))
+  [issue]
+  (status-is? (jira/blocked-states) issue))
 
-(def in-progress?
+(defn in-progress?
   "Returns true if the issue is in progress, false otherwise."
-  (partial status-is? (jira/in-progress-states)))
+  [issue]
+  (status-is? (jira/in-progress-states) issue))
 
 (defn changed-state-in-the-last-day?
   "Returns true if the issue changed state in the previous day, false otherwise."
@@ -28,31 +30,38 @@
     (<= (date/working-days-between last-change (date/today)) 1)
     false))
 
-(def awaiting-deployment?
+(defn awaiting-deployment?
   "Returns true if the issue is awaiting deployment, false otherwise."
-  (partial status-is? (jira/deployment-states)))
+  [issue]
+  (status-is? (jira/deployment-states) issue))
 
-(def story?
+(defn story?
   "Returns true if the issue is a story, false otherwise."
-  (partial type-is? (jira/story-types)))
+  [issue]
+  (type-is? (jira/story-types) issue))
 
-(def task?
+(defn task?
   "Returns true if the issue is a task, false otherwise."
-  (partial type-is? (jira/task-types)))
+  [issue]
+  (type-is? (jira/task-types) issue))
 
-(def bug?
+(defn bug?
   "Returns true if the issue is a bug, false otherwise."
-  (partial type-is? (jira/bug-types)))
+  [issue]
+  (type-is? (jira/bug-types) issue))
 
-(def gdpr?
+(defn gdpr?
   "Returns true if the issue is a GDPR issue, false otherwise."
-  (partial type-is? (jira/gdpr-types)))
+  [issue]
+  (type-is? (jira/gdpr-types) issue))
 
-(def closed?
+(defn closed?
   "Returns true if the issue is closed, false otherwise."
-  (partial status-is? (jira/closed-states)))
+  [issue]
+  (status-is? (jira/closed-states) issue))
 
-(def open?
+(defn open?
   "Returns true if the issue is not closed, false otherwise."
+  [issue]
   (complement closed?))
 

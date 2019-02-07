@@ -52,5 +52,4 @@
   (rest-client/get-issues-for-sprint config 6456))
 
 ;; (def issues (read-issues))
-;; (pprint (first issues))
 ;; (reports/generate-daily-report config issues)

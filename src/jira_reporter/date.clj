@@ -32,7 +32,7 @@
 (defn now 
   "The current date and time."
   []
-  (-> (ZonedDateTime/now zone-utc)))
+  (ZonedDateTime/now zone-utc))
 
 (defn plus-working-days
   "Add n workdays to Temporal object t."
@@ -42,15 +42,15 @@
        (drop (Math/abs n))
        (first)))
 
-(defn working-days-between
-  "Count the number of workdays between Temporal objects t1 and t2."
-  [t1 t2]
-  (if (.isAfter t1 t2)
-    (working-days-between t2 t1)
-    (->> (timestream t1 1 ChronoUnit/DAYS)
-         (filter working-day?)
-         (take-while (before? t2))
-         (count))))
+;; (defn working-days-between
+;;   "Count the number of workdays between Temporal objects t1 and t2."
+;;   [t1 t2]
+;;   (if (.isAfter t1 t2)
+;;     (working-days-between t2 t1)
+;;     (->> (timestream t1 1 ChronoUnit/DAYS)
+;;          (filter working-day?)
+;;          (take-while (before? t2))
+;;          (count))))
 
 (defn working-days-between
   "Count the number of workdays between Temporal objects t1 and t2."
