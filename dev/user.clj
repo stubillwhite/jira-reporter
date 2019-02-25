@@ -2,6 +2,7 @@
   "Tools for interactive development with the REPL. This file should
   not be included in a production build of the application."
   (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
             [clojure.java.javadoc :refer [javadoc]]
             [clojure.pprint :refer [pprint print-table]]
             [clojure.reflect :refer [reflect]]
@@ -16,7 +17,9 @@
             [jira-reporter.reports :as reports]
             [jira-reporter.rest-client :as rest-client]
             [mount.core :as mount]
-            [taoensso.timbre :as timbre]))
+            [taoensso.nippy :as nippy]
+            [taoensso.timbre :as timbre])
+  (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
   (->> x
@@ -27,10 +30,12 @@
        print-table))
 
 (defn write-object [fnam obj]
-  (spit fnam (prn-str obj)))
+  (with-open [w (io/output-stream fnam)]
+    (nippy/freeze-to-out! (DataOutputStream. w) obj)))
 
 (defn read-object [fnam]
-  (edn/read-string (slurp fnam)))
+  (with-open [r (io/input-stream fnam)]
+    (nippy/thaw-from-in! (DataInputStream. r))))
 
 (defn start []
   (timbre/merge-config! {:appenders {:println {:enabled? true}}})   
@@ -51,5 +56,11 @@
 (defn read-raw-issues []
   (rest-client/get-issues-for-sprint config 6456))
 
-;; (def issues (read-issues))
+(defn issues-for-newsflo [config]
+  (map analysis/add-derived-fields (jira/get-issues-in-project-named config "Newsflo")))
+
+(def issues (issues-for-newsflo config))
+
 ;; (reports/generate-daily-report config issues)
+(reports/generate-project-report config "Newsflo" issues)
+

@@ -97,6 +97,14 @@
         sprint (get-sprint-named config (:id board) name)]
     (get-issues-for-sprint config (:id sprint))))
 
+(defn get-issues-in-project-named
+  "Get the issues in the named project."
+  [config name]
+  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
+  (info "Finding issues in the project")
+  (->> (rest-client/get-issues-for-project config name)
+       (transform* [ALL] extract-issue)))
+
 (defn to-do-states       [] (get-in config [:schema :to-do-states]))
 (defn in-progress-states [] (get-in config [:schema :in-progress-states]))
 (defn blocked-states     [] (get-in config [:schema :blocked-states]))

@@ -7,7 +7,8 @@
             [jira-reporter.issue-filters :as issue-filters :refer [task? bug? gdpr? story? open? closed? blocked? in-progress? changed-state-in-the-last-day? awaiting-deployment?]]
             [jira-reporter.jira :as jira]
             [jira-reporter.utils :refer [def-]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [jira-reporter.utils :refer [map-vals]]))
 
 (timbre/refer-timbre)
 
@@ -18,19 +19,25 @@
   (pprint/print-table [:id :title :points]
                       (filter (every-pred story? closed?) issues)))
 
+(defn- calculate-story-lead-time [story tasks]
+  (analysis/calculate-lead-time-in-days
+   (assoc story :history (->> (mapcat :history tasks)
+                              (sort-by :date)))))
+
 (defn- story-metrics [issues]
-  (let [stories-by-id   (group-by :id (filter story? issues))
+  (let [stories-by-id   (->> (filter story? issues) (group-by :id) (map-vals first))
         issues-by-story (group-by :parent-id issues)]
     (for [[k vs] (dissoc issues-by-story nil)]
-      (assoc (first (stories-by-id k))
+      (assoc (stories-by-id k)
              :tasks-open   (->> vs (filter (every-pred task? open?))   count)
              :tasks-closed (->> vs (filter (every-pred task? closed?)) count)
              :bugs-open    (->> vs (filter (every-pred bug? open?))    count)
-             :bugs-closed  (->> vs (filter (every-pred bug? closed?))  count)))))
+             :bugs-closed  (->> vs (filter (every-pred bug? closed?))  count)
+             :lead-time-in-days2 (calculate-story-lead-time (stories-by-id k) (issues-by-story k))))))
 
 (defn report-story-metrics [issues]
   (println "\nStories in this sprint")
-  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days]
+  (pprint/print-table [:id :status :title :lead-time-in-days :lead-time-in-days2] ;; [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days]
                       (story-metrics issues)))
 
 (defn report-issues-blocked [issues]
@@ -117,6 +124,15 @@
    ;; (report-story-time-in-state issues)
    ;; (report-task-time-in-state issues)
    ))
+
+(defn generate-project-report
+  "Generate a report for a project."
+  ([config name]
+   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-project-named config name))]
+     (generate-project-report config name issues)))
+
+  ([config name issues]
+   (report-story-metrics issues)))
 
 ;; Things to do next
 ;; - Issues opened and closed within a sprint

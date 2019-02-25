@@ -22,7 +22,8 @@
                  [clj-http "3.9.0"]
                  [org.clojure/data.json "0.2.6"]
                  [com.rpl/specter "1.1.1"]
-                 [org.clojure/tools.cli "0.3.7"]]
+                 [org.clojure/tools.cli "0.3.7"]
+                 [com.taoensso/nippy "2.14.0"]]
 
   :profiles {:uberjar {:aot :all}
 

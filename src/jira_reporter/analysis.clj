@@ -37,7 +37,7 @@
   (assoc issue :time-in-state
          (calculate-time-in-state issue)))
 
-(defn- calculate-lead-time-in-days [issue]
+(defn calculate-lead-time-in-days [issue]
   (let [history (add-current-state-if-open (:history issue))]
     (when (seq history)
       (inc (date/working-days-between (-> history first :date) (-> history last :date))))))

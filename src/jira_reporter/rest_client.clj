@@ -65,27 +65,32 @@
                                                     :startAt    (+ startAt maxResults)})]
          (lazy-seq (cons response (paginated-request new-req f-terminate?))))))))
 
-(defn- build-url [{{:keys [server]} :jira} & args]
+(defn- build-api-v1-url [{{:keys [server]} :jira} & args]
   (str
    (str "https://" server "/rest/agile/1.0")
+   (apply str args)))
+
+(defn- build-api-v2-url [{{:keys [server]} :jira} & args]
+  (str
+   (str "https://" server "/rest/api/2")
    (apply str args)))
 
 (defn get-board
   "Returns the board with the specified ID."
   [config id]
-  (->> (paginated-request config :get (build-url config (str "/board/" id)) is-last-page?)))
+  (->> (paginated-request config :get (build-api-v1-url config (str "/board/" id)) is-last-page?)))
 
 (defn get-boards
   "Returns a seq of all the boards."
   [config]
-  (->> (paginated-request config :get (build-url config "/board") is-last-page?)
+  (->> (paginated-request config :get (build-api-v1-url config "/board") is-last-page?)
        (mapcat :values)))
 
 (defn get-sprints-for-board
   "Returns a seq of the sprints for the board with the specified ID."
   [config board-id]
   (info board-id)
-  (->> (paginated-request config :get (build-url config "/board/" board-id "/sprint") is-last-page?)
+  (->> (paginated-request config :get (build-api-v1-url config "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 
 ;; TODO Get sprint by ID
@@ -93,9 +98,21 @@
 (defn get-issues-for-sprint
   "Returns a seq of the issues for the sprint with the specified ID."
   [config sprint-id]
-  (let [result (->> (paginated-request (merge-in (build-request config :get (build-url config "/sprint/" sprint-id "/issue"))
+  (let [result (->> (paginated-request (merge-in (build-request config :get (build-api-v1-url config "/sprint/" sprint-id "/issue"))
                                                  [:query-params]
                                                  {:expand "changelog"})
                                        is-empty-issues?)
                     (mapcat :issues))]
     result))
+
+(defn get-issues-for-project
+  "Returns a seq of the issues for the project with the specified ID."
+  [config project-id]
+  (let [result (->> (paginated-request (merge-in (build-request config :get (build-api-v2-url config "/search"))
+                                                 [:query-params]
+                                                 {:jql    (str "project=" project-id)
+                                                  :expand "changelog"})
+                                       is-empty-issues?)
+                    (mapcat :issues))]
+    result))
+
