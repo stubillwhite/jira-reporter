@@ -15,6 +15,7 @@
             [jira-reporter.config :refer [config]]
             [jira-reporter.jira :as jira]
             [jira-reporter.reports :as reports]
+            [jira-reporter.cache :as cache]
             [jira-reporter.rest-client :as rest-client]
             [mount.core :as mount]
             [taoensso.nippy :as nippy]
@@ -59,8 +60,11 @@
 (defn issues-for-newsflo [config]
   (map analysis/add-derived-fields (jira/get-issues-in-project-named config "Newsflo")))
 
-(def issues (issues-for-newsflo config))
+(defn generate-sprint-report []
+  (let [name "Sprint 0: Hulk"]
+    (reports/generate-sprint-report config name (jira/get-issues-in-sprint-named config name))))
 
+;; (jira/get-issues-in-sprint-named config "Sprint 0: Hulk")
+;; (def issues (jira/get-issues-in-current-sprint config))
 ;; (reports/generate-daily-report config issues)
-(reports/generate-project-report config "Newsflo" issues)
-
+;; (generate-sprint-report)

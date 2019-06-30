@@ -23,9 +23,10 @@
               :ns-whitelist ["jira-reporter.jira-api" "jira-reporter.rest-client"]}})
 
 (def- cli-options
-  [[nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
-   [nil "--boards" "List the names of the boards"]
-   [nil "--sprints" "List the names of the sprints"]
+  [[nil "--project-id ID"    "Select project identified by ID"]
+   [nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
+   [nil "--boards"           "List the names of the boards"]
+   [nil "--sprints"          "List the names of the sprints"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -55,8 +56,8 @@
       (cond
         (:boards options)      (reports/generate-board-names-report config)
         (:sprints options)     (reports/generate-sprint-names-report config)
-        (:sprint-name options) (reports/generate-sprint-report config (:sprint-name options))
-        :else                  (reports/generate-daily-report config)))))
+        (:sprint-name options) (reports/generate-sprint-report config options)
+        :else                  (reports/generate-daily-report config options)))))
 
 (defn -main [& args]
   (info "Starting application")

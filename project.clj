@@ -14,15 +14,15 @@
   :main jira-reporter.app
 
   :dependencies [[org.clojure/tools.nrepl "0.2.13"]
-                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojure "1.10.0"]
                  [com.taoensso/timbre "4.10.0"]
-                 [org.clojure/tools.trace "0.7.9"]
-                 [com.rpl/specter "1.1.1"]
-                 [mount "0.1.12"]
-                 [clj-http "3.9.0"]
+                 [org.clojure/tools.trace "0.7.10"]
+                 [com.rpl/specter "1.1.2"]
+                 [mount "0.1.16"]
+                 [clj-http "3.9.1"]
                  [org.clojure/data.json "0.2.6"]
-                 [com.rpl/specter "1.1.1"]
-                 [org.clojure/tools.cli "0.3.7"]
+                 [com.rpl/specter "1.1.2"]
+                 [org.clojure/tools.cli "0.4.1"]
                  [com.taoensso/nippy "2.14.0"]]
 
   :profiles {:uberjar {:aot :all}

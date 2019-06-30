@@ -2,11 +2,13 @@
   (:require [clojure.data.json :as json]
             [clojure.spec.alpha :as spec]
             [com.rpl.specter :refer [ALL collect END select* selected? transform*]]
+            [jira-reporter.cache :as cache]
+            [jira-reporter.config :refer [config]]
             [jira-reporter.rest-client :as rest-client]
             [jira-reporter.schema :as schema]
             [jira-reporter.utils :refer [def-]]
-            [taoensso.timbre :as timbre]
-            [jira-reporter.config :refer [config]])
+            [slingshot.slingshot :refer [throw+]]
+            [taoensso.timbre :as timbre])
   (:import [java.time OffsetDateTime ZoneId]))
 
 (timbre/refer-timbre)
@@ -34,11 +36,12 @@
   (first (filter pred coll)))
 
 (defn- get-board-named [config name]
-  (info "Finding board named" name)
-  (if nil
-    (let [boards (rest-client/get-boards config)]
-      (find-first #(= (:name %) name) boards))
-    {:id 2163}))
+  (cache/with-cache [:boards name]
+    (fn []
+      (let [boards (rest-client/get-boards config)]
+        (if-let [board (find-first #(= (:name %) name) boards)]
+          board
+          (throw+ {:type ::board-not-found :boards (map :name boards)}))))))
 
 (defn- get-active-sprint [config board-id]
   (info "Finding the active sprint")
@@ -48,7 +51,9 @@
 (defn- get-sprint-named [config board-id name]
   (info "Finding the current sprint")
   (let [sprints (rest-client/get-sprints-for-board config board-id)]
-    (find-first #(= (:name %) name) sprints)))
+    (if-let [sprint (find-first #(= (:name %) name) sprints)]
+      sprint
+      (throw+ {:type ::sprint-not-found :sprints (map :name sprints)}))))
 
 (defn- extract-issue [issue-json]
   {:id        (get-in issue-json [:key])
@@ -69,6 +74,10 @@
   (info "Finding issues in the sprint")
   (->> (rest-client/get-issues-for-sprint config sprint-id)
        (transform* [ALL] extract-issue)))
+
+;; -----------------------------------------------------------------------------
+;; Public
+;; -----------------------------------------------------------------------------
 
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."

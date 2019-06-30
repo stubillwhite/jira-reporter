@@ -89,7 +89,6 @@
 (defn get-sprints-for-board
   "Returns a seq of the sprints for the board with the specified ID."
   [config board-id]
-  (info board-id)
   (->> (paginated-request config :get (build-api-v1-url config "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 

@@ -45,6 +45,16 @@
   [issue]
   (type-is? (jira/task-types) issue))
 
+(defn orphaned?
+  "Returns true if the issue has no parent, false otherwise."
+  [issue]
+  (nil? (:parent-id issue)))
+
+(defn reportable?
+  "Returns true if the issue is a story or an orphaned task, false otherwise."
+  [issue]
+  (or (story? issue) (orphaned? issue)))
+
 (defn bug?
   "Returns true if the issue is a bug, false otherwise."
   [issue]
@@ -55,6 +65,11 @@
   [issue]
   (type-is? (jira/gdpr-types) issue))
 
+(defn to-do?
+  "Returns true if the issue is in the to-do state, false otherwise."
+  [issue]
+  (status-is? (jira/to-do-states) issue))
+
 (defn closed?
   "Returns true if the issue is closed, false otherwise."
   [issue]
@@ -63,5 +78,5 @@
 (defn open?
   "Returns true if the issue is not closed, false otherwise."
   [issue]
-  (complement closed?))
+  (not (closed? issue)))
 

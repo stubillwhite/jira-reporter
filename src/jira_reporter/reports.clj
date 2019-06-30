@@ -4,7 +4,7 @@
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
-            [jira-reporter.issue-filters :as issue-filters :refer [task? bug? gdpr? story? open? closed? blocked? in-progress? changed-state-in-the-last-day? awaiting-deployment?]]
+            [jira-reporter.issue-filters :as issue-filters :refer [task? bug? gdpr? story? open? to-do? closed? blocked? in-progress? changed-state-in-the-last-day? awaiting-deployment? reportable?]]
             [jira-reporter.jira :as jira]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre]
@@ -14,15 +14,32 @@
 
 (def- non-story? (complement story?))
 
-(defn report-stories-closed [issues]
-  (println "\nStories delivered this sprint")
+;; TODO: Think about what we do with closed tasks
+(defn report-stories-and-tasks-closed [issues]
+  (println "\nStories and tasks delivered this sprint")
   (pprint/print-table [:id :title :points]
-                      (filter (every-pred story? closed?) issues)))
+                      (filter (every-pred reportable? closed?) issues)))
 
 (defn- calculate-story-lead-time [story tasks]
   (analysis/calculate-lead-time-in-days
    (assoc story :history (->> (mapcat :history tasks)
                               (sort-by :date)))))
+
+;; TODO: Wire in
+;; TODO: Should be if history is empty
+(defn- story-state [config tasks]
+  (let [all-tasks-closed? (every? closed? tasks)
+        no-tasks-started? (every? to-do? tasks)]
+    (cond
+      (all-tasks-closed? (every? closed? tasks)) (get-in config [:schema :story-closed-state])
+      (no-tasks-started? (every? closed? tasks)) (get-in config [:schema :story-to-do-state])
+      :else (get-in config [:schema :story-in-progress-state]))))
+
+(defn- build-story-history-from-tasks [config story tasks]
+  (assoc story
+         :history (->> (mapcat :history tasks)
+                       (sort-by :date))
+         :status (story-state config tasks)))
 
 (defn- story-metrics [issues]
   (let [stories-by-id   (->> (filter story? issues) (group-by :id) (map-vals first))
@@ -36,8 +53,8 @@
              :lead-time-in-days2 (calculate-story-lead-time (stories-by-id k) (issues-by-story k))))))
 
 (defn report-story-metrics [issues]
-  (println "\nStories in this sprint")
-  (pprint/print-table [:id :status :title :lead-time-in-days :lead-time-in-days2] ;; [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days]
+  (println "\nStories and tasks in this sprint")
+  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days :lead-time-in-days2]
                       (story-metrics issues)))
 
 (defn report-issues-blocked [issues]
@@ -55,8 +72,8 @@
   (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
                       (filter (every-pred non-story? (complement changed-state-in-the-last-day?) in-progress?) issues)))
 
-(defn report-issues-awaiting-deployment [issues]
-  (println "\nIssues currently awaiting deployment")
+(defn report-issues-ready-for-release [issues]
+  (println "\nIssues ready fo release")
   (pprint/print-table [:id :status :title :parent-id :assignee :lead-time-in-days]
                       (filter (every-pred non-story? awaiting-deployment?) issues)))
 
@@ -72,12 +89,12 @@
      (generate-daily-report config issues)))
 
   ([config issues]
-   (report-stories-closed issues)
+   (report-stories-and-tasks-closed issues)
    (report-story-metrics issues)
    (report-issues-blocked issues)
    (report-issues-started issues)
    (report-issues-in-progress issues)
-   (report-issues-awaiting-deployment issues)
+   (report-issues-ready-for-release issues)
    (report-issues-closed issues))) 
 
 (defn generate-board-names-report
@@ -115,8 +132,9 @@
 
 (defn generate-sprint-report
   "Generate a report for a sprint."
-  ([config name]
-   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-sprint-named config name))]
+  ([config {:keys [sprint-name project-id]}]
+   (let [name   (get-in config [:projects project-id :board-name])
+         issues (map analysis/add-derived-fields (jira/get-issues-in-sprint-named config name))]
      (generate-sprint-report config name issues)))
 
   ([config name issues]
