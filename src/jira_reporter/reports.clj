@@ -14,11 +14,20 @@
 
 (def- non-story? (complement story?))
 
+(defn- add-time-in-state [t]
+  (let [days-in-state (fn [x] (int (/ (get-in t [:time-in-state x] 0) 7)))]
+    (-> t
+        (assoc :time-in-todo       (days-in-state :todo))
+        (assoc :time-in-progress   (days-in-state :in-progress))
+        (assoc :time-in-blocked    (days-in-state :blocked))
+        (assoc :time-in-deployment (days-in-state :deployment)))))
+
 ;; TODO: Think about what we do with closed tasks
 (defn report-stories-and-tasks-closed [issues]
   (println "\nStories and tasks delivered this sprint")
-  (pprint/print-table [:id :title :points]
-                      (filter (every-pred reportable? closed?) issues)))
+  (pprint/print-table [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
+                      (filter (every-pred reportable? closed?)
+                              (map add-time-in-state issues))))
 
 (defn- calculate-story-lead-time [story tasks]
   (analysis/calculate-lead-time-in-days
@@ -46,15 +55,15 @@
         issues-by-story (group-by :parent-id issues)]
     (for [[k vs] (dissoc issues-by-story nil)]
       (assoc (stories-by-id k)
-             :tasks-open   (->> vs (filter (every-pred task? open?))   count)
-             :tasks-closed (->> vs (filter (every-pred task? closed?)) count)
-             :bugs-open    (->> vs (filter (every-pred bug? open?))    count)
-             :bugs-closed  (->> vs (filter (every-pred bug? closed?))  count)
-             :lead-time-in-days2 (calculate-story-lead-time (stories-by-id k) (issues-by-story k))))))
+             :tasks-open      (->> vs (filter (every-pred task? open?))   count)
+             :tasks-closed    (->> vs (filter (every-pred task? closed?)) count)
+             :bugs-open       (->> vs (filter (every-pred bug? open?))    count)
+             :bugs-closed     (->> vs (filter (every-pred bug? closed?))  count)
+             :story-lead-time (calculate-story-lead-time (stories-by-id k) (issues-by-story k))))))
 
 (defn report-story-metrics [issues]
   (println "\nStories and tasks in this sprint")
-  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days :lead-time-in-days2]
+  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days :story-lead-time]
                       (story-metrics issues)))
 
 (defn report-issues-blocked [issues]
@@ -73,7 +82,7 @@
                       (filter (every-pred non-story? (complement changed-state-in-the-last-day?) in-progress?) issues)))
 
 (defn report-issues-ready-for-release [issues]
-  (println "\nIssues ready fo release")
+  (println "\nIssues ready for release")
   (pprint/print-table [:id :status :title :parent-id :assignee :lead-time-in-days]
                       (filter (every-pred non-story? awaiting-deployment?) issues)))
 
@@ -95,7 +104,8 @@
    (report-issues-started issues)
    (report-issues-in-progress issues)
    (report-issues-ready-for-release issues)
-   (report-issues-closed issues))) 
+   (report-issues-closed issues)
+   )) 
 
 (defn generate-board-names-report
   "Generate a report of the board names."
@@ -157,4 +167,5 @@
 ;; - Lead times per story using an aggregate-by-story function
 
 ;; (generate-daily-report config)
+
 

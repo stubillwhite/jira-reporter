@@ -19,7 +19,8 @@
             [jira-reporter.rest-client :as rest-client]
             [mount.core :as mount]
             [taoensso.nippy :as nippy]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as timbre]
+            [clojure.pprint :as pprint])
   (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
@@ -54,17 +55,7 @@
 (defn read-issues []
   (map analysis/add-derived-fields (jira/get-issues-in-current-sprint config)))
 
-(defn read-raw-issues []
-  (rest-client/get-issues-for-sprint config 6456))
-
-(defn issues-for-newsflo [config]
-  (map analysis/add-derived-fields (jira/get-issues-in-project-named config "Newsflo")))
-
-(defn generate-sprint-report []
-  (let [name "Sprint 0: Hulk"]
-    (reports/generate-sprint-report config name (jira/get-issues-in-sprint-named config name))))
-
-;; (jira/get-issues-in-sprint-named config "Sprint 0: Hulk")
-;; (def issues (jira/get-issues-in-current-sprint config))
+;; (def issues (read-issues))
+;; (write-object "recs-issues.nippy" issues)
+;; (def issues (read-object "recs-issues.nippy"))
 ;; (reports/generate-daily-report config issues)
-;; (generate-sprint-report)

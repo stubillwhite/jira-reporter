@@ -18,6 +18,12 @@
 
 (def- zone-utc (ZoneId/of "UTC"))
 
+(defn- with-zero-minutes [d]
+  (.withMinute d 0))
+
+(defn- with-zero-hours [d]
+  (-> d (.withHour 0) (.withMinute 0)))
+
 ;; TODO Reset time on days comparison
 (defn today
   "The current date."
@@ -42,24 +48,14 @@
        (drop (Math/abs n))
        (first)))
 
-;; (defn working-days-between
-;;   "Count the number of workdays between Temporal objects t1 and t2."
-;;   [t1 t2]
-;;   (if (.isAfter t1 t2)
-;;     (working-days-between t2 t1)
-;;     (->> (timestream t1 1 ChronoUnit/DAYS)
-;;          (filter working-day?)
-;;          (take-while (before? t2))
-;;          (count))))
-
 (defn working-days-between
   "Count the number of workdays between Temporal objects t1 and t2."
   [t1 t2]
   (if (.isAfter t1 t2)
     (working-days-between t2 t1)
-    (->> (timestream t1 1 ChronoUnit/DAYS)
+    (->> (timestream (with-zero-hours t1) 1 ChronoUnit/DAYS)
          (filter working-day?)
-         (take-while (before? t2))
+         (take-while (before? (with-zero-hours t2)))
          (count)
          (max 1))))
 
@@ -68,8 +64,8 @@
   [t1 t2]
   (if (.isAfter t1 t2)
     (working-hours-between t2 t1)
-    (->> (timestream t1 1 ChronoUnit/HOURS)
+    (->> (timestream (with-zero-minutes t1) 1 ChronoUnit/HOURS)
          (filter working-day?)
          (filter working-hour?)
-         (take-while (before? t2))
+         (take-while (before? (with-zero-minutes t2)))
          (count))))
