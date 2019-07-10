@@ -4,7 +4,7 @@
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
-            [jira-reporter.issue-filters :as issue-filters :refer [task? bug? gdpr? story? open? to-do? closed? blocked? in-progress? changed-state-in-the-last-day? awaiting-deployment? reportable?]]
+            [jira-reporter.issue-filters :refer :all]
             [jira-reporter.jira :as jira]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre]
@@ -14,6 +14,7 @@
 
 (def- non-story? (complement story?))
 
+;; TODO: Should be on the 'add metadata bit'
 (defn- add-time-in-state [t]
   (let [days-in-state (fn [x] (int (/ (get-in t [:time-in-state x] 0) 7)))]
     (-> t
@@ -23,11 +24,10 @@
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
 ;; TODO: Think about what we do with closed tasks
-(defn report-stories-and-tasks-closed [issues]
-  (println "\nStories and tasks delivered this sprint")
-  (pprint/print-table [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
-                      (filter (every-pred reportable? closed?)
-                              (map add-time-in-state issues))))
+(defn report-work-delivered [issues]
+  {:title   "Stories and tasks delivered this sprint"
+   :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
+   :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
 
 (defn- calculate-story-lead-time [story tasks]
   (analysis/calculate-lead-time-in-days
@@ -36,6 +36,7 @@
 
 ;; TODO: Wire in
 ;; TODO: Should be if history is empty
+;; TODO: Merge story-closed-state with other states
 (defn- story-state [config tasks]
   (let [all-tasks-closed? (every? closed? tasks)
         no-tasks-started? (every? to-do? tasks)]
@@ -72,19 +73,19 @@
                       (filter (every-pred non-story? blocked?) issues)))
 
 (defn report-issues-started [issues]
-  (println "\nIssues started yesterday")
-  (pprint/print-table [:id :title :parent-id :assignee]
-                      (filter (every-pred non-story? changed-state-in-the-last-day? in-progress?) issues)))
+  {:title   "Issues started yesterday"
+   :columns [:id :title :parent-id :assignee]
+   :rows    (filter (every-pred changed-state-in-the-last-day? in-progress?) issues)})
 
 (defn report-issues-in-progress [issues]
-  (println "\nIssues currently in progress")
-  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? (complement changed-state-in-the-last-day?) in-progress?) issues)))
+  {:title   "Issues in progress"
+   :columns [:id :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress?) issues)})
 
 (defn report-issues-ready-for-release [issues]
-  (println "\nIssues ready for release")
-  (pprint/print-table [:id :status :title :parent-id :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? awaiting-deployment?) issues)))
+  {:title   "Issues ready for release"
+   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred awaiting-deployment?) issues)})
 
 (defn report-issues-closed [issues]
   (println "\nIssues closed yesterday")
@@ -98,14 +99,15 @@
      (generate-daily-report config issues)))
 
   ([config issues]
-   (report-stories-and-tasks-closed issues)
-   (report-story-metrics issues)
-   (report-issues-blocked issues)
-   (report-issues-started issues)
-   (report-issues-in-progress issues)
-   (report-issues-ready-for-release issues)
-   (report-issues-closed issues)
-   )) 
+   [
+    ;; (report-work-delivered issues)
+    ;; (report-story-metrics issues)
+    ;; (report-issues-blocked issues)
+    (report-issues-started issues)
+    (report-issues-in-progress issues)
+    (report-issues-ready-for-release issues)
+    ;; (report-issues-closed issues)
+    ])) 
 
 (defn generate-board-names-report
   "Generate a report of the board names."
@@ -167,5 +169,24 @@
 ;; - Lead times per story using an aggregate-by-story function
 
 ;; (generate-daily-report config)
+
+
+;; Burndown
+
+(defn tasks-open-and-closed [date issues]
+  {:date   date
+   :open   (->> issues (filter open?) count)
+   :closed (->> issues (filter (complement open?)) count)})
+
+;; (defn generate-burndown-report [config])
+;;  (let [start-date (utc-date-time 6 27)
+;;        length     14
+;;        ;; timestream (take-while (fn [x] (.isBefore x (jira-reporter.date/today))) (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
+;;        timestream (take 6 (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
+;;        ]
+;;    (->> timestream
+;;         (map (fn [date] (reports/tasks-open-and-closed date
+;;                                                       (map (partial status-at-date date) issues)))))))
+
 
 

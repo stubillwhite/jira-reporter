@@ -3,16 +3,17 @@
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
 
-(defn- timestream [t n unit]
+;; TODO: Docs and tests
+(defn timestream [t n unit]
   (iterate (fn [x] (.plus x n unit)) t))
 
-(defn- working-day? [t]
+(defn working-day? [t]
   (not (contains? #{DayOfWeek/SATURDAY DayOfWeek/SUNDAY} (.getDayOfWeek t))))
 
 (defn- before? [t]
   (fn [x] (.isBefore (.toInstant x) (.toInstant t))))
 
-(defn- working-hour? [t]
+(defn working-hour? [t]
   (let [hour (.getHour t)]
     (and (<= 9 hour 16) (not (= 13 hour)))))
 

@@ -1,6 +1,7 @@
 (ns jira-reporter.app
   (:gen-class)
-  (:require [clojure.string :as string]
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as string]
             [clojure.tools.cli :as cli]
             [jira-reporter.config :refer [config]]
             [jira-reporter.reports :as reports]
@@ -49,6 +50,14 @@
       errors          {:exit-message (error-msg errors) :ok? false}
       :else           {:options options                 :ok? true})))
 
+;; TODO: Remove explicit passing of config around
+
+(defn- display-report [report]
+  (for [{:keys [title columns rows]} report]
+    (do
+      (println "\n" title)
+      (pprint/print-table columns rows))))
+
 (defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
     (if exit-message
@@ -57,7 +66,7 @@
         (:boards options)      (reports/generate-board-names-report config)
         (:sprints options)     (reports/generate-sprint-names-report config)
         (:sprint-name options) (reports/generate-sprint-report config options)
-        :else                  (reports/generate-daily-report config options)))))
+        :else                  (display-report (reports/generate-daily-report config options))))))
 
 (defn -main [& args]
   (info "Starting application")

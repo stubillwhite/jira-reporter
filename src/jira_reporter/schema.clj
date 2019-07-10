@@ -19,6 +19,8 @@
 (spec/def ::lead-time-in-days (spec/nilable int?))
 (spec/def ::time-in-state (spec/map-of keyword? int?))
 
+;; TODO: Extract subtasks, too
+
 (spec/def ::issue
   (spec/keys :req-un [::id ::created ::parent-id ::type ::status ::assignee ::title ::history]))
 

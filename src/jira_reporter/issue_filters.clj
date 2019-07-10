@@ -50,7 +50,8 @@
   [issue]
   (nil? (:parent-id issue)))
 
-(defn reportable?
+;; TODO: Also has no children
+(defn deliverable?
   "Returns true if the issue is a story or an orphaned task, false otherwise."
   [issue]
   (or (story? issue) (orphaned? issue)))
