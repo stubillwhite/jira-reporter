@@ -49,24 +49,24 @@
     (find-first #(= (:state %) "active") sprints)))
 
 (defn- get-sprint-named [config board-id name]
-  (info "Finding the current sprint")
+  (info "Finding sprint named" name)
   (let [sprints (rest-client/get-sprints-for-board config board-id)]
     (if-let [sprint (find-first #(= (:name %) name) sprints)]
       sprint
       (throw+ {:type ::sprint-not-found :sprints (map :name sprints)}))))
 
 (defn- extract-issue [issue-json]
-  {:id        (get-in issue-json [:key])
-   :created   (or (get-in issue-json [:created])
-                  (get-in issue-json [:fields :created]))
-   :parent-id (get-in issue-json [:fields :parent :key])
-   :type      (get-in issue-json [:fields :issuetype :name])
-   :status    (get-in issue-json [:fields :status :name])
-   :assignee  (get-in issue-json [:fields :assignee :displayName])
-   :title     (get-in issue-json [:fields :summary])
-   :points    (get-in issue-json [:fields (keyword "customfield_10002")]) ;; TODO Get from schema
-   :history   (extract-issue-history issue-json)
-   })
+  {:id          (get-in issue-json [:key])
+   :created     (or (get-in issue-json [:created])
+                    (get-in issue-json [:fields :created]))
+   :parent-id   (get-in issue-json [:fields :parent :key])
+   :subtask-ids (->> (get-in issue-json [:fields :subtasks]) (map :key))
+   :type        (get-in issue-json [:fields :issuetype :name])
+   :status      (get-in issue-json [:fields :status :name])
+   :assignee    (get-in issue-json [:fields :assignee :displayName])
+   :title       (get-in issue-json [:fields :summary])
+   :points      (get-in issue-json [:fields (keyword "customfield_10002")]) ;; TODO Get from schema
+   :history     (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint
   [config sprint-id]
@@ -81,34 +81,37 @@
 
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."
-  [{{:keys [board]} :jira :as config}]
+  []
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (let [board  (get-board-named config board)
-        sprint (get-active-sprint config (:id board))]
+  (let [{{:keys [board]} :jira} config
+        board                   (get-board-named config board)
+        sprint                  (get-active-sprint config (:id board))]
     (get-issues-for-sprint config (:id sprint))))
 
 (defn get-sprint-names
   "Get the names of the sprints."
-  [{{:keys [board]} :jira :as config}]
-  (let [board   (get-board-named config board)
-        sprints (rest-client/get-sprints-for-board config (:id board))]
+  []
+  (let [{{:keys [board]} :jira} config
+        board                   (get-board-named config board)
+        sprints                 (rest-client/get-sprints-for-board config (:id board))]
     (map :name sprints)))
 
 (defn get-board-names
   "Get the names of the boards."
-  [config]
+  []
   (map :name (rest-client/get-boards config)))
 
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."
-  [{{:keys [board]} :jira :as config} name]
-  (let [board  (get-board-named config board)
-        sprint (get-sprint-named config (:id board) name)]
+  [name]
+  (let [{{:keys [board]} :jira} config
+        board                   (get-board-named config board)
+        sprint                  (get-sprint-named config (:id board) name)]
     (get-issues-for-sprint config (:id sprint))))
 
 (defn get-issues-in-project-named
   "Get the issues in the named project."
-  [config name]
+  [name]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
   (info "Finding issues in the project")
   (->> (rest-client/get-issues-for-project config name)

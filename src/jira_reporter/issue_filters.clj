@@ -45,16 +45,20 @@
   [issue]
   (type-is? (jira/task-types) issue))
 
-(defn orphaned?
+(defn no-parent?
   "Returns true if the issue has no parent, false otherwise."
   [issue]
   (nil? (:parent-id issue)))
 
-;; TODO: Also has no children
-(defn deliverable?
-  "Returns true if the issue is a story or an orphaned task, false otherwise."
+(defn no-subtasks?
+  "Returns true if the issue has no subtasks, false otherwise."
   [issue]
-  (or (story? issue) (orphaned? issue)))
+  (empty? (:subtask-ids issue)))
+
+(defn deliverable?
+  "Returns true if the issue is a self-contained deliverable, false otherwise."
+  [issue]
+  (or (no-parent? issue)))
 
 (defn bug?
   "Returns true if the issue is a bug, false otherwise."

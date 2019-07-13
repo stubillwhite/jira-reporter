@@ -24,10 +24,11 @@
               :ns-whitelist ["jira-reporter.jira-api" "jira-reporter.rest-client"]}})
 
 (def- cli-options
-  [[nil "--project-id ID"    "Select project identified by ID"]
-   [nil "--sprint-name NAME" "Generate a report for the sprint named NAME"]
-   [nil "--boards"           "List the names of the boards"]
-   [nil "--sprints"          "List the names of the sprints"]
+  [[nil "--list-boards"      "List the names of the boards"]
+   [nil "--list-sprints"     "List the names of the sprints"]
+   [nil "--sprint-report"    "Generate a report for the sprint"]
+   [nil "--daily-report"     "Generate a daily status report for the sprint"]
+   [nil "--sprint-name NAME" "Use sprint named NAME instead of the current sprint"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -43,6 +44,7 @@
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
+;; TODO: Validate option combinations
 (defn- validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
@@ -52,21 +54,23 @@
 
 ;; TODO: Remove explicit passing of config around
 
-(defn- display-report [report]
-  (for [{:keys [title columns rows]} report]
-    (do
-      (println "\n" title)
-      (pprint/print-table columns rows))))
+(defn display-report
+  [report]
+  (dorun
+   (for [{:keys [title columns rows]} report]
+     (do
+       (println (str "\n" title))
+       (pprint/print-table columns rows)))))
 
 (defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
     (if exit-message
       (println exit-message)
       (cond
-        (:boards options)      (reports/generate-board-names-report config)
-        (:sprints options)     (reports/generate-sprint-names-report config)
-        (:sprint-name options) (reports/generate-sprint-report config options)
-        :else                  (display-report (reports/generate-daily-report config options))))))
+        (:list-boards options)   (display-report (reports/generate-board-names-report))
+        (:list-sprints options)  (display-report (reports/generate-sprint-names-report))
+        (:daily-report options)  (display-report (reports/generate-daily-report))
+        (:sprint-report options) (display-report (reports/generate-sprint-report options))))))
 
 (defn -main [& args]
   (info "Starting application")
@@ -74,4 +78,3 @@
   (execute-action args config)
   (mount/stop)
   (info "Done"))
-

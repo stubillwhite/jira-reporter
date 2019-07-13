@@ -11,6 +11,7 @@
 (spec/def ::id string?)
 (spec/def ::created zoned-date-time?)
 (spec/def ::parent-id (spec/nilable string?))
+(spec/def ::subtask-ids (spec/coll-of string?))
 (spec/def ::type string?)
 (spec/def ::status string?)
 (spec/def ::assignee (spec/nilable string?))
@@ -22,9 +23,9 @@
 ;; TODO: Extract subtasks, too
 
 (spec/def ::issue
-  (spec/keys :req-un [::id ::created ::parent-id ::type ::status ::assignee ::title ::history]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::history]))
 
 (spec/def ::enriched-issue
-  (spec/keys :req-un [::id ::created ::parent-id ::type ::status ::assignee ::title ::history ::lead-time-in-days ::time-in-state]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::history ::lead-time-in-days ::time-in-state]))
 
 (spec/check-asserts true)

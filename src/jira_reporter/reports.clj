@@ -12,7 +12,13 @@
 
 (timbre/refer-timbre)
 
-(def- non-story? (complement story?))
+;; Generic functions
+
+(defn- issues-in-current-sprint []
+  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint)))
+
+(defn- issues-in-sprint-named [name]
+  (map analysis/add-derived-fields (jira/get-issues-in-sprint-named name)))
 
 ;; TODO: Should be on the 'add metadata bit'
 (defn- add-time-in-state [t]
@@ -23,11 +29,110 @@
         (assoc :time-in-blocked    (days-in-state :blocked))
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
-;; TODO: Think about what we do with closed tasks
+;; Board names
+
+(defn generate-board-names-report
+  "Generate a report of the board names."
+  []
+  [{:title   "Board names"
+    :columns [:name]
+    :rows    (for [name (jira/get-board-names)] {:name name})}])
+
+;; Sprint names
+
+(defn generate-sprint-names-report
+  "Generate a report of the sprint names for a board."
+  []
+  [{:title   "Sprint names"
+    :columns [:name]
+    :rows    (for [name (jira/get-sprint-names)] {:name name})}])
+
+;; Daily report
+
+(defn report-issues-blocked [issues]
+  {:title   "Issues currently blocked"
+   :columns [:id :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred blocked?) issues)})
+
+(defn report-issues-started [issues]
+  {:title   "Issues started yesterday"
+   :columns [:id :title :parent-id :assignee]
+   :rows    (filter (every-pred changed-state-in-the-last-day? in-progress?) issues)})
+
+(defn report-issues-in-progress [issues]
+  {:title   "Issues still in progress"
+   :columns [:id :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress?) issues)})
+
+(defn report-issues-ready-for-release [issues]
+  {:title   "Issues awaiting release"
+   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred awaiting-deployment?) issues)})
+
+(defn report-issues-closed [issues]
+  {:title   "Issues closed yesterday"
+   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
+   :rows    (filter (every-pred changed-state-in-the-last-day? closed?) issues)})
+
+(defn generate-daily-report
+  "Generate the daily report for the current sprint."
+  ([]
+   (generate-daily-report (issues-in-current-sprint)))
+
+  ([issues]
+   [(report-issues-blocked issues)
+    (report-issues-started issues)
+    (report-issues-in-progress issues)
+    (report-issues-ready-for-release issues)
+    (report-issues-closed issues)])) 
+
+;; Sprint report
+
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
    :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
+
+(defn report-issues-summary [issues]
+  {:title   "Issue summary"
+   :columns [:category :open :closed]
+   :rows [{:category "Story" :open   (->> issues (filter (every-pred story? open?))   count)
+           :closed                   (->> issues (filter (every-pred story? closed?)) count)}
+          {:category "Task"  :open   (->> issues (filter (every-pred task?  open?))   count)
+           :closed                   (->> issues (filter (every-pred task?  closed?)) count)}
+          {:category "Bug"   :open   (->> issues (filter (every-pred bug?   open?))   count)
+           :closed                   (->> issues (filter (every-pred bug?   closed?)) count)}
+          {:category "GDPR"  :open   (->> issues (filter (every-pred gdpr?  open?))   count)
+           :closed                   (->> issues (filter (every-pred gdpr?  closed?)) count)}
+          {:category "Total" :open   (->> issues (filter open?) count)
+           :closed                   (->> issues (filter closed?) count)}]})
+
+(defn report-issues-summary [issues]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Issue summary"
+     :columns [:category :open :closed]
+     :rows [{:category "Story" :open (count-of story? open?) :closed (count-of story? closed?)}
+            {:category "Task"  :open (count-of task?  open?) :closed (count-of task?  closed?)}
+            {:category "Bug"   :open (count-of bug?   open?) :closed (count-of bug?   closed?)}
+            {:category "GDPR"  :open (count-of gdpr?  open?) :closed (count-of gdpr?  closed?)}
+            {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
+
+(defn generate-sprint-report
+  "Generate the sprint summary report."
+  ([options]
+   (let [issues (if-let [sprint-name (:sprint-name options)]
+                  (issues-in-sprint-named sprint-name)
+                  (issues-in-current-sprint))]
+     (generate-sprint-report options issues)))
+
+  ([options issues]
+   [(report-work-delivered issues)
+    (report-issues-summary issues)]))
+
+
+;; TODO: Sort all this out
+
+
 
 (defn- calculate-story-lead-time [story tasks]
   (analysis/calculate-lead-time-in-days
@@ -67,73 +172,11 @@
   (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days :story-lead-time]
                       (story-metrics issues)))
 
-(defn report-issues-blocked [issues]
-  (println "\nIssues currently blocked")
-  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? blocked?) issues)))
 
-(defn report-issues-started [issues]
-  {:title   "Issues started yesterday"
-   :columns [:id :title :parent-id :assignee]
-   :rows    (filter (every-pred changed-state-in-the-last-day? in-progress?) issues)})
 
-(defn report-issues-in-progress [issues]
-  {:title   "Issues in progress"
-   :columns [:id :title :parent-id :assignee :lead-time-in-days]
-   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress?) issues)})
 
-(defn report-issues-ready-for-release [issues]
-  {:title   "Issues ready for release"
-   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
-   :rows    (filter (every-pred awaiting-deployment?) issues)})
 
-(defn report-issues-closed [issues]
-  (println "\nIssues closed yesterday")
-  (pprint/print-table [:id :title :parent-id :assignee :lead-time-in-days]
-                      (filter (every-pred non-story? changed-state-in-the-last-day? closed?) issues)))
 
-(defn generate-daily-report
-  "Generate the daily report for the current sprint."
-  ([config]
-   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-current-sprint config))]
-     (generate-daily-report config issues)))
-
-  ([config issues]
-   [
-    ;; (report-work-delivered issues)
-    ;; (report-story-metrics issues)
-    ;; (report-issues-blocked issues)
-    (report-issues-started issues)
-    (report-issues-in-progress issues)
-    (report-issues-ready-for-release issues)
-    ;; (report-issues-closed issues)
-    ])) 
-
-(defn generate-board-names-report
-  "Generate a report of the board names."
-  ([config]
-   (doseq [name (jira/get-board-names config)]
-     (println name))))
-
-(defn generate-sprint-names-report
-  "Generate a report of the sprint names for a board."
-  ([config]
-   (doseq [name (jira/get-sprint-names config)]
-     (println name))))
-
-(defn report-issues-summary [issues]
-  (println "\nIssue summary")
-  (pprint/print-table
-   [{:category "Story" :open   (->> issues (filter (every-pred story? open?))   count)
-                       :closed (->> issues (filter (every-pred story? closed?)) count)}
-    {:category "Task"  :open   (->> issues (filter (every-pred task?  open?))   count)
-                       :closed (->> issues (filter (every-pred task?  closed?)) count)}
-    {:category "Bug"   :open   (->> issues (filter (every-pred bug?   open?))   count)
-                       :closed (->> issues (filter (every-pred bug?   closed?)) count)}
-    {:category "GDPR"  :open   (->> issues (filter (every-pred gdpr?  open?))   count)
-                       :closed (->> issues (filter (every-pred gdpr?  closed?)) count)}
-    {:category "Total" :open   (->> issues (filter open?) count)
-                       :closed (->> issues (filter closed?) count)}]))
 
 (defn report-task-time-in-state [issues]
   (println "\nTask lead time in working days and working hours in state")
@@ -142,23 +185,12 @@
                            ;; (filter non-story?)
                            (map #(merge % (:time-in-state %))))))  
 
-(defn generate-sprint-report
-  "Generate a report for a sprint."
-  ([config {:keys [sprint-name project-id]}]
-   (let [name   (get-in config [:projects project-id :board-name])
-         issues (map analysis/add-derived-fields (jira/get-issues-in-sprint-named config name))]
-     (generate-sprint-report config name issues)))
 
-  ([config name issues]
-   (report-issues-summary issues)   
-   ;; (report-story-time-in-state issues)
-   ;; (report-task-time-in-state issues)
-   ))
 
 (defn generate-project-report
   "Generate a report for a project."
   ([config name]
-   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-project-named config name))]
+   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-project-named name))]
      (generate-project-report config name issues)))
 
   ([config name issues]
@@ -167,9 +199,6 @@
 ;; Things to do next
 ;; - Issues opened and closed within a sprint
 ;; - Lead times per story using an aggregate-by-story function
-
-;; (generate-daily-report config)
-
 
 ;; Burndown
 
@@ -187,6 +216,3 @@
 ;;    (->> timestream
 ;;         (map (fn [date] (reports/tasks-open-and-closed date
 ;;                                                       (map (partial status-at-date date) issues)))))))
-
-
-

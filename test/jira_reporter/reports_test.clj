@@ -23,7 +23,7 @@
    newly-closed-issue
    deploy-issue])
 
-(defn- test-tod1ay []
+(defn- test-today []
   (parse-date today))
 
 (defn- containing-issues? [expected actual]
@@ -31,7 +31,7 @@
     (= expected actual-rows)))
 
 (deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
-  (with-redefs [date/today (fn [] (parse-date "2000-02-03"))
+  (with-redefs [date/today test-today
                 config     test-config]
     (let [task-1  (task  "1" "to-do")
           task-2  (task  "2" "closed" :points 3)
