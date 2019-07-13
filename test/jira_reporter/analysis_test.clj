@@ -30,6 +30,7 @@
   (merge {:id                "stub-id"
           :created           (ZonedDateTime/now utc)
           :parent-id         "stub-parent-id"
+          :subtask-ids       []
           :type              "stub-type"
           :status            "stub-status"
           :assignee          nil

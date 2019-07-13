@@ -47,7 +47,12 @@
             "status": {
                 "name": "issue-2-status"
             },
-            "summary": "issue-2-title"
+            "summary": "issue-2-title",
+            "subtasks": [
+                {"key": "issue-2-subtask-1"},
+                {"key": "issue-2-subtask-2"}
+            ],
+            "customfield_10002": "3"
         },
         "changelog": {
             "startAt": 0,
