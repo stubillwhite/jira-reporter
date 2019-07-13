@@ -1,18 +1,32 @@
 (ns jira-reporter.reports
   (:require [clojure.pprint :as pprint]
-            [com.rpl.specter :refer [ALL collect END filterer MAP-VALS putval select select* selected? transform]]
+            [com.rpl.specter
+             :refer
+             [ALL
+              collect
+              END
+              filterer
+              MAP-VALS
+              putval
+              select
+              select*
+              selected?
+              transform]]
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
             [jira-reporter.issue-filters :refer :all]
             [jira-reporter.jira :as jira]
-            [jira-reporter.utils :refer [def-]]
-            [taoensso.timbre :as timbre]
-            [jira-reporter.utils :refer [map-vals]]))
+            [jira-reporter.utils :refer [def- map-vals]]
+            [taoensso.timbre :as timbre])
+  (:import java.time.format.DateTimeFormatter
+           java.time.temporal.ChronoUnit))
 
 (timbre/refer-timbre)
 
+;; -----------------------------------------------------------------------------
 ;; Generic functions
+;; -----------------------------------------------------------------------------
 
 (defn- issues-in-current-sprint []
   (map analysis/add-derived-fields (jira/get-issues-in-current-sprint)))
@@ -29,7 +43,9 @@
         (assoc :time-in-blocked    (days-in-state :blocked))
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
+;; -----------------------------------------------------------------------------
 ;; Board names
+;; -----------------------------------------------------------------------------
 
 (defn generate-board-names-report
   "Generate a report of the board names."
@@ -38,7 +54,9 @@
     :columns [:name]
     :rows    (for [name (jira/get-board-names)] {:name name})}])
 
+;; -----------------------------------------------------------------------------
 ;; Sprint names
+;; -----------------------------------------------------------------------------
 
 (defn generate-sprint-names-report
   "Generate a report of the sprint names for a board."
@@ -47,7 +65,9 @@
     :columns [:name]
     :rows    (for [name (jira/get-sprint-names)] {:name name})}])
 
+;; -----------------------------------------------------------------------------
 ;; Daily report
+;; -----------------------------------------------------------------------------
 
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
@@ -86,26 +106,14 @@
     (report-issues-ready-for-release issues)
     (report-issues-closed issues)])) 
 
+;; -----------------------------------------------------------------------------
 ;; Sprint report
+;; -----------------------------------------------------------------------------
 
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
    :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
-
-(defn report-issues-summary [issues]
-  {:title   "Issue summary"
-   :columns [:category :open :closed]
-   :rows [{:category "Story" :open   (->> issues (filter (every-pred story? open?))   count)
-           :closed                   (->> issues (filter (every-pred story? closed?)) count)}
-          {:category "Task"  :open   (->> issues (filter (every-pred task?  open?))   count)
-           :closed                   (->> issues (filter (every-pred task?  closed?)) count)}
-          {:category "Bug"   :open   (->> issues (filter (every-pred bug?   open?))   count)
-           :closed                   (->> issues (filter (every-pred bug?   closed?)) count)}
-          {:category "GDPR"  :open   (->> issues (filter (every-pred gdpr?  open?))   count)
-           :closed                   (->> issues (filter (every-pred gdpr?  closed?)) count)}
-          {:category "Total" :open   (->> issues (filter open?) count)
-           :closed                   (->> issues (filter closed?) count)}]})
 
 (defn report-issues-summary [issues]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
@@ -129,8 +137,53 @@
    [(report-work-delivered issues)
     (report-issues-summary issues)]))
 
+;; -----------------------------------------------------------------------------
+;; Burndown
+;; -----------------------------------------------------------------------------
 
+(def- formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd"))
+
+(defn- format-date [date]
+  (.format formatter date))
+
+(defn- tasks-open-and-closed [date issues]
+  {:date   (format-date date)
+   :open   (->> issues (filter open?) count)
+   :closed (->> issues (filter (complement open?)) count)})
+
+(defn- status-at-date [cutoff-date {:keys [history] :as issue}]
+  (if (empty? (:history issue))
+    issue
+    (reduce
+     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
+     (assoc issue :status (-> history first :from))
+     (take-while (fn [x] (.isBefore (:date x) cutoff-date)) history))))
+
+(defn- calculate-burndown [start-date end-date issues]
+  (let [timestream (take-while (fn [x] (and (.isBefore x (date/today)) (.isBefore x end-date))) (date/timestream start-date 1 ChronoUnit/DAYS))]
+    (->> timestream
+         (map (fn [date] (tasks-open-and-closed date (map (partial status-at-date date) issues)))))))
+
+(defn report-burndown [start-date end-date issues]
+  {:title   (str "Burndown from " (format-date start-date) " to " (format-date end-date))
+   :columns [:date :open :closed]
+   :rows    (calculate-burndown start-date end-date issues)})
+
+(defn generate-burndown-report
+  "Generate a burndown report."
+  ([options]
+   (let [sprint (if-let [sprint-name (:sprint-name options)]
+                  (jira/get-sprint-named sprint-name)
+                  (jira/get-active-sprint))
+         issues (jira/get-issues-in-sprint-named (:name sprint))]
+     (generate-burndown-report options (:startDate sprint) (:endDate sprint) issues)))
+
+  ([options start-date end-date issues]
+   [(report-burndown start-date end-date issues)]))
+
+;; -----------------------------------------------------------------------------
 ;; TODO: Sort all this out
+;; -----------------------------------------------------------------------------
 
 
 
@@ -201,18 +254,3 @@
 ;; - Lead times per story using an aggregate-by-story function
 
 ;; Burndown
-
-(defn tasks-open-and-closed [date issues]
-  {:date   date
-   :open   (->> issues (filter open?) count)
-   :closed (->> issues (filter (complement open?)) count)})
-
-;; (defn generate-burndown-report [config])
-;;  (let [start-date (utc-date-time 6 27)
-;;        length     14
-;;        ;; timestream (take-while (fn [x] (.isBefore x (jira-reporter.date/today))) (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
-;;        timestream (take 6 (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
-;;        ]
-;;    (->> timestream
-;;         (map (fn [date] (reports/tasks-open-and-closed date
-;;                                                       (map (partial status-at-date date) issues)))))))

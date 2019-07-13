@@ -28,6 +28,7 @@
    [nil "--list-sprints"     "List the names of the sprints"]
    [nil "--sprint-report"    "Generate a report for the sprint"]
    [nil "--daily-report"     "Generate a daily status report for the sprint"]
+   [nil "--burndown"         "Generate a burndown for the sprint"]
    [nil "--sprint-name NAME" "Use sprint named NAME instead of the current sprint"]
    ["-h" "--help"]])
 
@@ -70,7 +71,8 @@
         (:list-boards options)   (display-report (reports/generate-board-names-report))
         (:list-sprints options)  (display-report (reports/generate-sprint-names-report))
         (:daily-report options)  (display-report (reports/generate-daily-report))
-        (:sprint-report options) (display-report (reports/generate-sprint-report options))))))
+        (:sprint-report options) (display-report (reports/generate-sprint-report options))
+        (:burndown options)      (display-report (reports/generate-burndown-report options))))))
 
 (defn -main [& args]
   (info "Starting application")

@@ -26,7 +26,7 @@
       (.atZoneSameInstant (ZoneId/of "UTC"))))
 
 (defn- decode-value [key value]
-  (if (contains? #{:created :dated} key)
+  (if (contains? #{:created :dated :startDate :endDate} key)
     (decode-iso-8601-date-time value)
     value))
 
