@@ -56,7 +56,10 @@
   (let [parsed-date (parse-date date)]
     {:date  parsed-date
      :field "status"
+     :from  "todo"
      :to    to}))
+
+
 
 
 

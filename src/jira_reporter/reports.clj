@@ -185,8 +185,6 @@
 ;; TODO: Sort all this out
 ;; -----------------------------------------------------------------------------
 
-
-
 (defn- calculate-story-lead-time [story tasks]
   (analysis/calculate-lead-time-in-days
    (assoc story :history (->> (mapcat :history tasks)
