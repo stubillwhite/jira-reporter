@@ -80,26 +80,24 @@
   (issue id "closed" :history [(status-change date "closed")] :points points))
 
 (def- sprint-issues
-  [(delivered-issue "1"  "2000-01-27" 3)
-   (delivered-issue "2"  "2000-01-28" 3)
-   (delivered-issue "3"  "2000-01-29" 3)
-   (delivered-issue "4"  "2000-01-30" 3)
-   (delivered-issue "5"  "2000-01-31" 3)
-   (delivered-issue "6"  "2000-02-01" 3)
-   (delivered-issue "7"  "2000-02-02" 3)
-   (delivered-issue "8"  "2000-02-03" 3)
-   (delivered-issue "9"  "2000-02-04" 3)
-   (delivered-issue "10" "2000-02-05" 3)
-   (delivered-issue "11" "2000-02-06" 3)])
+  [(delivered-issue "1"  "2000-01-27" 3.0)
+   (delivered-issue "2"  "2000-01-28" 3.0)
+   (delivered-issue "3"  "2000-01-29" 3.0)
+   (delivered-issue "4"  "2000-01-30" 3.0)
+   (delivered-issue "5"  "2000-01-31" 3.0)
+   (delivered-issue "6"  "2000-02-01" 3.0)
+   (delivered-issue "7"  "2000-02-02" 3.0)
+   (delivered-issue "8"  "2000-02-03" 3.0)
+   (delivered-issue "9"  "2000-02-04" 3.0)
+   (delivered-issue "10" "2000-02-05" 3.0)
+   (delivered-issue "11" "2000-02-06" 3.0)])
 
 (def- expected-burndown
-  [{:date "2000-01-27" :open 11 :closed 0}
-   {:date "2000-01-28" :open 10 :closed 1}
-   {:date "2000-01-29" :open 9  :closed 2}
-   {:date "2000-01-30" :open 8  :closed 3}
-   {:date "2000-01-31" :open 7  :closed 4}
-   {:date "2000-02-01" :open 6  :closed 5}
-   {:date "2000-02-02" :open 5  :closed 6}])
+  [{:date "2000-01-27" :open 11 :closed 0 :points  0.0}
+   {:date "2000-01-28" :open 10 :closed 1 :points  3.0}
+   {:date "2000-01-31" :open 7  :closed 4 :points 12.0}
+   {:date "2000-02-01" :open 6  :closed 5 :points 15.0}
+   {:date "2000-02-02" :open 5  :closed 6 :points 18.0}])
 
 (deftest report-burndown-then-generates-burndown
   (with-redefs [date/today test-today
@@ -107,3 +105,4 @@
     (let [start-date    (parse-date "2000-01-27")
           end-date      (parse-date "2000-02-10")]
       (is (= expected-burndown (:rows (report-burndown start-date end-date sprint-issues)))))))
+

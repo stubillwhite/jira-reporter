@@ -146,12 +146,13 @@
 (defn- format-date [date]
   (.format formatter date))
 
-(defn- tasks-open-and-closed [date issues]
+(defn- calculate-burndown-metrics [date issues]
   {:date   (format-date date)
    :open   (->> issues (filter open?) count)
-   :closed (->> issues (filter (complement open?)) count)})
+   :closed (->> issues (filter (complement open?)) count)
+   :points (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))})
 
-(defn- status-at-date [cutoff-date {:keys [history] :as issue}]
+(defn- issue-at-date [cutoff-date {:keys [history] :as issue}]
   (if (empty? (:history issue))
     issue
     (reduce
@@ -159,14 +160,19 @@
      (assoc issue :status (-> history first :from))
      (take-while (fn [x] (.isBefore (:date x) cutoff-date)) history))))
 
+(defn- calculate-burndown-metrics-at-date [date issues]
+  (let [issues-at-date (map (fn [x] (issue-at-date date x)) issues)]
+    (calculate-burndown-metrics date issues-at-date)))
+
 (defn- calculate-burndown [start-date end-date issues]
-  (let [timestream (take-while (fn [x] (and (.isBefore x (date/today)) (.isBefore x end-date))) (date/timestream start-date 1 ChronoUnit/DAYS))]
-    (->> timestream
-         (map (fn [date] (tasks-open-and-closed date (map (partial status-at-date date) issues)))))))
+  (->> (date/timestream start-date 1 ChronoUnit/DAYS)
+       (take-while (fn [x] (and (.isBefore x (date/today)) (.isBefore x end-date))))
+       (filter date/working-day?)
+       (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
 (defn report-burndown [start-date end-date issues]
   {:title   (str "Burndown from " (format-date start-date) " to " (format-date end-date))
-   :columns [:date :open :closed]
+   :columns [:date :open :closed :points]
    :rows    (calculate-burndown start-date end-date issues)})
 
 (defn generate-burndown-report
