@@ -71,6 +71,7 @@
 
 (def- stub-sprints [(stub-sprint 1 "stub-sprint-1-name" "active") (stub-sprint 2 "stub-sprint-2-name" "inactive")])
 
+;; TODO: This is wrong
 (def- stub-config
   {:jira {:board "board-1-name"}})
 
@@ -85,7 +86,7 @@
   (with-redefs [config/config                     stub-config
                 rest-client/get-boards            (fn [cfg] stub-boards)
                 rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))]
-    (is (= ["stub-sprint-1-name" "stub-sprint-2-name"] (get-sprint-names)))))
+    (is (= ["stub-sprint-1-name" "stub-sprint-2-name"] (get-sprint-names "board-1-name")))))
 
 (deftest get-issues-in-sprint-named-then-decodes-issues
   (with-redefs [config/config                     stub-config

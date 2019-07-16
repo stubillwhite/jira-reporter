@@ -35,11 +35,13 @@
 (defn- find-first [pred coll]
   (first (filter pred coll)))
 
-(defn- get-board-named [config name]
-  (cache/with-cache [:boards name]
+(defn- get-board-named [board-name]
+  (info (str "Getting board named '" board-name "'"))
+  (cache/with-cache [:boards board-name]
     (fn []
+      (info (str "Failed to find board \"" board-name "\" in cache"))
       (let [boards (rest-client/get-boards config)]
-        (if-let [board (find-first #(= (:name %) name) boards)]
+        (if-let [board (find-first #(= (:name %) board-name) boards)]
           board
           (throw+ {:type ::board-not-found :boards (map :name boards)}))))))
 
@@ -57,9 +59,8 @@
    :history     (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint
-  [config sprint-id]
+  [sprint-id]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (info "Finding issues in the sprint")
   (->> (rest-client/get-issues-for-sprint config sprint-id)
        (transform* [ALL] extract-issue)))
 
@@ -69,43 +70,35 @@
 
 (defn get-active-sprint 
   "Get the active sprint."
-  ([]
-   (let [{{:keys [board]} :jira} config
-         actual-board           (get-board-named config board)]
-     (get-active-sprint (:id actual-board))))
-  
-  ([board-id]
-   (info "Finding the active sprint")
-   (let [sprints (rest-client/get-sprints-for-board config board-id)]
-     (find-first #(= (:state %) "active") sprints))))
+  ([board-name]
+   (let [board   (get-board-named board-name)
+         sprints (rest-client/get-sprints-for-board config (:id board))]
+     (if-let [sprint (find-first #(= (:state %) "active") sprints)]
+       sprint
+       (throw+ {:type ::active-sprint-not-found :sprints (map :name sprints)})))))
 
 (defn get-sprint-named
   "Get the named sprint."
-  ([name]
-   (let [{{:keys [board]} :jira} config
-         actual-board            (get-board-named config board)]
-     (get-sprint-named (:id actual-board) name)))
-  
-  ([board-id name]
-   (info "Finding sprint named" name)
-   (let [sprints (rest-client/get-sprints-for-board config board-id)]
-     (if-let [sprint (find-first #(= (:name %) name) sprints)]
+  ([board-name sprint-name]
+   (let [board   (get-board-named board-name)
+         sprints (rest-client/get-sprints-for-board config (:id board))]
+     (if-let [sprint (find-first #(= (:name %) sprint-name) sprints)]
        sprint
        (throw+ {:type ::sprint-not-found :sprints (map :name sprints)})))))
 
 (defn get-issues-in-current-sprint
   "Get the issues in the current sprint."
-  []
+  [board-name]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (let [ sprint (get-active-sprint)]
-    (get-issues-for-sprint config (:id sprint))))
+  (let [sprint (get-active-sprint board-name)]
+    (info (str "Getting the issues in the current sprint of board '" board-name "'"))
+    (get-issues-for-sprint (:id sprint))))
 
 (defn get-sprint-names
   "Get the names of the sprints."
-  []
-  (let [{{:keys [board]} :jira} config
-        board                   (get-board-named config board)
-        sprints                 (rest-client/get-sprints-for-board config (:id board))]
+  [board-name]
+  (let [board   (get-board-named board-name)
+        sprints (rest-client/get-sprints-for-board config (:id board))]
     (map :name sprints)))
 
 (defn get-board-names
@@ -115,9 +108,10 @@
 
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."
-  [name]
-  (let [sprint (get-sprint-named name)]
-    (get-issues-for-sprint config (:id sprint))))
+  [board-name sprint-name]
+  (let [sprint (get-sprint-named board-name sprint-name)]
+    (info (str "Getting the issues in sprint '" sprint-name "' of board '" board-name "'"))
+    (get-issues-for-sprint (:id sprint))))
 
 (defn get-issues-in-project-named
   "Get the issues in the named project."

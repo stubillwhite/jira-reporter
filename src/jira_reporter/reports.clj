@@ -28,11 +28,11 @@
 ;; Generic functions
 ;; -----------------------------------------------------------------------------
 
-(defn- issues-in-current-sprint []
-  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint)))
+(defn- issues-in-current-sprint [board-name]
+  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint board-name)))
 
-(defn- issues-in-sprint-named [name]
-  (map analysis/add-derived-fields (jira/get-issues-in-sprint-named name)))
+(defn- issues-in-sprint-named [board-name sprint-name]
+  (map analysis/add-derived-fields (jira/get-issues-in-sprint-named board-name sprint-name)))
 
 ;; TODO: Should be on the 'add metadata bit'
 (defn- add-time-in-state [t]
@@ -60,10 +60,10 @@
 
 (defn generate-sprint-names-report
   "Generate a report of the sprint names for a board."
-  []
+  [options]
   [{:title   "Sprint names"
     :columns [:name]
-    :rows    (for [name (jira/get-sprint-names)] {:name name})}])
+    :rows    (for [name (jira/get-sprint-names (:board-name options))] {:name name})}])
 
 ;; -----------------------------------------------------------------------------
 ;; Daily report
@@ -96,10 +96,10 @@
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
-  ([]
-   (generate-daily-report (issues-in-current-sprint)))
+  ([options]
+   (generate-daily-report options (issues-in-current-sprint (:board-name options))))
 
-  ([issues]
+  ([options issues]
    [(report-issues-blocked issues)
     (report-issues-started issues)
     (report-issues-in-progress issues)
@@ -128,9 +128,10 @@
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
-   (let [issues (if-let [sprint-name (:sprint-name options)]
-                  (issues-in-sprint-named sprint-name)
-                  (issues-in-current-sprint))]
+   (let [board-name (:board-name options)
+         issues     (if-let [sprint-name (:sprint-name options)]
+                      (issues-in-sprint-named board-name sprint-name)
+                      (issues-in-current-sprint board-name))]
      (generate-sprint-report options issues)))
 
   ([options issues]
@@ -178,10 +179,11 @@
 (defn generate-burndown-report
   "Generate a burndown report."
   ([options]
-   (let [sprint (if-let [sprint-name (:sprint-name options)]
-                  (jira/get-sprint-named sprint-name)
-                  (jira/get-active-sprint))
-         issues (jira/get-issues-in-sprint-named (:name sprint))]
+   (let [board-name (:board-name options)
+         sprint     (if-let [sprint-name (:sprint-name options)]
+                      (jira/get-sprint-named board-name sprint-name)
+                      (jira/get-active-sprint board-name))
+         issues     (jira/get-issues-in-sprint-named board-name (:name sprint))]
      (generate-burndown-report options (:startDate sprint) (:endDate sprint) issues)))
 
   ([options start-date end-date issues]

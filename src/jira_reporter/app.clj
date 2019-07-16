@@ -30,6 +30,7 @@
    [nil "--daily-report"     "Generate a daily status report for the sprint"]
    [nil "--burndown"         "Generate a burndown for the sprint"]
    [nil "--sprint-name NAME" "Use sprint named NAME instead of the current sprint"]
+   [nil "--board-name NAME"  "Use board named NAME"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -45,13 +46,21 @@
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
-;; TODO: Validate option combinations
+(defn- invalid-options? [options]
+  (let [has-sprint-name? (:sprint-name options)
+        has-board-name?  (:board-name options)]
+    (or (and (:burndown options)      (not has-board-name?))
+        (and (:daily-report options)  (not has-board-name?))
+        (and (:sprint-report options) (not has-board-name?))
+        (and (:list-sprints options)  (not has-board-name?)))))
+
 (defn- validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
-      (:help options) {:exit-message (usage summary)    :ok? true}
-      errors          {:exit-message (error-msg errors) :ok? false}
-      :else           {:options options                 :ok? true})))
+      (:help options)            {:exit-message (usage summary)    :ok? true}
+      errors                     {:exit-message (error-msg errors) :ok? false}
+      (invalid-options? options) {:exit-message (usage summary)    :ok? false}
+      :else                      {:options options                 :ok? true})))
 
 ;; TODO: Remove explicit passing of config around
 
@@ -69,8 +78,8 @@
       (println exit-message)
       (cond
         (:list-boards options)   (display-report (reports/generate-board-names-report))
-        (:list-sprints options)  (display-report (reports/generate-sprint-names-report))
-        (:daily-report options)  (display-report (reports/generate-daily-report))
+        (:list-sprints options)  (display-report (reports/generate-sprint-names-report options))
+        (:daily-report options)  (display-report (reports/generate-daily-report options))
         (:sprint-report options) (display-report (reports/generate-sprint-report options))
         (:burndown options)      (display-report (reports/generate-burndown-report options))))))
 
