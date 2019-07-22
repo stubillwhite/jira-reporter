@@ -97,7 +97,11 @@
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([options]
-   (generate-daily-report options (issues-in-current-sprint (:board-name options))))
+   (let [board-name (:board-name options)
+         issues     (if-let [sprint-name (:sprint-name options)]
+                      (issues-in-sprint-named board-name sprint-name)
+                      (issues-in-current-sprint board-name))]
+     (generate-daily-report options issues)))
 
   ([options issues]
    [(report-issues-blocked issues)
@@ -142,28 +146,39 @@
 ;; Burndown
 ;; -----------------------------------------------------------------------------
 
-(def- formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd"))
+(def- formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd E"))
 
 (defn- format-date [date]
   (.format formatter date))
 
 (defn- calculate-burndown-metrics [date issues]
-  {:date   (format-date date)
-   :open   (->> issues (filter open?) count)
-   :closed (->> issues (filter (complement open?)) count)
-   :points (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))})
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:date   (format-date date)
+     :open   (count-of open?)
+     :closed (count-of (complement open?))
+     :total  (count-of identity)
+     :bugs-open (count-of open? bug?)
+     :bugs-closed (count-of (complement open?) bug?)
+     :points    (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))}))
 
-(defn- issue-at-date [cutoff-date {:keys [history] :as issue}]
+(defn- before-or-equal? [a b]
+  (or (= a b) (.isBefore a b)))
+
+(defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
   (if (empty? (:history issue))
     issue
     (reduce
      (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
      (assoc issue :status (-> history first :from))
-     (take-while (fn [x] (.isBefore (:date x) cutoff-date)) history))))
+     (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) history))))
+
+(defn- issues-at-date [date issues]
+  (->> issues
+       (map (fn [x] (set-status-at-date date x)))
+       (filter (fn [x] (before-or-equal? (:created x) date)))))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
-  (let [issues-at-date (map (fn [x] (issue-at-date date x)) issues)]
-    (calculate-burndown-metrics date issues-at-date)))
+  (calculate-burndown-metrics date (issues-at-date date issues)))
 
 (defn- calculate-burndown [start-date end-date issues]
   (->> (date/timestream start-date 1 ChronoUnit/DAYS)
@@ -172,8 +187,8 @@
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
 (defn report-burndown [start-date end-date issues]
-  {:title   (str "Burndown from " (format-date start-date) " to " (format-date end-date))
-   :columns [:date :open :closed :points]
+  {:title   "Burndown"
+   :columns [:date :open :closed :total :points :bugs-open :bugs-closed]
    :rows    (calculate-burndown start-date end-date issues)})
 
 (defn generate-burndown-report

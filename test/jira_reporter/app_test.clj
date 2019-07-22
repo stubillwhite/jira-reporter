@@ -29,7 +29,7 @@
    deploy-issue])
 
 (defn- test-today []
-  (parse-date today))
+  (date/parse-date today))
 
 ;; (with-redefs [jira/get-issues-in-current-sprint (fn [config] all-issues)
 ;;               analysis/add-derived-fields       (fn [x] x)

@@ -70,7 +70,9 @@
    (for [{:keys [title columns rows]} report]
      (do
        (println (str "\n" title))
-       (pprint/print-table columns rows)))))
+       (if (empty? rows)
+         (println "\nNone")
+         (pprint/print-table columns rows))))))
 
 (defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]

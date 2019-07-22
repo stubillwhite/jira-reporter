@@ -1,7 +1,8 @@
 (ns jira-reporter.date
   (:require [jira-reporter.utils :refer [def-]])
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
-           java.time.temporal.ChronoUnit))
+           java.time.format.DateTimeFormatterBuilder
+           [java.time.temporal ChronoField ChronoUnit]))
 
 ;; TODO: Docs and tests
 (defn timestream [t n unit]
@@ -24,6 +25,18 @@
 
 (defn- with-zero-hours [d]
   (-> d (.withHour 0) (.withMinute 0)))
+
+(def- formatter
+  (-> (DateTimeFormatterBuilder.)
+      (.appendPattern "yyyy-MM-dd")
+      (.parseDefaulting ChronoField/HOUR_OF_DAY 0)
+      (.parseDefaulting ChronoField/MINUTE_OF_HOUR 0)
+      (.parseDefaulting ChronoField/SECOND_OF_MINUTE 0)
+      (.toFormatter)
+      (.withZone zone-utc)))
+
+(defn parse-date [s]
+  (-> (.parse formatter s) (ZonedDateTime/from)))
 
 ;; TODO Reset time on days comparison
 (defn today
