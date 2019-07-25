@@ -38,6 +38,9 @@
 (defn parse-date [s]
   (-> (.parse formatter s) (ZonedDateTime/from)))
 
+(defn without-time [d]
+  (.truncatedTo d ChronoUnit/DAYS))
+
 ;; TODO Reset time on days comparison
 (defn today
   "The current date."
@@ -45,7 +48,6 @@
   (-> (ZonedDateTime/now zone-utc)
       (.withHour 0)
       (.withMinute 0)
-      (.withSecond 0)
       (.withSecond 0)
       (.withNano 0)))
 

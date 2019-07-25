@@ -162,7 +162,9 @@
      :points    (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))}))
 
 (defn- before-or-equal? [a b]
-  (or (= a b) (.isBefore a b)))
+  (let [date-a (date/without-time a)
+        date-b (date/without-time b)]
+    (or (= date-a date-b) (.isBefore date-a date-b))))
 
 (defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
   (if (empty? (:history issue))
@@ -181,9 +183,9 @@
   (calculate-burndown-metrics date (issues-at-date date issues)))
 
 (defn- calculate-burndown [start-date end-date issues]
-  (->> (date/timestream start-date 1 ChronoUnit/DAYS)
-       (take-while (fn [x] (and (.isBefore x (date/today)) (.isBefore x end-date))))
-       (filter date/working-day?)
+  (->> (date/timestream (date/without-time start-date) 1 ChronoUnit/DAYS)
+       (take-while (fn [x] (and (before-or-equal? x (date/today)) (before-or-equal? x end-date))))
+       (filter (fn [x] (date/working-day? x)))
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
 (defn report-burndown [start-date end-date issues]

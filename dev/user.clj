@@ -22,8 +22,10 @@
             [taoensso.nippy :as nippy]
             [taoensso.timbre :as timbre]
             [clojure.pprint :as pprint]
-            [jira-reporter.date :as date])
+            [jira-reporter.date :as date]
+            [oz.core :as oz])
   (:import [java.io DataInputStream DataOutputStream]))
+
 
 (defn print-methods [x]
   (->> x
@@ -55,53 +57,40 @@
 ;; Helper methods
 
 (defn read-issues []
-  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint)))
+  (map analysis/add-derived-fields (jira/get-issues-in-sprint-named "CORE Tribe" "Sprint 2- Hulk")))
+
+(defn read-sprint []
+  (jira/get-sprint-named "CORE Tribe" "Sprint 2- Hulk"))
 
 ;; (def issues (read-issues))
+;; (def sprint (read-sprint))
 ;; (write-object "recs-issues.nippy" issues)
+;; (write-object "recs-sprint.nippy" sprint)
 ;; (def issues (read-object "recs-issues.nippy"))
-;; (reports/generate-daily-report config issues)
+;; (def sprint (read-object "recs-sprint.nippy"))
+;; (app/display-report (reports/generate-daily-report config issues))
+;; (app/display-report (reports/report-burndown (:startDate sprint) (:endDate sprint) issues))
 
-(defn status-at-date [cutoff-date {:keys [history] :as issue}]
-  (if (empty? (:history issue))
-    issue
-    (reduce
-     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
-     (take-while (fn [x] (.isBefore (:date x) cutoff-date)) history))))
+;; (oz/start-server!)
 
-(def utc (java.time.ZoneId/of "UTC"))
+;; (defn plot-burndown-report [report]
+;;   {:data {:values plottable-burndown}
+;;      :encoding {:x {:field :date :type :temporal}
+;;                 :y {:field :open}}
+;;    :mark "line"})
 
-(defn- utc-date-time
-  ([m d]
-   (java.time.ZonedDateTime/of 2019 m d 0 0 0 0 utc)))
+;; (defn plot-burndown-report [report]
+;;   (let [rows   (map-indexed (fn [idx x] (assoc x :day idx)) (:rows report))
+;;         values (for [metric [:open :closed :total]
+;;                      row    rows]
+;;                  {:metric metric
+;;                   :value (get row metric)
+;;                   :day   (get row :day)})]
+;;     {:data {:values values}
+;;      :encoding {:x     {:field :day}
+;;                 :y     {:field :value}
+;;                 :color {:field :metric :type "nominal"}}
+;;      :mark "line"}))
 
-(defn status-at-date [cutoff-date {:keys [history] :as issue}]
-  (if (empty? (:history issue))
-    issue
-    (reduce
-     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
-     (assoc issue :status (-> history first :from))
-     (take-while (fn [x] (.isBefore (:date x) cutoff-date)) history))))
+;; (oz/view! (plot-burndown-report burndown))
 
-
-;; (reports/tasks-open-and-closed issues)
-;; (pprint/pprint
-;;  (let [start-date (utc-date-time 6 27)
-;;        length     14
-;;        ;; timestream (take-while (fn [x] (.isBefore x (jira-reporter.date/today))) (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
-;;        timestream (take 6 (jira-reporter.date/timestream start-date 1 java.time.temporal.ChronoUnit/DAYS))
-;;        ]
-;;    (->> timestream
-;;         (map (fn [date] (reports/tasks-open-and-closed date
-;;                                                       (map (partial status-at-date date) issues)))))))
-
-(defn display-report
-  [report]
-  (dorun
-   (for [{:keys [title columns rows]} report]
-     (do
-       (println "\n" title)
-       (pprint/print-table columns rows)))))
-
-
-;; (app/-main)

@@ -18,6 +18,7 @@
                  [com.taoensso/timbre "4.10.0"]
                  [org.clojure/tools.trace "0.7.10"]
                  [com.rpl/specter "1.1.2"]
+                 [metasoarous/oz "1.6.0-alpha3"]
                  [mount "0.1.16"]
                  [clj-http "3.9.1"]
                  [org.clojure/data.json "0.2.6"]

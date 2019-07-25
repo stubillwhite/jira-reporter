@@ -31,6 +31,7 @@
    [nil "--burndown"         "Generate a burndown for the sprint"]
    [nil "--sprint-name NAME" "Use sprint named NAME instead of the current sprint"]
    [nil "--board-name NAME"  "Use board named NAME"]
+   [nil "--tsv"              "Output the data as TSV for Excel"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -64,7 +65,7 @@
 
 ;; TODO: Remove explicit passing of config around
 
-(defn display-report
+(defn- display-table
   [report]
   (dorun
    (for [{:keys [title columns rows]} report]
@@ -74,16 +75,38 @@
          (println "\nNone")
          (pprint/print-table columns rows))))))
 
+(defn- select-vals [m ks]
+  (map (partial get m) ks))
+
+(defn- display-tsv
+  [report]
+  (dorun
+   (for [{:keys [title columns rows]} report]
+     (do
+       (println (str "\n" title))
+       (if (empty? rows)
+         (println "\nNone")
+         (do
+           (println)
+           (println (string/join "\t" columns))
+           (dorun (for [row rows] (println (string/join "\t" (select-vals row columns)))))
+           (println)))))))
+
+(defn display-report [options report]
+  (if (:tsv options)
+    (display-tsv report)
+    (display-table report)))
+
 (defn- execute-action [args config]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
     (if exit-message
       (println exit-message)
       (cond
-        (:list-boards options)   (display-report (reports/generate-board-names-report))
-        (:list-sprints options)  (display-report (reports/generate-sprint-names-report options))
-        (:daily-report options)  (display-report (reports/generate-daily-report options))
-        (:sprint-report options) (display-report (reports/generate-sprint-report options))
-        (:burndown options)      (display-report (reports/generate-burndown-report options))))))
+        (:list-boards options)   (display-tsv (reports/generate-board-names-report))
+        (:list-sprints options)  (display-tsv (reports/generate-sprint-names-report options))
+        (:daily-report options)  (display-tsv (reports/generate-daily-report options))
+        (:sprint-report options) (display-tsv (reports/generate-sprint-report options))
+        (:burndown options)      (display-tsv (reports/generate-burndown-report options))))))
 
 (defn -main [& args]
   (info "Starting application")
