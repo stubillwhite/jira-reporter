@@ -93,6 +93,7 @@
            (println)))))))
 
 (defn display-report [options report]
+  (info options)
   (if (:tsv options)
     (display-tsv report)
     (display-table report)))
@@ -102,11 +103,11 @@
     (if exit-message
       (println exit-message)
       (cond
-        (:list-boards options)   (display-tsv (reports/generate-board-names-report))
-        (:list-sprints options)  (display-tsv (reports/generate-sprint-names-report options))
-        (:daily-report options)  (display-tsv (reports/generate-daily-report options))
-        (:sprint-report options) (display-tsv (reports/generate-sprint-report options))
-        (:burndown options)      (display-tsv (reports/generate-burndown-report options))))))
+        (:list-boards options)   (display-report options (reports/generate-board-names-report))
+        (:list-sprints options)  (display-report options (reports/generate-sprint-names-report options))
+        (:daily-report options)  (display-report options (reports/generate-daily-report options))
+        (:sprint-report options) (display-report options (reports/generate-sprint-report options))
+        (:burndown options)      (display-report options (reports/generate-burndown-report options))))))
 
 (defn -main [& args]
   (info "Starting application")
