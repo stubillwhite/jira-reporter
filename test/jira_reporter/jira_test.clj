@@ -75,13 +75,6 @@
 (def- stub-config
   {:jira {:board "board-1-name"}})
 
-(deftest get-issues-in-current-sprint-then-decodes-issues
-  (with-redefs [config/config                     stub-config
-                rest-client/get-boards            (fn [cfg] stub-boards)
-                rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))
-                rest-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
-    (is (= expected-current-sprint-issues (get-issues-in-current-sprint)))))
-
 (deftest get-sprint-names-then-returns-sprint-names
   (with-redefs [config/config                     stub-config
                 rest-client/get-boards            (fn [cfg] stub-boards)
@@ -93,4 +86,4 @@
                 rest-client/get-boards            (fn [cfg] stub-boards)
                 rest-client/get-sprints-for-board (fn [cfg id] (when (= 1 id) stub-sprints))
                 rest-client/get-issues-for-sprint (fn [cfg id] (when (= 1 id) current-sprint-json))]
-    (is (= expected-current-sprint-issues (get-issues-in-sprint-named "stub-sprint-1-name")))))
+    (is (= expected-current-sprint-issues (get-issues-in-sprint-named "board-1-name" "stub-sprint-1-name")))))

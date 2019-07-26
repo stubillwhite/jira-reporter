@@ -68,15 +68,6 @@
 ;; Public
 ;; -----------------------------------------------------------------------------
 
-(defn get-active-sprint 
-  "Get the active sprint."
-  ([board-name]
-   (let [board   (get-board-named board-name)
-         sprints (rest-client/get-sprints-for-board config (:id board))]
-     (if-let [sprint (find-first #(= (:state %) "active") sprints)]
-       sprint
-       (throw+ {:type ::active-sprint-not-found :sprints (map :name sprints)})))))
-
 (defn get-sprint-named
   "Get the named sprint."
   ([board-name sprint-name]
@@ -85,14 +76,6 @@
      (if-let [sprint (find-first #(= (:name %) sprint-name) sprints)]
        sprint
        (throw+ {:type ::sprint-not-found :sprints (map :name sprints)})))))
-
-(defn get-issues-in-current-sprint
-  "Get the issues in the current sprint."
-  [board-name]
-  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (let [sprint (get-active-sprint board-name)]
-    (info (str "Getting the issues in the current sprint of board '" board-name "'"))
-    (get-issues-for-sprint (:id sprint))))
 
 (defn get-sprint-names
   "Get the names of the sprints."

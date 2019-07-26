@@ -28,9 +28,6 @@
 ;; Generic functions
 ;; -----------------------------------------------------------------------------
 
-(defn- issues-in-current-sprint [board-name]
-  (map analysis/add-derived-fields (jira/get-issues-in-current-sprint board-name)))
-
 (defn- issues-in-sprint-named [board-name sprint-name]
   (map analysis/add-derived-fields (jira/get-issues-in-sprint-named board-name sprint-name)))
 
@@ -97,10 +94,8 @@
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([options]
-   (let [board-name (:board-name options)
-         issues     (if-let [sprint-name (:sprint-name options)]
-                      (issues-in-sprint-named board-name sprint-name)
-                      (issues-in-current-sprint board-name))]
+   (let [{:keys [board-name sprint-name]} options
+         issues                           (issues-in-sprint-named board-name sprint-name)]
      (generate-daily-report options issues)))
 
   ([options issues]
@@ -132,10 +127,8 @@
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
-   (let [board-name (:board-name options)
-         issues     (if-let [sprint-name (:sprint-name options)]
-                      (issues-in-sprint-named board-name sprint-name)
-                      (issues-in-current-sprint board-name))]
+   (let [{:keys [board-name sprint-name]} options
+         issues                           (issues-in-sprint-named board-name sprint-name)]
      (generate-sprint-report options issues)))
 
   ([options issues]
@@ -152,14 +145,15 @@
   (.format formatter date))
 
 (defn- calculate-burndown-metrics [date issues]
-  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
-    {:date   (format-date date)
-     :open   (count-of open?)
-     :closed (count-of (complement open?))
-     :total  (count-of identity)
-     :bugs-open (count-of open? bug?)
-     :bugs-closed (count-of (complement open?) bug?)
-     :points    (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))}))
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
+        non-bug? (complement bug?)]
+    {:date        (format-date date)
+     :open        (count-of open?    non-bug?)
+     :closed      (count-of closed?  non-bug?)
+     :total       (count-of identity non-bug?)
+     :bugs-open   (count-of open?    bug?)
+     :bugs-closed (count-of closed?  bug?)
+     :points      (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))}))
 
 (defn- before-or-equal? [a b]
   (let [date-a (date/without-time a)
@@ -196,11 +190,9 @@
 (defn generate-burndown-report
   "Generate a burndown report."
   ([options]
-   (let [board-name (:board-name options)
-         sprint     (if-let [sprint-name (:sprint-name options)]
-                      (jira/get-sprint-named board-name sprint-name)
-                      (jira/get-active-sprint board-name))
-         issues     (jira/get-issues-in-sprint-named board-name (:name sprint))]
+   (let [{:keys [board-name sprint-name]} options
+         sprint                           (jira/get-sprint-named board-name sprint-name)
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
      (generate-burndown-report options (:startDate sprint) (:endDate sprint) issues)))
 
   ([options start-date end-date issues]
