@@ -72,8 +72,9 @@
      (do
        (println title)
        (if (empty? rows)
-         (println "\nNone\n")
-         (pprint/print-table columns rows))))))
+         (println "\nNone")
+         (pprint/print-table columns rows))
+       (println)))))
 
 (defn- select-vals [m ks]
   (map (partial get m) ks))
@@ -85,7 +86,7 @@
      (do
        (println title)
        (if (empty? rows)
-         (println "\nNone\n")
+         (println "\nNone")
          (do
            (println)
            (println (string/join "\t" columns))

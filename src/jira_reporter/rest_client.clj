@@ -1,34 +1,16 @@
 (ns jira-reporter.rest-client
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
-            [taoensso.timbre :as timbre]
-            [jira-reporter.utils :refer [def-]])
+            [jira-reporter.date :as date]
+            [jira-reporter.utils :refer [def-]]
+            [taoensso.timbre :as timbre])
   (:import [java.time OffsetDateTime ZonedDateTime ZoneId]))
 
 (timbre/refer-timbre)
 
-;; TODO: Moved to date
-(def- iso-8601-date-time-formatter
-  (-> (java.time.format.DateTimeFormatterBuilder.)
-      (.append java.time.format.DateTimeFormatter/ISO_LOCAL_DATE_TIME)
-      (.optionalStart)
-      (.appendOffset "+HH:MM" "+00:00")
-      (.optionalEnd)
-      (.optionalStart)
-      (.appendOffset "+HHMM" "+0000")
-      (.optionalEnd)
-      (.optionalStart)
-      (.appendOffset "+HH" "Z")
-      (.optionalEnd)
-      (.toFormatter)))
-
-(defn- decode-iso-8601-date-time [s]
-  (-> (OffsetDateTime/parse s iso-8601-date-time-formatter)
-      (.atZoneSameInstant (ZoneId/of "UTC"))))
-
 (defn- decode-value [key value]
   (if (contains? #{:created :dated :startDate :endDate} key)
-    (decode-iso-8601-date-time value)
+    (date/parse-date-time value)
     value))
 
 (defn decode-body

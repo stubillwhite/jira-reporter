@@ -112,7 +112,7 @@
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
    :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
-   :rows    (filter (every-pred  closed?) (map add-time-in-state issues))})
+   :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
 
 ;; TODO: Should be :open :raised :closed
 (defn report-issues-summary [issues]

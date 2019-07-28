@@ -70,7 +70,7 @@
 
 (defn- delivered-issue [id date-created date-closed points]
   (issue id "todo" :created (date/parse-date date-created) :history [(status-change date-closed "closed")] :points points))
-1
+
 (def- sprint-issues
   [(delivered-issue "1"  "2000-01-01Z" "2000-01-28Z" 3.0)
    (delivered-issue "2"  "2000-01-01Z" "2000-01-28Z" 3.0)
@@ -101,16 +101,16 @@
 ;; -----------------------------------------------------------------------------
 
 (def- expected-burndown
-  [{:date "2000-01-27" :open 3 :closed 0 :points  0.0}
-   {:date "2000-01-28" :open 2 :closed 1 :points  3.0}
-   {:date "2000-01-31" :open 4 :closed 2 :points  6.0}
-   {:date "2000-02-01" :open 3 :closed 3 :points  9.0}
-   {:date "2000-02-02" :open 2 :closed 4 :points 12.0}])
+  [{:date "2000-01-27 Thu" :open 3 :closed 0 :total 3 :bugs-open 0 :bugs-closed 0 :points  0.0}
+   {:date "2000-01-28 Fri" :open 2 :closed 1 :total 3 :bugs-open 0 :bugs-closed 0 :points  3.0}
+   {:date "2000-01-31 Mon" :open 4 :closed 2 :total 6 :bugs-open 0 :bugs-closed 0 :points  6.0}
+   {:date "2000-02-01 Tue" :open 3 :closed 3 :total 6 :bugs-open 0 :bugs-closed 0 :points  9.0}
+   {:date "2000-02-02 Wed" :open 2 :closed 4 :total 6 :bugs-open 0 :bugs-closed 0 :points 12.0}])
 
 (deftest report-burndown-then-generates-burndown
   (with-redefs [date/current-date test-today
                 config            test-config]
-    (let [start-date    (date/parse-date "2000-01-27")
-          end-date      (date/parse-date "2000-02-10")]
+    (let [start-date    (date/parse-date "2000-01-27Z")
+          end-date      (date/parse-date "2000-02-10Z")]
       (is (= expected-burndown (:rows (report-burndown start-date end-date sprint-issues)))))))
 

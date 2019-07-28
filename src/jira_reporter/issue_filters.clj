@@ -29,9 +29,7 @@
 (defn issue-at-date [date issue]
   "Returns the the issue in the state is was on the specified date, or nil if the issue did not exist. Only certain
   fields will reflect the state on the date, namely status."
-  (clojure.pprint/pprint issue)
-  (if (.isBefore (:created issue) date)
-    nil
+  (when (before-or-equal? (:created issue) date)
     (set-status-at-date date issue)))
 
 (defn issues-at-date [date issues]
