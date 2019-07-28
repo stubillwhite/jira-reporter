@@ -11,7 +11,7 @@
 
 (defn- add-current-state-if-open [history]
   (if (and (not-empty history) (not (contains? (jira/closed-states) (-> history last :to))))
-    (concat history [(-> history last (assoc :date (date/now)))])
+    (concat history [(-> history last (assoc :date (date/current-date-time)))])
     history))
 
 (defn- state-category [id state]

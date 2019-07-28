@@ -1,77 +1,106 @@
 (ns jira-reporter.date
   (:require [jira-reporter.utils :refer [def-]])
-  (:import [java.time DayOfWeek ZonedDateTime ZoneId]
-           java.time.format.DateTimeFormatterBuilder
+  (:import [java.time DayOfWeek OffsetDateTime ZonedDateTime ZoneId]
+           [java.time.format DateTimeFormatter DateTimeFormatterBuilder]
            [java.time.temporal ChronoField ChronoUnit]))
 
-;; TODO: Docs and tests
-(defn timestream [t n unit]
-  (iterate (fn [x] (.plus x n unit)) t))
-
-(defn working-day? [t]
-  (not (contains? #{DayOfWeek/SATURDAY DayOfWeek/SUNDAY} (.getDayOfWeek t))))
+;; -----------------------------------------------------------------------------
+;; Internal
+;; -----------------------------------------------------------------------------
 
 (defn- before? [t]
   (fn [x] (.isBefore (.toInstant x) (.toInstant t))))
 
-(defn working-hour? [t]
-  (let [hour (.getHour t)]
-    (and (<= 9 hour 16) (not (= 13 hour)))))
+;; -----------------------------------------------------------------------------
+;; Public
+;; -----------------------------------------------------------------------------
 
-(def- zone-utc (ZoneId/of "UTC"))
+(def utc
+  "UTC timezone."
+  (ZoneId/of "UTC"))
 
-(defn- with-zero-minutes [d]
-  (.withMinute d 0))
+(defn truncate-to-hours
+  "Returns the date time truncated to hours."
+  [dt]
+  (.truncatedTo dt ChronoUnit/HOURS))
 
-(defn- with-zero-hours [d]
-  (-> d (.withHour 0) (.withMinute 0)))
+(defn truncate-to-days
+  "Returns the date time truncated to days."
+  [dt]
+  (.truncatedTo dt ChronoUnit/DAYS))
 
-(def- formatter
+(defn current-date-time 
+  "The current date and time."
+  []
+  (ZonedDateTime/now utc))
+
+(defn current-date
+  "The current date."
+  []
+  (-> (current-date-time)
+      (truncate-to-days)))
+
+(def iso-8601-date-time-formatter
+  "A DateTimeFormatter for the ISO 8601 date time format."
   (-> (DateTimeFormatterBuilder.)
-      (.appendPattern "yyyy-MM-dd")
+      (.append DateTimeFormatter/ISO_LOCAL_DATE_TIME)
+      (.optionalStart)
+      (.appendOffset "+HH:MM" "+00:00")
+      (.optionalEnd)
+      (.optionalStart)
+      (.appendOffset "+HHMM" "+0000")
+      (.optionalEnd)
+      (.optionalStart)
+      (.appendOffset "+HH" "Z")
+      (.optionalEnd)
+      (.toFormatter)))
+
+(defn parse-date-time
+  "Return a date time parsed from ISO 8601 format string s."
+  [s]
+  (-> (OffsetDateTime/parse s iso-8601-date-time-formatter)
+      (.atZoneSameInstant utc)))
+
+(def- iso-8601-date-formatter
+  "A DateTimeFormatter for the ISO 8601 date format."
+  (-> (DateTimeFormatterBuilder.)
+      (.append DateTimeFormatter/ISO_DATE)
       (.parseDefaulting ChronoField/HOUR_OF_DAY 0)
       (.parseDefaulting ChronoField/MINUTE_OF_HOUR 0)
       (.parseDefaulting ChronoField/SECOND_OF_MINUTE 0)
-      (.toFormatter)
-      (.withZone zone-utc)))
+      (.toFormatter)))
 
-(defn parse-date [s]
-  (-> (.parse formatter s) (ZonedDateTime/from)))
+(defn parse-date
+  "Return a date parsed from ISO 8601 format string s."
+  [s]
+  (-> (OffsetDateTime/parse s iso-8601-date-formatter)
+      (.atZoneSameInstant utc)))
 
-(defn without-time [d]
-  (.truncatedTo d ChronoUnit/DAYS))
+(defn timestream
+  "Returns a lazy sequence of instants starting at time t and increasing
+  by n time units each step."
+  [t n unit]
+  (iterate (fn [x] (.plus x n unit)) t))
 
-;; TODO Reset time on days comparison
-(defn today
-  "The current date."
-  []
-  (-> (ZonedDateTime/now zone-utc)
-      (.withHour 0)
-      (.withMinute 0)
-      (.withSecond 0)
-      (.withNano 0)))
+(defn working-day?
+  "Returns true if date d is a work day, false otherwise."
+  [d]
+  (not (contains? #{DayOfWeek/SATURDAY DayOfWeek/SUNDAY} (.getDayOfWeek d))))
 
-(defn now 
-  "The current date and time."
-  []
-  (ZonedDateTime/now zone-utc))
-
-(defn plus-working-days
-  "Add n workdays to Temporal object t."
-  [t n]
-  (->> (timestream t (if (pos? n) 1 -1) ChronoUnit/DAYS)
-       (filter working-day?)
-       (drop (Math/abs n))
-       (first)))
+(defn working-hour?
+  "Returns true if date time dt is an hour that is a working hour, false otherwise."
+  [dt]
+  (let [hour (.getHour dt)]
+    (and (working-day? dt) (<= 9 hour 16) (not (= 13 hour)))))
 
 (defn working-days-between
   "Count the number of workdays between Temporal objects t1 and t2."
   [t1 t2]
   (if (.isAfter t1 t2)
     (working-days-between t2 t1)
-    (->> (timestream (with-zero-hours t1) 1 ChronoUnit/DAYS)
+    (->> (timestream (truncate-to-days t1) 1 ChronoUnit/DAYS)
          (filter working-day?)
-         (take-while (before? (with-zero-hours t2)))
+         (take-while (before? (truncate-to-days t2)))
          (count)
          (max 1))))
 
@@ -80,8 +109,8 @@
   [t1 t2]
   (if (.isAfter t1 t2)
     (working-hours-between t2 t1)
-    (->> (timestream (with-zero-minutes t1) 1 ChronoUnit/HOURS)
+    (->> (timestream (truncate-to-hours t1) 1 ChronoUnit/HOURS)
          (filter working-day?)
          (filter working-hour?)
-         (take-while (before? (with-zero-minutes t2)))
+         (take-while (before? (truncate-to-hours t2)))
          (count))))

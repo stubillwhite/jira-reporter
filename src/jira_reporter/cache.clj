@@ -1,6 +1,7 @@
 (ns jira-reporter.cache
-  (:require [jira-reporter.utils :refer [def-]]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
+            [jira-reporter.config :refer [config]]
+            [jira-reporter.utils :refer [def-]]
             [mount.core :refer [defstate]]
             [taoensso.nippy :as nippy]
             [taoensso.timbre :as timbre])
@@ -20,6 +21,7 @@
     (nippy/thaw-from-in! (DataInputStream. r))))
 
 (defn- load-cache [path]
+  (println config)
   (if (file-exists? path)
     (do
       (info "Loading existing cached data from" path)
@@ -28,12 +30,10 @@
       (info "Creating new cache file" path)
       {})))
 
-(def- cache-filename "cached-data.edn")
-
 (def- cache-atom (atom nil))
 
 (defstate cache
-  :start (reset-vals! cache-atom (load-cache cache-filename))
+  :start (reset-vals! cache-atom (load-cache (:cache-filename config)))
   :stop  (reset-vals! cache-atom nil))
 
 (defn with-cache
@@ -43,6 +43,6 @@
     v
     (let [v (f)]
       (swap! cache-atom assoc-in ks v)
-      (write-object cache-filename @cache-atom)
+      (write-object (:cache-filename config) @cache-atom)
       v)))
 

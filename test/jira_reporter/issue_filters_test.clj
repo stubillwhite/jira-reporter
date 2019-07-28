@@ -6,7 +6,7 @@
            java.time.temporal.ChronoUnit))
 
 (defn- hours-offset [n]
-  (.plus (date/today) n ChronoUnit/HOURS))
+  (.plus (date/current-date) n ChronoUnit/HOURS))
 
 (defn- stub-issue [t-mod]
   {:history [{:date t-mod}]})

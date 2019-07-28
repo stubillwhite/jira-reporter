@@ -26,7 +26,7 @@
    })
 
 (defn stub-issue [id type status & {:keys [created subtasks history points]
-                                    :or {created  (date/parse-date "2000-01-01")
+                                    :or {created  (date/parse-date "2000-01-01Z")
                                          subtasks []
                                          history  []
                                          points   nil}}]

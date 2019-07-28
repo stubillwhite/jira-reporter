@@ -7,6 +7,7 @@
 
 (timbre/refer-timbre)
 
+;; TODO: Moved to date
 (def- iso-8601-date-time-formatter
   (-> (java.time.format.DateTimeFormatterBuilder.)
       (.append java.time.format.DateTimeFormatter/ISO_LOCAL_DATE_TIME)

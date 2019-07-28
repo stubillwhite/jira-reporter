@@ -112,8 +112,9 @@
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
    :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
-   :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
+   :rows    (filter (every-pred  closed?) (map add-time-in-state issues))})
 
+;; TODO: Should be :open :raised :closed
 (defn report-issues-summary [issues]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:title   "Issue summary"
@@ -124,11 +125,15 @@
             {:category "GDPR"  :open (count-of gdpr?  open?) :closed (count-of gdpr?  closed?)}
             {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
 
+
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
    (let [{:keys [board-name sprint-name]} options
-         issues                           (issues-in-sprint-named board-name sprint-name)]
+         sprint                           (jira/get-sprint-named board-name sprint-name)
+         issues                           (->> (issues-in-sprint-named board-name sprint-name)
+                                               (map (partial issues-at-date (:endDate sprint)))
+                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
      (generate-sprint-report options issues)))
 
   ([options issues]
@@ -145,40 +150,29 @@
   (.format formatter date))
 
 (defn- calculate-burndown-metrics [date issues]
-  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
-        non-bug? (complement bug?)]
+  (let [count-of   (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
+        non-bug?   (complement bug?)
+        sum-points (fn [xs] (->> xs (map :points) (filter identity) (reduce + 0.0)))]
     {:date        (format-date date)
-     :open        (count-of open?    non-bug?)
-     :closed      (count-of closed?  non-bug?)
-     :total       (count-of identity non-bug?)
-     :bugs-open   (count-of open?    bug?)
-     :bugs-closed (count-of closed?  bug?)
-     :points      (->> issues (filter closed?) (map :points) (filter identity) (reduce + 0.0))}))
+     :open        (count-of non-bug? open?)
+     :closed      (count-of non-bug? closed?)
+     :total       (count-of non-bug?)
+     :bugs-open   (count-of bug? open?)
+     :bugs-closed (count-of bug? closed?)
+     :points      (->> issues (filter closed?) (sum-points))}))
 
+;; TODO: Move to filters or dates
 (defn- before-or-equal? [a b]
-  (let [date-a (date/without-time a)
-        date-b (date/without-time b)]
+  (let [date-a (date/truncate-to-days a)
+        date-b (date/truncate-to-days b)]
     (or (= date-a date-b) (.isBefore date-a date-b))))
-
-(defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
-  (if (empty? (:history issue))
-    issue
-    (reduce
-     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
-     (assoc issue :status (-> history first :from))
-     (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) history))))
-
-(defn- issues-at-date [date issues]
-  (->> issues
-       (map (fn [x] (set-status-at-date date x)))
-       (filter (fn [x] (before-or-equal? (:created x) date)))))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
   (calculate-burndown-metrics date (issues-at-date date issues)))
 
 (defn- calculate-burndown [start-date end-date issues]
-  (->> (date/timestream (date/without-time start-date) 1 ChronoUnit/DAYS)
-       (take-while (fn [x] (and (before-or-equal? x (date/today)) (before-or-equal? x end-date))))
+  (->> (date/timestream (date/truncate-to-days start-date) 1 ChronoUnit/DAYS)
+       (take-while (fn [x] (and (before-or-equal? x (date/current-date)) (before-or-equal? x end-date))))
        (filter (fn [x] (date/working-day? x)))
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 

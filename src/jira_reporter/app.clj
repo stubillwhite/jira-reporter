@@ -70,9 +70,9 @@
   (dorun
    (for [{:keys [title columns rows]} report]
      (do
-       (println (str "\n" title))
+       (println title)
        (if (empty? rows)
-         (println "\nNone")
+         (println "\nNone\n")
          (pprint/print-table columns rows))))))
 
 (defn- select-vals [m ks]
@@ -83,9 +83,9 @@
   (dorun
    (for [{:keys [title columns rows]} report]
      (do
-       (println (str "\n" title))
+       (println title)
        (if (empty? rows)
-         (println "\nNone")
+         (println "\nNone\n")
          (do
            (println)
            (println (string/join "\t" columns))

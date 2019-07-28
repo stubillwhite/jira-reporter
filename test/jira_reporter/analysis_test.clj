@@ -41,11 +41,12 @@
          m))
 
 (def- stub-config
-  {:schema {:to-do-states       #{"To Do"}
-            :in-progress-states #{"In Progress"}
-            :blocked-states     #{"Blocked"}
-            :closed-states      #{"Closed - DONE"}
-            }})
+  {:cache-filename "target/cached-data.edn"
+   :schema         {:to-do-states       #{"To Do"}
+                    :in-progress-states #{"In Progress"}
+                    :blocked-states     #{"Blocked"}
+                    :closed-states      #{"Closed - DONE"}
+                    }})
 
 (deftest add-derived-fields-given-issue-closed-then-adds-time-in-state
   (with-redefs [config stub-config]
@@ -58,8 +59,8 @@
       (is (= expected-time-in-state (:time-in-state (add-derived-fields stub-closed-issue)))))))
 
 (deftest add-derived-fields-given-issue-open-then-adds-time-in-state
-  (with-redefs [config   stub-config
-                date/now (fn [] (utc-time 16))]
+  (with-redefs [config                 stub-config
+                date/current-date-time (fn [] (utc-time 16))]
     (let [stub-in-progress-issue (stub-issue-with {:history (-> []
                                                                 (in-progress (utc-time 9))
                                                                 (blocked     (utc-time 11))
@@ -77,8 +78,8 @@
       (is (= 4 (:lead-time-in-days (add-derived-fields stub-closed-issue)))))))
 
 (deftest add-derived-fields-given-issue-open-then-adds-lead-time-in-days
-  (with-redefs [config   stub-config
-                date/now (fn [] (utc-date 5))]
+  (with-redefs [config                 stub-config
+                date/current-date-time (fn [] (utc-date 5))]
     (let [stub-in-progress-issue (stub-issue-with {:history (-> []
                                                                 (in-progress (utc-date 1))
                                                                 (blocked     (utc-date 3))

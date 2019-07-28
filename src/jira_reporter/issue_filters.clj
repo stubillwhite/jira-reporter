@@ -11,7 +11,34 @@
 (defn- type-is? [states issue]
   (contains? states (:type issue)))
 
+(defn- before-or-equal? [a b]
+  (or (= a b) (.isBefore a b)))
+
+(defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
+  (if (empty? history)
+    issue
+    (reduce
+     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
+     (assoc issue :status (-> history first :from))
+     (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) history))))
+
+;; -----------------------------------------------------------------------------
 ;; Public functions
+;; -----------------------------------------------------------------------------
+
+(defn issue-at-date [date issue]
+  "Returns the the issue in the state is was on the specified date, or nil if the issue did not exist. Only certain
+  fields will reflect the state on the date, namely status."
+  (clojure.pprint/pprint issue)
+  (if (.isBefore (:created issue) date)
+    nil
+    (set-status-at-date date issue)))
+
+(defn issues-at-date [date issues]
+  "See issue-at-date. Issues which were created after the specified date will be removed."
+  (->> issues
+       (map (partial issue-at-date date))
+       (filter identity)))
 
 (defn blocked?
   "Returns true if the issue is blocked, false otherwise."
@@ -27,7 +54,7 @@
   "Returns true if the issue changed state in the previous day, false otherwise."
   [issue]
   (if-let [last-change (-> issue :history last :date)]
-    (<= (date/working-days-between last-change (date/today)) 1)
+    (<= (date/working-days-between last-change (date/current-date)) 1)
     false))
 
 (defn awaiting-deployment?

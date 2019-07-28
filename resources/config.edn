@@ -7,13 +7,18 @@
         :board      "CHANGEME"
         :batch-size 10}
 
- :schema {:to-do-states       #{"To Do()" "To Do"}
-          :in-progress-states #{"In Progress"}
-          :blocked-states     #{"Blocked"}
-          :closed-states      #{"Closed - DONE" "Closed"}
-          :deployment-states  #{"Deploy to SIT" "Deploy to Prod"}
-          :story-types        #{"Story"}
-          :task-types         #{"Task" "Sub-task"}
-          :bug-types          #{"Bug" "Bug Sub-task"}
-          :gdpr-types         #{"GDPR Compliance"}}
+ :cache-filename "cached-data.edn"
+ 
+ :schema {:to-do-states            #{"To Do" "Ready" "Open" "Software Simplified Workflow for Project SDPR" "Ready for Dev"}
+          :in-progress-states      #{"In Progress" "In Review" "In Test"}
+          :blocked-states          #{"Blocked" "Progress Blocked"}
+          :closed-states           #{"Closed - DONE" "Closed" "Done" "Closed - Won't Do"}
+          :deployment-states       #{"Deploy to SIT" "Deploy to Prod" "Ready for Release"}
+          :story-types             #{"Story"}
+          :task-types              #{"Task" "Sub-task"}
+          :bug-types               #{"Bug" "Bug Sub-task"}
+          :gdpr-types              #{"GDPR Compliance"}
+          :story-closed-state      "Closed"
+          :story-open-state        "To Do"
+          :story-in-progress-state "In Progress"}
  }
