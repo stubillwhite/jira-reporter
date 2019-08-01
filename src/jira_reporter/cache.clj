@@ -21,7 +21,6 @@
     (nippy/thaw-from-in! (DataInputStream. r))))
 
 (defn- load-cache [path]
-  (println config)
   (if (file-exists? path)
     (do
       (info "Loading existing cached data from" path)

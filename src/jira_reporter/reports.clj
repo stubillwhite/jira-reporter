@@ -168,7 +168,7 @@
     (or (= date-a date-b) (.isBefore date-a date-b))))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
-  (calculate-burndown-metrics date (issues-at-date date issues)))
+  (calculate-burndown-metrics date (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
 
 (defn- calculate-burndown [start-date end-date issues]
   (->> (date/timestream (date/truncate-to-days start-date) 1 ChronoUnit/DAYS)

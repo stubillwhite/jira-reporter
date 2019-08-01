@@ -8,7 +8,7 @@ COLOR_NONE=\033[0m
 COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
-SPRINT_PREFIX=Sprint 1- 
+SPRINT_PREFIX=Sprint 2- 
 SQUAD_NAMES=Hulk Storm Flash
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -28,7 +28,6 @@ help:
 burndown: ${SQUAD_BURNDOWNS} ## Generate burndown metrics
 
 ${SQUAD_BURNDOWNS}: burndown-%:
-	@echo 
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* burndown
 	@echo -------------------------------------------------------------------------------- 
@@ -39,7 +38,6 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 daily-report: ${SQUAD_DAILY_REPORTS} ## Generate daily reports
 
 ${SQUAD_DAILY_REPORTS}: daily-report-%:
-	@echo 
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* daily report
 	@echo -------------------------------------------------------------------------------- 
@@ -51,7 +49,6 @@ sprint-report: ${SQUAD_SPRINT_REPORTS} ## Generate sprint reports
 
 .PHONY: ${SQUAD_SPRINT_REPORTS}
 ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
-	@echo 
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* sprint report
 	@echo -------------------------------------------------------------------------------- 
