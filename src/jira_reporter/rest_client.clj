@@ -1,10 +1,9 @@
 (ns jira-reporter.rest-client
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
+            [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
-            [jira-reporter.utils :refer [def-]]
-            [taoensso.timbre :as timbre])
-  (:import [java.time OffsetDateTime ZonedDateTime ZoneId]))
+            [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
@@ -21,11 +20,12 @@
 (defn- merge-in [m ks v]
   (update-in m ks #(merge % v)))
 
-(defn- build-request [{{:keys [username password batch-size]} :jira} method url]
-  {:method       method
-   :url          url
-   :query-params {:maxResults batch-size}
-   :basic-auth   [username password]})
+(defn- build-request [method url]
+  (let [{{:keys [username password batch-size]} :jira} config]
+    {:method       method
+     :url          url
+     :query-params {:maxResults batch-size}
+     :basic-auth   [username password]}))
 
 (defn- is-last-page? [response]
   (or (not (contains? response :isLast)) (:isLast response)))
@@ -34,8 +34,8 @@
   (or (not (contains? response :issues)) (empty? (:issues response))))
 
 (defn- paginated-request
-  ([config method url f-terminate?]
-   (paginated-request (build-request config method url) f-terminate?))
+  ([method url f-terminate?]
+   (paginated-request (build-request method url) f-terminate?))
   
   ([req f-terminate?]
    (debug "Request: " req)
@@ -43,58 +43,64 @@
      (trace "Response:" response)
      (if (f-terminate? response)
        [response]
-       (let [{:keys [maxResults startAt isLast]} response
+       (let [{:keys [maxResults startAt]} response
              new-req (merge-in req [:query-params] {:maxResults maxResults
                                                     :startAt    (+ startAt maxResults)})]
          (lazy-seq (cons response (paginated-request new-req f-terminate?))))))))
 
-(defn- build-api-v1-url [{{:keys [server]} :jira} & args]
-  (str
-   (str "https://" server "/rest/agile/1.0")
-   (apply str args)))
+(defn- build-api-v1-url [& args]
+  (let [{{:keys [server]} :jira} config]
+    (str
+     (str "https://" server "/rest/agile/1.0")
+     (apply str args))))
 
-(defn- build-api-v2-url [{{:keys [server]} :jira} & args]
-  (str
-   (str "https://" server "/rest/api/2")
-   (apply str args)))
+(defn- build-api-v2-url [& args]
+  (let [{{:keys [server]} :jira} config]
+    (str
+     (str "https://" server "/rest/api/2")
+     (apply str args))))
 
 (defn get-board
   "Returns the board with the specified ID."
-  [config id]
-  (->> (paginated-request config :get (build-api-v1-url config (str "/board/" id)) is-last-page?)))
+  [id]
+  (->> (paginated-request :get (build-api-v1-url (str "/board/" id)) is-last-page?)))
 
 (defn get-boards
   "Returns a seq of all the boards."
-  [config]
-  (->> (paginated-request config :get (build-api-v1-url config "/board") is-last-page?)
+  []
+  (->> (paginated-request :get (build-api-v1-url "/board") is-last-page?)
        (mapcat :values)))
 
 (defn get-sprints-for-board
   "Returns a seq of the sprints for the board with the specified ID."
-  [config board-id]
-  (->> (paginated-request config :get (build-api-v1-url config "/board/" board-id "/sprint") is-last-page?)
+  [board-id]
+  (->> (paginated-request :get (build-api-v1-url "/board/" board-id "/sprint") is-last-page?)
        (mapcat :values)))
 
 ;; TODO Get sprint by ID
 
 (defn get-issues-for-sprint
   "Returns a seq of the issues for the sprint with the specified ID."
-  [config sprint-id]
-  (let [result (->> (paginated-request (merge-in (build-request config :get (build-api-v1-url config "/sprint/" sprint-id "/issue"))
+  [sprint-id]
+  (let [result (->> (paginated-request (merge-in (build-request :get (build-api-v1-url "/sprint/" sprint-id "/issue"))
                                                  [:query-params]
                                                  {:expand "changelog"})
                                        is-empty-issues?)
                     (mapcat :issues))]
     result))
 
+;; https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/?&_ga=2.213181971.682771901.1564552031-322924290.1564431140#api/2/search-search
 (defn get-issues-for-project
-  "Returns a seq of the issues for the project with the specified ID."
-  [config project-id]
-  (let [result (->> (paginated-request (merge-in (build-request config :get (build-api-v2-url config "/search"))
+  "Returns a seq of the issues for the project with the specified name."
+  [name]
+  (let [epic-link-field    (get-in config [:custom-fields :epic-link])
+        story-points-field (get-in config [:custom-fields :story-points])]
+    (->> (paginated-request (merge-in (build-request :get (build-api-v2-url "/search"))
                                                  [:query-params]
-                                                 {:jql    (str "project=" project-id)
-                                                  :expand "changelog"})
-                                       is-empty-issues?)
-                    (mapcat :issues))]
-    result))
+                                                 {:jql    (str "project=\"" name "\"")
+                                                  ;; :expand "changelog"
+                                                  :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field]
+                                                  })
+                            is-empty-issues?)
+                    (mapcat :issues))))
 

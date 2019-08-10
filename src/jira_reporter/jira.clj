@@ -16,6 +16,9 @@
 ;; TODO: Story points
 ;; https://developer.atlassian.com/cloud/jira/platform/rest/v3/#api-api-3-issue-issueIdOrKey-properties-get
 
+(declare epic-link-field)
+(declare story-points-field)
+
 (defn- extract-issue-history [json]
   (let [field-names  [:date :field :from :to ]
         field-values (select* [ALL
@@ -40,7 +43,7 @@
   (cache/with-cache [:boards board-name]
     (fn []
       (info (str "Failed to find board \"" board-name "\" in cache"))
-      (let [boards (rest-client/get-boards config)]
+      (let [boards (rest-client/get-boards)]
         (if-let [board (find-first #(= (:name %) board-name) boards)]
           board
           (throw+ {:type ::board-not-found :boards (map :name boards)}))))))
@@ -55,13 +58,14 @@
    :status      (get-in issue-json [:fields :status :name])
    :assignee    (get-in issue-json [:fields :assignee :displayName])
    :title       (get-in issue-json [:fields :summary])
-   :points      (get-in issue-json [:fields (keyword "customfield_10002")]) ;; TODO Get from schema
+   :points      (get-in issue-json [:fields (keyword (story-points-field))])
+   :epic        (get-in issue-json [:fields (keyword (epic-link-field))])
    :history     (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint
   [sprint-id]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (->> (rest-client/get-issues-for-sprint config sprint-id)
+  (->> (rest-client/get-issues-for-sprint sprint-id)
        (transform* [ALL] extract-issue)))
 
 ;; -----------------------------------------------------------------------------
@@ -72,7 +76,7 @@
   "Get the named sprint."
   ([board-name sprint-name]
    (let [board   (get-board-named board-name)
-         sprints (rest-client/get-sprints-for-board config (:id board))]
+         sprints (rest-client/get-sprints-for-board (:id board))]
      (if-let [sprint (find-first #(= (:name %) sprint-name) sprints)]
        sprint
        (throw+ {:type ::sprint-not-found :sprints (map :name sprints)})))))
@@ -81,13 +85,8 @@
   "Get the names of the sprints."
   [board-name]
   (let [board   (get-board-named board-name)
-        sprints (rest-client/get-sprints-for-board config (:id board))]
+        sprints (rest-client/get-sprints-for-board (:id board))]
     (map :name sprints)))
-
-(defn get-board-names
-  "Get the names of the boards."
-  []
-  (map :name (rest-client/get-boards config)))
 
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."
@@ -101,7 +100,7 @@
   [name]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
   (info "Finding issues in the project")
-  (->> (rest-client/get-issues-for-project config name)
+  (->> (rest-client/get-issues-for-project name)
        (transform* [ALL] extract-issue)))
 
 (defn to-do-states       [] (get-in config [:schema :to-do-states]))
@@ -109,7 +108,13 @@
 (defn blocked-states     [] (get-in config [:schema :blocked-states]))
 (defn closed-states      [] (get-in config [:schema :closed-states]))
 (defn deployment-states  [] (get-in config [:schema :deployment-states]))
+(defn epic-types         [] (get-in config [:schema :epic-types]))
 (defn story-types        [] (get-in config [:schema :story-types]))
 (defn task-types         [] (get-in config [:schema :task-types]))
 (defn bug-types          [] (get-in config [:schema :bug-types]))
 (defn gdpr-types         [] (get-in config [:schema :gdpr-types]))
+(defn epic-types         [] (get-in config [:schema :epic-types]))
+
+(defn epic-link-field    [] (get-in config [:custom-fields :epic-link]))
+(defn story-points-field [] (get-in config [:custom-fields :story-points]))
+

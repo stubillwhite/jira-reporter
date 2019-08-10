@@ -41,17 +41,6 @@
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
 ;; -----------------------------------------------------------------------------
-;; Board names
-;; -----------------------------------------------------------------------------
-
-(defn generate-board-names-report
-  "Generate a report of the board names."
-  []
-  [{:title   "Board names"
-    :columns [:name]
-    :rows    (for [name (jira/get-board-names)] {:name name})}])
-
-;; -----------------------------------------------------------------------------
 ;; Sprint names
 ;; -----------------------------------------------------------------------------
 
@@ -125,7 +114,6 @@
             {:category "GDPR"  :open (count-of gdpr?  open?) :closed (count-of gdpr?  closed?)}
             {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
 
-
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
@@ -191,6 +179,67 @@
 
   ([options start-date end-date issues]
    [(report-burndown start-date end-date issues)]))
+
+;; -----------------------------------------------------------------------------
+;; Backlog
+;; -----------------------------------------------------------------------------
+
+(defn report-sized-and-unsized-stories [issues]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Sized and unsized open stories"
+     :columns [:status :count]
+     :rows    [{:status "Open and sized"   :count (count-of story? (complement closed?) sized?)}
+               {:status "Open and unsized" :count (count-of story? (complement closed?) (complement sized?))}
+               {:status "Open total"       :count (count-of story? (complement closed?))}]}))
+
+(defn report-open-epics [issues]
+  (let [count-of         (fn [xs & preds] (->> xs (filter (apply every-pred preds)) count))
+        epics-to-stories (group-by :epic issues)
+        epic-metrics     (into {} (for [[k v] epics-to-stories] [k {:open   (count-of v (complement closed?))
+                                                                    :closed (count-of v closed?)}]))]
+    {:title   "Epics currently in progress"
+     :columns [:id :title :open :closed]
+     :rows    (->> issues
+                   (filter (every-pred epic? in-progress?))
+                   (map (fn [{:keys [id] :as issue}] (merge issue (get epic-metrics id)))))}))
+
+(defn report-epic-counts-by-state [issues]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Epic counts by state"
+     :columns [:status :count]
+     :rows    [{:status "To-do"       :count (count-of epic? to-do?)}
+               {:status "In progress" :count (count-of epic? in-progress?)}
+               {:status "Closed"      :count (count-of epic? closed?)}]})) 
+
+(defn to-age-in-days [issues]
+  (map (fn [x] (.between java.time.temporal.ChronoUnit/DAYS (:created x) (date/current-date))) issues))
+
+(defn- mean
+  [& numbers]
+    (if (empty? numbers)
+      0
+      (float (/ (reduce + numbers) (count numbers)))))
+
+(defn report-story-age-metrics [issues]
+  (let [issue-ages (->> issues (filter (every-pred story? to-do?)) to-age-in-days)]
+    {:title   "Story ages in days"
+     :columns [:metric :age-in-days]
+     :rows    [{:metric "Oldest story" :age-in-days (apply max issue-ages)}
+               {:metric "Newest story" :age-in-days (apply min issue-ages)}
+               {:metric "Mean age"     :age-in-days (apply mean issue-ages)}]}))
+
+(defn generate-backlog-report
+  "Generate a backlog report."
+  ([options]
+   (let [{:keys [backlog-report]} options
+         issues                 (jira/get-issues-in-project-named backlog-report)]
+     (generate-backlog-report options issues)))
+
+  ([options issues]
+   [(report-story-age-metrics issues)
+    (report-sized-and-unsized-stories issues)
+    (report-epic-counts-by-state issues)
+    (report-open-epics issues)]))
 
 ;; -----------------------------------------------------------------------------
 ;; TODO: Sort all this out

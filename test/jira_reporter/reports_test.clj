@@ -92,8 +92,8 @@
 (deftest report-work-delivered-then-work-delivered-in-sprint
   (with-redefs [date/current-date test-today
                 config            test-config]
-    (let [start-date    (date/parse-date "2000-01-27")
-          end-date      (date/parse-date "2000-02-10")]
+    (let [start-date    (date/parse-date "2000-01-27Z")
+          end-date      (date/parse-date "2000-02-10Z")]
       (is (= [] (:rows (report-work-delivered start-date end-date sprint-issues)))))))
 
 ;; -----------------------------------------------------------------------------
@@ -101,11 +101,11 @@
 ;; -----------------------------------------------------------------------------
 
 (def- expected-burndown
-  [{:date "2000-01-27 Thu" :open 3 :closed 0 :total 3 :bugs-open 0 :bugs-closed 0 :points  0.0}
-   {:date "2000-01-28 Fri" :open 2 :closed 1 :total 3 :bugs-open 0 :bugs-closed 0 :points  3.0}
-   {:date "2000-01-31 Mon" :open 4 :closed 2 :total 6 :bugs-open 0 :bugs-closed 0 :points  6.0}
-   {:date "2000-02-01 Tue" :open 3 :closed 3 :total 6 :bugs-open 0 :bugs-closed 0 :points  9.0}
-   {:date "2000-02-02 Wed" :open 2 :closed 4 :total 6 :bugs-open 0 :bugs-closed 0 :points 12.0}])
+  [{:date "2000-01-27 Thu" :open 4 :closed 0 :total 4 :bugs-open 0 :bugs-closed 0 :points  3.0}
+   {:date "2000-01-28 Fri" :open 2 :closed 2 :total 2 :bugs-open 0 :bugs-closed 0 :points  6.0}
+   {:date "2000-01-31 Mon" :open 4 :closed 3 :total 7 :bugs-open 0 :bugs-closed 0 :points  9.0}
+   {:date "2000-02-01 Tue" :open 3 :closed 4 :total 7 :bugs-open 0 :bugs-closed 0 :points 12.0}
+   {:date "2000-02-02 Wed" :open 2 :closed 5 :total 6 :bugs-open 0 :bugs-closed 0 :points 15.0}])
 
 (deftest report-burndown-then-generates-burndown
   (with-redefs [date/current-date test-today
@@ -114,3 +114,8 @@
           end-date      (date/parse-date "2000-02-10Z")]
       (is (= expected-burndown (:rows (report-burndown start-date end-date sprint-issues)))))))
 
+;; -----------------------------------------------------------------------------
+;; Backlog
+;; -----------------------------------------------------------------------------
+
+;; TBD

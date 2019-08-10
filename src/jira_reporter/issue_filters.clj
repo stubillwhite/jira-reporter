@@ -60,6 +60,11 @@
   [issue]
   (status-is? (jira/deployment-states) issue))
 
+(defn epic?
+  "Returns true if the issue is a epic, false otherwise."
+  [issue]
+  (type-is? (jira/epic-types) issue))
+
 (defn story?
   "Returns true if the issue is a story, false otherwise."
   [issue]
@@ -83,7 +88,12 @@
 (defn deliverable?
   "Returns true if the issue is a self-contained deliverable, false otherwise."
   [issue]
-  (or (no-parent? issue)))
+  (no-parent? issue))
+
+(defn sized?
+  "Returns true if the issue is sized, false otherwise."
+  [issue]
+  (not (nil? (:points issue))))
 
 (defn bug?
   "Returns true if the issue is a bug, false otherwise."

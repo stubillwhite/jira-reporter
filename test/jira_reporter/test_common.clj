@@ -10,6 +10,7 @@
            java.time.format.DateTimeFormatterBuilder
            java.time.temporal.ChronoField))
 
+;; TODO: Rename to stub config
 (def test-config
   {:schema {:to-do-states            #{"to-do"}
             :in-progress-states      #{"in-progress"}
@@ -19,7 +20,7 @@
             :story-types             #{"story"}
             :task-types              #{"task"}
             :bug-types               #{"bug"}
-            :gdpr-types              #{"gpdr"}
+            :gdpr-types              #{"gdpr"}
             :story-closed-state      "Closed"
             :story-open-state        "To Do"
             :story-in-progress-state "In Progress"}

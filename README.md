@@ -2,11 +2,30 @@
 
 A simple script to pull information out of JIRA for the daily stand-up. Tested on JIRA 7.9.0, probably highly configuration dependent.
 
-## Usage
+## Build instructions
 
 - Edit `resources/config.edn`
+    - Add credentials
+    - Add JIRA states
 - `lein uberjar`
-- `./run-application.sh`
+- `cp target/jira-reporter-0.1.4-SNAPSHOT-standalone.jar .`
+
+Run the tool with the script `./jira-reporter`.
+
+## Usage
+
+    Usage: jira-reporter [options]
+    
+    Options:
+          --list-boards       List the names of the boards
+          --list-sprints      List the names of the sprints
+          --sprint-report     Generate a report for the sprint
+          --daily-report      Generate a daily status report for the sprint
+          --burndown          Generate a burndown for the sprint
+          --sprint-name NAME  Use sprint named NAME instead of the current sprint
+          --board-name NAME   Use board named NAME
+          --tsv               Output the data as TSV for Excel
+      -h, --help
 
 ## Example output
 

@@ -1,4 +1,4 @@
-(defproject jira-reporter "0.1.4-SNAPSHOT"
+(defproject jira-reporter "0.1.6-SNAPSHOT"
 
   :description "TODO"
 

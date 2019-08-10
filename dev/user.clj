@@ -15,6 +15,7 @@
             [jira-reporter.config :refer [config]]
             [jira-reporter.jira :as jira]
             [jira-reporter.reports :as reports]
+            [jira-reporter.rest-client :as rest-client]
             [jira-reporter.cache :as cache]
             [jira-reporter.app :as app]
             [jira-reporter.rest-client :as rest-client]
@@ -25,7 +26,6 @@
             [jira-reporter.date :as date]
             [oz.core :as oz])
   (:import [java.io DataInputStream DataOutputStream]))
-
 
 (defn print-methods [x]
   (->> x
@@ -93,4 +93,29 @@
 ;;      :mark "line"}))
 
 ;; (oz/view! (plot-burndown-report burndown))
+
+;; (def issues (jira/get-issues-in-project-named "Newsflo"))
+
+;; (def issues (jira/get-issues-in-project-named "SD Personalized Recommender"))
+;; (def issues (jira/get-issues-in-sprint-named "CORE Tribe" "Sprint 3- Hulk"))
+
+(defn- display-table
+  [report]
+  (dorun
+   (for [{:keys [title columns rows]} report]
+     (do
+       (println title)
+       (if (empty? rows)
+         (println "\nNone")
+         (pprint/print-table columns rows))
+       (println)))))
+
+;; (display-table (reports/generate-backlog-report issues))
+
+(defn burndown []
+  (app/-main "--burndown" "--board-name" "CORE Tribe" "--sprint-name" "Sprint 3- Hulk"))
+
+(defn backlog []
+  (app/-main "--backlog-report" "SD Personalized Recommender"))
+
 

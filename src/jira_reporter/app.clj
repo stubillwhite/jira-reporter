@@ -8,7 +8,8 @@
             [jira-reporter.utils :refer [def-]]
             [mount.core :as mount]
             [taoensso.timbre :as timbre]
-            [taoensso.timbre.appenders.core :as appenders]))
+            [taoensso.timbre.appenders.core :as appenders]
+            [clojure.string :as str]))
 
 (timbre/refer-timbre)
 
@@ -20,18 +21,19 @@
   {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.log"})}})
 
 (timbre/merge-config!
- {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log"})
-              :ns-whitelist ["jira-reporter.jira-api" "jira-reporter.rest-client"]}})
+ {:appenders {:spit (appenders/spit-appender {:fname "jira-reporter.jira.log"
+                                              :ns-whitelist ["jira-reporter.jira-api" "jira-reporter.rest-client"]})}})
 
 (def- cli-options
-  [[nil "--list-boards"      "List the names of the boards"]
-   [nil "--list-sprints"     "List the names of the sprints"]
-   [nil "--sprint-report"    "Generate a report for the sprint"]
-   [nil "--daily-report"     "Generate a daily status report for the sprint"]
-   [nil "--burndown"         "Generate a burndown for the sprint"]
-   [nil "--sprint-name NAME" "Use sprint named NAME instead of the current sprint"]
-   [nil "--board-name NAME"  "Use board named NAME"]
-   [nil "--tsv"              "Output the data as TSV for Excel"]
+  [[nil "--list-boards"         "List the names of the boards"]
+   [nil "--list-sprints"        "List the names of the sprints"]
+   [nil "--sprint-report"       "Generate a report for the sprint"]
+   [nil "--daily-report"        "Generate a daily status report for the sprint"]
+   [nil "--burndown"            "Generate a burndown for the sprint"]
+   [nil "--backlog-report NAME" "Generate a backlog report for the project named NAME"]
+   [nil "--sprint-name NAME"    "Use sprint named NAME"]
+   [nil "--board-name NAME"     "Use board named NAME"]
+   [nil "--tsv"                 "Output the data as TSV for Excel"]
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -47,21 +49,30 @@
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
-(defn- invalid-options? [options]
-  (let [has-sprint-name? (:sprint-name options)
-        has-board-name?  (:board-name options)]
-    (or (and (:burndown options)      (not has-board-name?))
-        (and (:daily-report options)  (not has-board-name?))
-        (and (:sprint-report options) (not has-board-name?))
-        (and (:list-sprints options)  (not has-board-name?)))))
+(defn- generate-exit-message [report-type requirements]
+  (str "Option " (name report-type) " requires the following options to also be specified: " (->> requirements (map name) (string/join ", "))))
 
-(defn- validate-args [args]
+(defn- validate-options [options]
+  (let [valid-options {:burndown      [:board-name :sprint-name]
+                       :daily-report  [:board-name :sprint-name]
+                       :sprint-report [:board-name :sprint-name]
+                       :list-sprints  [:board-name]}
+        report-type   (cond
+                        (:burndown options)      :burndown
+                        (:daily-report options)  :daily-report
+                        (:sprint-report options) :sprint-report
+                        (:list-sprints options)  :list-sprints)
+        requirements  (get valid-options report-type)]
+    (if-not (= requirements (keys (select-keys options requirements)))
+      {:exit-message (generate-exit-message report-type requirements) :ok? false}
+      {:options options :ok? true})))
+
+(defn validate-args [args]
   (let [{:keys [options arguments errors summary]} (cli/parse-opts args cli-options)]
     (cond
       (:help options)            {:exit-message (usage summary)    :ok? true}
       errors                     {:exit-message (error-msg errors) :ok? false}
-      (invalid-options? options) {:exit-message (usage summary)    :ok? false}
-      :else                      {:options options                 :ok? true})))
+      :else                      (validate-options options))))
 
 ;; TODO: Remove explicit passing of config around
 
@@ -104,11 +115,11 @@
     (if exit-message
       (println exit-message)
       (cond
-        (:list-boards options)   (display-report options (reports/generate-board-names-report))
-        (:list-sprints options)  (display-report options (reports/generate-sprint-names-report options))
-        (:daily-report options)  (display-report options (reports/generate-daily-report options))
-        (:sprint-report options) (display-report options (reports/generate-sprint-report options))
-        (:burndown options)      (display-report options (reports/generate-burndown-report options))))))
+        (:list-sprints options)   (display-report options (reports/generate-sprint-names-report options))
+        (:daily-report options)   (display-report options (reports/generate-daily-report options))
+        (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
+        (:burndown options)       (display-report options (reports/generate-burndown-report options))
+        (:backlog-report options) (display-report options (reports/generate-backlog-report options))))))
 
 (defn -main [& args]
   (info "Starting application")
