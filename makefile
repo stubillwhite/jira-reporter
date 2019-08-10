@@ -8,6 +8,7 @@ COLOR_NONE=\033[0m
 COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
+PROJECT_NAME=SD Personalized Recommender
 SPRINT_PREFIX=Sprint 3- 
 SQUAD_NAMES=Hulk Storm Flash
 
@@ -54,3 +55,11 @@ ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report
+
+.PHONY: backlog-report
+backlog-report: ## Generate backlog report
+	@echo -------------------------------------------------------------------------------- 
+	@echo -- Backlog report
+	@echo -------------------------------------------------------------------------------- 
+	@echo 
+	@./jira-reporter --backlog-report "${PROJECT_NAME}" --tsv
