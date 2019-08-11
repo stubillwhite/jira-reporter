@@ -68,9 +68,10 @@
 (def- stub-sprints [(stub-sprint 1 "stub-sprint-1-name" "active") (stub-sprint 2 "stub-sprint-2-name" "inactive")])
 
 (def- stub-config
-  {:jira          {:board "board-1-name"}
-   :custom-fields {:epic-link    "customfield_10236"
-                   :story-points "customfield_10002"}})
+  {:jira           {:board "board-1-name"}
+   :cache-filename "target/cached-data.edn"
+   :custom-fields  {:epic-link    "customfield_10236"
+                    :story-points "customfield_10002"}})
 
 (deftest get-sprint-names-then-returns-sprint-names
   (with-redefs [config/config                     stub-config
