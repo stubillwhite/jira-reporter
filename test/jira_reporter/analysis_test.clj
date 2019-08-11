@@ -35,6 +35,8 @@
           :status            "stub-status"
           :assignee          nil
           :title             "stub-title"
+          :points            nil
+          :epic              nil
           :history           []
           :lead-time-in-days nil
           :time-in-state     {}}

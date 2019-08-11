@@ -80,15 +80,15 @@
    (delivered-issue "6"  "2000-01-31Z" "2000-02-03Z" 3.0)
    (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
 
-;; ;; TODO: Needed?
-;; (deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
-;;   (with-redefs [date/current-date test-today
-;;                 config            test-config]
-;;     (let [task-1  (task  "1" "to-do")
-;;           task-2  (task  "2" "closed" :points 3)
-;;           story-3 (story "3" "closed" :points 5)]
-;;       (is (containing-issues? [task-2 story-3] (report-work-delivered [task-1 task-2 story-3]))))))
+(deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
+  (with-redefs [date/current-date test-today
+                config            test-config]
+    (let [task-1  (task  "1" "to-do")
+          task-2  (task  "2" "closed" :points 3)
+          story-3 (story "3" "closed" :points 5)]
+      (is (containing-issues? [task-2 story-3] (report-work-delivered [task-1 task-2 story-3]))))))
 
+;; ;; TODO: Needed?
 ;; (deftest report-work-delivered-then-work-delivered-in-sprint
 ;;   (with-redefs [date/current-date test-today
 ;;                 config            test-config]
@@ -99,6 +99,15 @@
 ;; -----------------------------------------------------------------------------
 ;; Burndown
 ;; -----------------------------------------------------------------------------
+
+(def- burndown-sprint-issues
+  [(delivered-issue "1"  "2000-01-01Z" "2000-01-28Z" 3.0)
+   (delivered-issue "2"  "2000-01-01Z" "2000-01-28Z" 3.0)
+   (delivered-issue "3"  "2000-01-01Z" "2000-01-31Z" 3.0)
+   (delivered-issue "4"  "2000-01-01Z" "2000-02-01Z" 3.0)
+   (delivered-issue "5"  "2000-01-31Z" "2000-02-02Z" 3.0)
+   (delivered-issue "6"  "2000-01-31Z" "2000-02-03Z" 3.0)
+   (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
 
 (def- expected-burndown
   [{:date "2000-01-27 Thu" :open 4 :closed 0 :total 4 :bugs-open 0 :bugs-closed 0 :points 0.0}
@@ -111,9 +120,9 @@
 (deftest report-burndown-then-generates-burndown
   (with-redefs [date/current-date test-today
                 config            test-config]
-    (let [start-date    (date/parse-date "2000-01-27Z")
-          end-date      (date/parse-date "2000-02-10Z")]
-      (is (= expected-burndown (:rows (report-burndown start-date end-date sprint-issues)))))))
+    (let [start-date (date/parse-date "2000-01-27Z")
+          end-date   (date/parse-date "2000-02-10Z")]
+      (is (= expected-burndown (:rows (report-burndown start-date end-date burndown-sprint-issues)))))))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

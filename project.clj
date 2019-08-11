@@ -13,18 +13,36 @@
 
   :main jira-reporter.app
 
-  :dependencies [[org.clojure/tools.nrepl "0.2.13"]
+  :dependencies [;; Core
+                 [org.clojure/tools.nrepl "0.2.13"]
                  [org.clojure/clojure "1.10.0"]
-                 [com.taoensso/timbre "4.10.0"]
                  [org.clojure/tools.trace "0.7.10"]
-                 [com.rpl/specter "1.1.2"]
+
+                 ;; Logging
+                 [com.taoensso/timbre "4.10.0"]
+                 
+                 ;; Spec helpers
+                 [expound "0.7.2"]
+
+                 ;; Graphing
                  [metasoarous/oz "1.6.0-alpha3"]
+
+                 ;; DI
                  [mount "0.1.16"]
+
+                 ;; HTTP and JSON
                  [clj-http "3.9.1"]
                  [org.clojure/data.json "0.2.6"]
+
+                 ;; Data manipulation
                  [com.rpl/specter "1.1.2"]
+
+                 ;; CLI
                  [org.clojure/tools.cli "0.4.1"]
-                 [com.taoensso/nippy "2.14.0"]]
+                 
+                 ;; Persistence
+                 [com.taoensso/nippy "2.14.0"]
+                 ]
 
   :profiles {:uberjar {:aot :all}
 

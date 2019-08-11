@@ -10,6 +10,10 @@
     (testing "given invalid options then fails validation"
       (is (= {:exit-message "Option burndown requires the following options to also be specified: board-name, sprint-name" :ok? false}
              (app/validate-args ["--burndown"])))))
+  (testing "backlog"
+    (testing "given valid options then passes validation"
+      (is (= {:options {:backlog-report "project"} :ok? true}
+             (app/validate-args ["--backlog-report" "project"])))))
   (testing "daily report"
     (testing "given valid options then passes validation"
       (is (= {:options {:daily-report true :board-name "board" :sprint-name "sprint"} :ok? true}

@@ -23,9 +23,7 @@
     (is (nil? (issue-filters/issue-at-date (date/parse-date one-day-ago) {:created (date/parse-date today)}))))
   (testing "given status changed then can restore previous history"
     (let [issue    (story "1" "closed" :created (date/parse-date two-days-ago) :history [(status-change one-day-ago "in-progress") (status-change today "closed")])
-          expected (-> issue
-                       (assoc :status "in-progress")
-                       (assoc :history [(status-change one-day-ago "in-progress")]))]
+          expected (-> issue (assoc :status "in-progress"))]
       (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue))))))
 
 ;; TODO issues-at-date
