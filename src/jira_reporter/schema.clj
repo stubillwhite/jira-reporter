@@ -17,7 +17,7 @@
 (spec/def ::status            string?)
 (spec/def ::assignee          (spec/nilable string?))
 (spec/def ::title             string?)
-(spec/def ::points            (spec/nilable string?))
+(spec/def ::points            (spec/nilable float?))
 (spec/def ::epic              (spec/nilable string?))
 (spec/def ::history           (spec/coll-of map?))   ;; TODO: Should be history elements
 (spec/def ::lead-time-in-days (spec/nilable int?))
@@ -55,4 +55,4 @@
 ;; -----------------------------------------------------------------------------
 
 (spec/check-asserts true)
-(set! spec/*explain-out* expound/printer)
+;; (set! spec/*explain-out* expound/printer)

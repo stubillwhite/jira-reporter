@@ -37,6 +37,7 @@
   (assoc issue :time-in-state
          (calculate-time-in-state issue)))
 
+;; TODO: Not quite right; should just be for transition to a closed state
 (defn calculate-lead-time-in-days [issue]
   (let [history (add-current-state-if-open (:history issue))]
     (when (seq history)

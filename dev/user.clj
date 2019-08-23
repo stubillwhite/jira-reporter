@@ -54,50 +54,26 @@
   (stop)
   (refresh :after 'user/start))
 
-;; Helper methods
+;; Exploratory methods
 
-(defn read-issues []
-  (map analysis/add-derived-fields (jira/get-issues-in-sprint-named "CORE Tribe" "Sprint 2- Hulk")))
+(defn read-and-cache-issues! []
+  (let [board  "CORE Tribe"
+        sprint "Backlog to delete"]
+    (->> (jira/get-issues-in-sprint-named board sprint)
+         (map analysis/add-derived-fields)
+         (write-object "recs-issues.nippy"))))
 
-(defn read-sprint []
-  (jira/get-sprint-named "CORE Tribe" "Sprint 2- Hulk"))
+(defn read-and-cache-sprint! []
+  (let [board  "CORE Tribe"
+        sprint "Backlog to delete"]
+   (->> (jira/get-sprint-named board sprint)
+        (write-object "recs-sprint.nippy"))))
 
-;; (def issues (read-issues))
-;; (def sprint (read-sprint))
-;; (write-object "recs-issues.nippy" issues)
-;; (write-object "recs-sprint.nippy" sprint)
-;; (def issues (read-object "recs-issues.nippy"))
-;; (def sprint (read-object "recs-sprint.nippy"))
-;; (app/display-report (reports/generate-daily-report config issues))
-;; (app/display-report (reports/report-burndown (:startDate sprint) (:endDate sprint) issues))
+(defn load-cached-issues []
+  (read-object "recs-issues.nippy"))
 
-;; (oz/start-server!)
-
-;; (defn plot-burndown-report [report]
-;;   {:data {:values plottable-burndown}
-;;      :encoding {:x {:field :date :type :temporal}
-;;                 :y {:field :open}}
-;;    :mark "line"})
-
-;; (defn plot-burndown-report [report]
-;;   (let [rows   (map-indexed (fn [idx x] (assoc x :day idx)) (:rows report))
-;;         values (for [metric [:open :closed :total]
-;;                      row    rows]
-;;                  {:metric metric
-;;                   :value (get row metric)
-;;                   :day   (get row :day)})]
-;;     {:data {:values values}
-;;      :encoding {:x     {:field :day}
-;;                 :y     {:field :value}
-;;                 :color {:field :metric :type "nominal"}}
-;;      :mark "line"}))
-
-;; (oz/view! (plot-burndown-report burndown))
-
-;; (def issues (jira/get-issues-in-project-named "Newsflo"))
-
-;; (def issues (jira/get-issues-in-project-named "SD Personalized Recommender"))
-;; (def issues (jira/get-issues-in-sprint-named "CORE Tribe" "Sprint 3- Hulk"))
+(defn load-cached-sprint []
+  (read-object "recs-sprint.nippy"))
 
 (defn- display-table
   [report]
@@ -110,12 +86,9 @@
          (pprint/print-table columns rows))
        (println)))))
 
-;; (display-table (reports/generate-backlog-report issues))
-
 (defn burndown []
   (app/-main "--burndown" "--board-name" "CORE Tribe" "--sprint-name" "Sprint 3- Hulk"))
 
 (defn backlog []
   (app/-main "--backlog-report" "SD Personalized Recommender"))
-
 
