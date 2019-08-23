@@ -41,8 +41,7 @@
                  [org.clojure/tools.cli "0.4.1"]
                  
                  ;; Persistence
-                 [com.taoensso/nippy "2.14.0"]
-                 ]
+                 [com.taoensso/nippy "2.14.0"]]
 
   :profiles {:uberjar {:aot :all}
 
