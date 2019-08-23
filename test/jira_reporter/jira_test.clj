@@ -46,7 +46,7 @@
     :created     (utc-date-time 1970 1 1)
     :parent-id   "issue-2-parent"
     :subtask-ids ["issue-2-subtask-1" "issue-2-subtask-2"]
-    :points      "3"
+    :points      3.0
     :epic        "issue-2-epic"
     :type        "issue-2-type"
     :title       "issue-2-title"

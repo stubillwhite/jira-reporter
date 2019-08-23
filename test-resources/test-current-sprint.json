@@ -52,7 +52,7 @@
                 {"key": "issue-2-subtask-1"},
                 {"key": "issue-2-subtask-2"}
             ],            
-            "customfield_10002": "3",
+            "customfield_10002": 3.0,
             "customfield_10236": "issue-2-epic"            
         },
         "changelog": {
