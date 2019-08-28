@@ -16,6 +16,8 @@ SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
+APP_JAR=jira-reporter-0.1.6-SNAPSHOT-standalone.jar
+
 CMDSEP=;
 
 # Targets
@@ -25,8 +27,16 @@ help:
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "$(COLOR_BLUE)%-15s$(COLOR_NONE) %s\n", $$1, $$2}'
 
+${APP_JAR}:
+	@echo 'Building application'
+	@lein clean
+	@lein uberjar
+	@mv target/${APP_JAR} ./${APP_JAR}
+
+build: ${APP_JAR}
+
 .PHONY: burndown 
-burndown: ${SQUAD_BURNDOWNS} ## Generate burndown metrics
+burndown: build ${SQUAD_BURNDOWNS} ## Generate burndown metrics
 
 ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -------------------------------------------------------------------------------- 
@@ -36,7 +46,7 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown --tsv
 
 .PHONY: daily-report
-daily-report: ${SQUAD_DAILY_REPORTS} ## Generate daily reports
+daily-report: build ${SQUAD_DAILY_REPORTS} ## Generate daily reports
 
 ${SQUAD_DAILY_REPORTS}: daily-report-%:
 	@echo -------------------------------------------------------------------------------- 
@@ -46,7 +56,7 @@ ${SQUAD_DAILY_REPORTS}: daily-report-%:
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --daily-report
 
 .PHONY: sprint-report
-sprint-report: ${SQUAD_SPRINT_REPORTS} ## Generate sprint reports
+sprint-report: build ${SQUAD_SPRINT_REPORTS} ## Generate sprint reports
 
 .PHONY: ${SQUAD_SPRINT_REPORTS}
 ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
@@ -57,7 +67,7 @@ ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report
 
 .PHONY: backlog-report
-backlog-report: ## Generate backlog report
+backlog-report: build ## Generate backlog report
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- Backlog report
 	@echo -------------------------------------------------------------------------------- 
