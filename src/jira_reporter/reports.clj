@@ -192,7 +192,7 @@
                {:status "Open and unsized" :count (count-of story? (complement closed?) (complement sized?))}
                {:status "Open total"       :count (count-of story? (complement closed?))}]}))
 
-(defn report-open-epics [issues]
+(defn report-epics-in-progress [issues]
   (let [count-of         (fn [xs & preds] (->> xs (filter (apply every-pred preds)) count))
         epics-to-stories (group-by :epic issues)
         epic-metrics     (into {} (for [[k v] epics-to-stories] [k {:open   (count-of v (complement closed?))
@@ -201,6 +201,17 @@
      :columns [:id :title :open :closed]
      :rows    (->> issues
                    (filter (every-pred epic? in-progress?))
+                   (map (fn [{:keys [id] :as issue}] (merge issue (get epic-metrics id)))))}))
+
+(defn report-epics-open [issues]
+  (let [count-of         (fn [xs & preds] (->> xs (filter (apply every-pred preds)) count))
+        epics-to-stories (group-by :epic issues)
+        epic-metrics     (into {} (for [[k v] epics-to-stories] [k {:open   (count-of v (complement closed?))
+                                                                    :closed (count-of v closed?)}]))]
+    {:title   "Epics not yet started"
+     :columns [:id :title :open :closed]
+     :rows    (->> issues
+                   (filter (every-pred epic? to-do?))
                    (map (fn [{:keys [id] :as issue}] (merge issue (get epic-metrics id)))))}))
 
 (defn report-epic-counts-by-state [issues]
@@ -239,7 +250,8 @@
    [(report-story-age-metrics issues)
     (report-sized-and-unsized-stories issues)
     (report-epic-counts-by-state issues)
-    (report-open-epics issues)]))
+    (report-epics-open issues)
+    (report-epics-in-progress issues)]))
 
 ;; -----------------------------------------------------------------------------
 ;; TODO: Sort all this out
