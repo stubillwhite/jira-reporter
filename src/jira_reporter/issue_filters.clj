@@ -15,12 +15,13 @@
   (or (= a b) (.isBefore a b)))
 
 (defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
-  (if (empty? history)
-    issue
-    (reduce
-     (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
-     (assoc issue :status (-> history first :from))
-     (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) history))))
+  (let [status-history (filter (fn [x] (= (:field x) "status")) history)]
+    (if (empty? status-history)
+      issue
+      (reduce
+       (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
+       (assoc issue :status (-> status-history first :from))
+       (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) status-history)))))
 
 ;; -----------------------------------------------------------------------------
 ;; Public functions

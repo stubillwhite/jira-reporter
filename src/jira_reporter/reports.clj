@@ -114,14 +114,17 @@
             {:category "GDPR"  :open (count-of gdpr?  open?) :closed (count-of gdpr?  closed?)}
             {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
 
+;; TODO: Should really be:
+;;         issues                           (->> (issues-in-sprint-named board-name sprint-name)
+;;                                               (map (partial issues-at-date (:endDate sprint)))
+;;                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
+;; Because we should generate statistics on the state issues were at the time, not now
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
-         issues                           (->> (issues-in-sprint-named board-name sprint-name)
-                                               (map (partial issues-at-date (:endDate sprint)))
-                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
+         issues                           (issues-in-sprint-named board-name sprint-name)]
      (generate-sprint-report options issues)))
 
   ([options issues]
@@ -239,12 +242,28 @@
                {:metric "Newest story" :age-in-days (apply min issue-ages)}
                {:metric "Mean age"     :age-in-days (apply mean issue-ages)}]}))
 
+;; TODO: Rename to project-report
 (defn generate-backlog-report
   "Generate a backlog report."
   ([options]
    (let [{:keys [backlog-report]} options
          issues                 (jira/get-issues-in-project-named backlog-report)]
      (generate-backlog-report options issues)))
+
+  ([options issues]
+   [(report-story-age-metrics issues)
+    (report-sized-and-unsized-stories issues)
+    (report-epic-counts-by-state issues)
+    (report-epics-open issues)
+    (report-epics-in-progress issues)]))
+
+
+(defn generate-backlog-sprint-report
+  "Generate a backlog report."
+  ([options]
+   (let [{:keys [board-name sprint-name]} options
+         issues (issues-in-sprint-named board-name sprint-name)]
+     (generate-backlog-sprint-report options issues)))
 
   ([options issues]
    [(report-story-age-metrics issues)

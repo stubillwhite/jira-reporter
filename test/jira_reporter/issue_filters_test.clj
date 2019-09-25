@@ -27,6 +27,7 @@
       (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue))))))
 
 ;; TODO issues-at-date
+;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
 
 (deftest basic-predicates
   (with-redefs [config test-config]

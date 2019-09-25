@@ -92,3 +92,5 @@
 (defn backlog []
   (app/-main "--backlog-report" "SD Personalized Recommender"))
 
+(defn sprint-backlog []
+  (app/display-report {} (reports/generate-backlog-sprint-report {:board-name "CORE Tribe" :sprint-name "Sprint 3- Hulk"})))

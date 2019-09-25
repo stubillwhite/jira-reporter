@@ -33,6 +33,7 @@
    [nil "--backlog-report NAME" "Generate a backlog report for the project named NAME"]
    [nil "--sprint-name NAME"    "Use sprint named NAME"]
    [nil "--board-name NAME"     "Use board named NAME"]
+   [nil "--jql QUERY"           "Use the specified JQL query"]
    [nil "--tsv"                 "Output the data as TSV for Excel"]
    ["-h" "--help"]])
 
@@ -56,12 +57,14 @@
   (let [valid-options {:burndown      [:board-name :sprint-name]
                        :daily-report  [:board-name :sprint-name]
                        :sprint-report [:board-name :sprint-name]
-                       :list-sprints  [:board-name]}
+                       :list-sprints  [:board-name]
+                       :jql           nil}
         report-type   (cond
                         (:burndown options)      :burndown
                         (:daily-report options)  :daily-report
                         (:sprint-report options) :sprint-report
-                        (:list-sprints options)  :list-sprints)
+                        (:list-sprints options)  :list-sprints
+                        (:jql options)           :jql)
         requirements  (get valid-options report-type)]
     (if-not (= requirements (keys (select-keys options requirements)))
       {:exit-message (generate-exit-message report-type requirements) :ok? false}
@@ -119,7 +122,10 @@
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
         (:burndown options)       (display-report options (reports/generate-burndown-report options))
-        (:backlog-report options) (display-report options (reports/generate-backlog-report options))))))
+        (:backlog-report options) (display-report options (reports/generate-backlog-report options))
+        (:jql options)            (display-report options (reports/generate-jql-report options))
+        :else                     (error "Unrecognised action"))
+      )))
 
 (defn -main [& args]
   (info "Starting application")
