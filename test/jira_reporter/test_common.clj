@@ -10,8 +10,7 @@
            java.time.format.DateTimeFormatterBuilder
            java.time.temporal.ChronoField))
 
-;; TODO: Rename to stub config
-(def test-config
+(def stub-config
   {:schema {:to-do-states            #{"to-do"}
             :in-progress-states      #{"in-progress"}
             :blocked-states          #{"blocked"}
@@ -23,8 +22,7 @@
             :gdpr-types              #{"gdpr"}
             :story-closed-state      "Closed"
             :story-open-state        "To Do"
-            :story-in-progress-state "In Progress"}
-   })
+            :story-in-progress-state "In Progress"}})
 
 (defn stub-issue [id type status & {:keys [created subtasks history points]
                                     :or {created  (date/parse-date "2000-01-01Z")

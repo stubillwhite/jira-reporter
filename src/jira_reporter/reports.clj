@@ -103,16 +103,15 @@
             {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
 
 ;; TODO: Should really be:
-;;         issues                           (->> (issues-in-sprint-named board-name sprint-name)
-;;                                               (map (partial issues-at-date (:endDate sprint)))
-;;                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
 ;; Because we should generate statistics on the state issues were at the time, not now
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
-         issues                           (issues-in-sprint-named board-name sprint-name)]
+         issues                           (->> (issues-in-sprint-named board-name sprint-name)
+                                               (map (partial issues-at-date (:endDate sprint)))
+                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
      (generate-sprint-report options issues)))
 
   ([options issues]
@@ -325,8 +324,3 @@
   ([config name issues]
    (report-story-metrics issues)))
 
-;; Things to do next
-;; - Issues opened and closed within a sprint
-;; - Lead times per story using an aggregate-by-story function
-
-;; Burndown

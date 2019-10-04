@@ -77,8 +77,6 @@
       errors                     {:exit-message (error-msg errors) :ok? false}
       :else                      (validate-options options))))
 
-;; TODO: Remove explicit passing of config around
-
 (defn- display-table
   [report]
   (dorun
@@ -113,7 +111,7 @@
     (display-tsv report)
     (display-table report)))
 
-(defn- execute-action [args config]
+(defn- execute-action [args]
   (let [{:keys [options exit-message ok?]} (validate-args args)]
     (if exit-message
       (println exit-message)
@@ -130,6 +128,6 @@
 (defn -main [& args]
   (info "Starting application")
   (mount/start)
-  (execute-action args config)
+  (execute-action args)
   (mount/stop)
   (info "Done"))

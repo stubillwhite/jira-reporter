@@ -23,7 +23,7 @@
    newly-closed-issue
    deploy-issue])
 
-(defn- test-today []
+(defn- date-today []
   (date/parse-date today))
 
 (defn- containing-issues? [expected actual]
@@ -31,18 +31,18 @@
     (= expected actual-rows)))
 
 (deftest report-issues-started-then-reports-issues-moved-to-in-progress-in-the-previous-day
-  (with-redefs [date/current-date test-today
-                config            test-config]
+  (with-redefs [date/current-date date-today
+                config            stub-config]
     (is (containing-issues? [newly-in-progress-issue] (report-issues-started all-issues)))))
 
 (deftest report-issues-in-progress-then-reports-issues-in-progress-which-did-not-start-in-the-previous-day
-  (with-redefs [date/current-date test-today
-                config            test-config]
+  (with-redefs [date/current-date date-today
+                config            stub-config]
     (is (containing-issues? [existing-in-progress-issue] (report-issues-in-progress all-issues)))))
 
 (deftest report-issues-ready-for-release-then-reports-issues-ready-to-deploy
-  (with-redefs [date/current-date test-today
-                config            test-config]
+  (with-redefs [date/current-date date-today
+                config            stub-config]
     (is (containing-issues? [deploy-issue] (report-issues-ready-for-release all-issues)))))
 
 ;; -----------------------------------------------------------------------------
@@ -81,8 +81,8 @@
    (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
 
 (deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
-  (with-redefs [date/current-date test-today
-                config            test-config]
+  (with-redefs [date/current-date date-today
+                config            stub-config]
     (let [task-1  (task  "1" "to-do")
           task-2  (task  "2" "closed" :points 3)
           story-3 (story "3" "closed" :points 5)]
@@ -118,8 +118,8 @@
    {:date "2000-02-03 Thu" :open 1 :closed 6 :total 7 :bugs-open 0 :bugs-closed 0 :points 18.0}])
 
 (deftest report-burndown-then-generates-burndown
-  (with-redefs [date/current-date test-today
-                config            test-config]
+  (with-redefs [date/current-date date-today
+                config            stub-config]
     (let [start-date (date/parse-date "2000-01-27Z")
           end-date   (date/parse-date "2000-02-10Z")]
       (is (= expected-burndown (:rows (report-burndown start-date end-date burndown-sprint-issues)))))))

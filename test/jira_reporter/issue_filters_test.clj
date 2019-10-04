@@ -3,7 +3,7 @@
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
             [jira-reporter.issue-filters :as issue-filters]
-            [jira-reporter.test-common :refer [test-config story status-change]]
+            [jira-reporter.test-common :refer [stub-config story status-change]]
             [jira-reporter.utils :refer [def-]])
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
@@ -30,7 +30,7 @@
 ;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
 
 (deftest basic-predicates
-  (with-redefs [config test-config]
+  (with-redefs [config stub-config]
     (testing "blocked?"
       (is (= true (issue-filters/blocked? {:status "blocked"})))
       (is (= false (issue-filters/blocked? {:status "not blocked"}))))
