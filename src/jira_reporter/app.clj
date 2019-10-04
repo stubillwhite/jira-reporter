@@ -30,7 +30,7 @@
    [nil "--sprint-report"       "Generate a report for the sprint"]
    [nil "--daily-report"        "Generate a daily status report for the sprint"]
    [nil "--burndown"            "Generate a burndown for the sprint"]
-   [nil "--backlog-report NAME" "Generate a backlog report for the project named NAME"]
+   [nil "--project-report NAME" "Generate a project report for the project named NAME"]
    [nil "--sprint-name NAME"    "Use sprint named NAME"]
    [nil "--board-name NAME"     "Use board named NAME"]
    [nil "--jql QUERY"           "Use the specified JQL query"]
@@ -121,9 +121,9 @@
         (:list-sprints options)   (display-report options (reports/generate-sprint-names-report options))
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
-        (:burndown options)       (display-report options (reports/generate-burndown-report options))
-        (:backlog-report options) (display-report options (reports/generate-backlog-report options))
-        (:jql options)            (display-report options (reports/generate-jql-report options))
+        (:project options)        (display-report options (reports/generate-project-report options))
+        (:project-report options) (display-report options (reports/generate-project-report options))
+        (:jql options)            (error "not implemented") ;; 
         :else                     (error "Unrecognised action"))
       )))
 

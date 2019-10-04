@@ -1,8 +1,8 @@
 (defproject jira-reporter "0.1.6-SNAPSHOT"
 
-  :description "TODO"
+  :description "A simple script to pull information from JIRA"
 
-  :url "TODO"
+  :url "https://github.com/stubillwhite/jira-reporter.git"
 
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}

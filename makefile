@@ -9,10 +9,10 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 6 
+SPRINT_PREFIX=Sprint 7 
 SQUAD_NAMES=Hulk Storm Flash
 
-SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
+SQUAD_PROJECTS=$(addprefix project-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
@@ -35,15 +35,15 @@ ${APP_JAR}:
 
 build: ${APP_JAR}
 
-.PHONY: burndown 
-burndown: build ${SQUAD_BURNDOWNS} ## Generate burndown metrics
+.PHONY: project-report 
+project-report: build ${SQUAD_PROJECTS} ## Generate project metrics
 
-${SQUAD_BURNDOWNS}: burndown-%:
+${SQUAD_PROJECTS}: project-%:
 	@echo -------------------------------------------------------------------------------- 
-	@echo -- $* burndown
+	@echo -- $* project
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown --tsv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --project --tsv
 
 .PHONY: daily-report
 daily-report: build ${SQUAD_DAILY_REPORTS} ## Generate daily reports

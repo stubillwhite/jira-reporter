@@ -1,17 +1,5 @@
 (ns jira-reporter.reports
   (:require [clojure.pprint :as pprint]
-            [com.rpl.specter
-             :refer
-             [ALL
-              collect
-              END
-              filterer
-              MAP-VALS
-              putval
-              select
-              select*
-              selected?
-              transform]]
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
@@ -242,13 +230,12 @@
                {:metric "Newest story" :age-in-days (apply min issue-ages)}
                {:metric "Mean age"     :age-in-days (apply mean issue-ages)}]}))
 
-;; TODO: Rename to project-report
-(defn generate-backlog-report
-  "Generate a backlog report."
+(defn generate-project-report
+  "Generate a project report."
   ([options]
-   (let [{:keys [backlog-report]} options
-         issues                 (jira/get-issues-in-project-named backlog-report)]
-     (generate-backlog-report options issues)))
+   (let [{:keys [project-report]} options
+         issues                 (jira/get-issues-in-project-named project-report)]
+     (generate-project-report options issues)))
 
   ([options issues]
    [(report-story-age-metrics issues)
