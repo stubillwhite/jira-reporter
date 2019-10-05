@@ -12,12 +12,12 @@
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
             [clojure.tools.trace :refer [trace-forms trace-ns untrace-ns]]
             [jira-reporter.analysis :as analysis]
+            [jira-reporter.app :as app]
+            [jira-reporter.cache :as cache]
             [jira-reporter.config :refer [config]]
             [jira-reporter.jira :as jira]
             [jira-reporter.reports :as reports]
-            [jira-reporter.rest-client :as rest-client]
-            [jira-reporter.cache :as cache]
-            [jira-reporter.app :as app]
+            [jira-reporter.issue-filters :as issue-filters]
             [jira-reporter.rest-client :as rest-client]
             [mount.core :as mount]
             [taoensso.nippy :as nippy]
@@ -86,11 +86,17 @@
          (pprint/print-table columns rows))
        (println)))))
 
+(def sprint-name "Sprint 6 Hulk")
+(def board-name "CORE Tribe")
+
 (defn burndown []
-  (app/-main "--burndown" "--board-name" "CORE Tribe" "--sprint-name" "Sprint 3- Hulk"))
+  (app/-main "--burndown" "--board-name" board-name "--sprint-name" sprint-name))
+
+(defn sprint []
+  (app/-main "--sprint-report" "--board-name" board-name "--sprint-name" sprint-name))
 
 (defn backlog []
   (app/-main "--backlog-report" "SD Personalized Recommender"))
 
 (defn sprint-backlog []
-  (app/display-report {} (reports/generate-backlog-sprint-report {:board-name "CORE Tribe" :sprint-name "Sprint 3- Hulk"})))
+  (app/display-report {} (reports/generate-backlog-sprint-report {:board-name board-name :sprint-name sprint-name})))

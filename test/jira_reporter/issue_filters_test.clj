@@ -3,7 +3,7 @@
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
             [jira-reporter.issue-filters :as issue-filters]
-            [jira-reporter.test-common :refer [stub-config story status-change]]
+            [jira-reporter.test-common :refer [stub-config story type-change status-change]]
             [jira-reporter.utils :refer [def-]])
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
@@ -24,10 +24,20 @@
   (testing "given status changed then can restore previous history"
     (let [issue    (story "1" "closed" :created (date/parse-date two-days-ago) :history [(status-change one-day-ago "in-progress") (status-change today "closed")])
           expected (-> issue (assoc :status "in-progress"))]
-      (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue))))))
+      (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue)))))
+  (comment testing "given non-status field changed then ignores changes"
+    (let [issue    (story "1" "closed" :created (date/parse-date two-days-ago) :history [(type-change two-days-ago "epic" "story")
+                                                                                         (status-change one-day-ago "in-progress")
+                                                                                         (status-change today "closed")])
+          expected (-> issue (assoc :status "in-progress"))]
+      (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue)))))
+  )
+
 
 ;; TODO issues-at-date
 ;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
+
+
 
 (deftest basic-predicates
   (with-redefs [config stub-config]

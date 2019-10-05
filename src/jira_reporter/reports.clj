@@ -12,6 +12,12 @@
 
 (timbre/refer-timbre)
 
+;; TODO: Move to filters or dates
+(defn- before-or-equal? [a b]
+  (let [date-a (date/truncate-to-days a)
+        date-b (date/truncate-to-days b)]
+    (or (= date-a date-b) (.isBefore date-a date-b))))
+
 ;; -----------------------------------------------------------------------------
 ;; Generic functions
 ;; -----------------------------------------------------------------------------
@@ -91,32 +97,56 @@
    :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
 
-;; TODO: Should be :open :raised :closed
-(defn report-issues-summary [issues]
-  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
-    {:title   "Issue summary"
-     :columns [:category :open :closed]
-     :rows [{:category "Story" :open (count-of story? open?) :closed (count-of story? closed?)}
-            {:category "Task"  :open (count-of task?  open?) :closed (count-of task?  closed?)}
-            {:category "Bug"   :open (count-of bug?   open?) :closed (count-of bug?   closed?)}
-            {:category "GDPR"  :open (count-of gdpr?  open?) :closed (count-of gdpr?  closed?)}
-            {:category "Total" :open (count-of open?)        :closed (count-of closed?)}]}))
+(defn- raised-in-sprint? [sprint issue]
+  (and (before-or-equal? (:startDate sprint) (:created issue))
+       (before-or-equal? (:created issue)    (:endDate sprint))))
 
-;; TODO: Should really be:
-;; Because we should generate statistics on the state issues were at the time, not now
+(defn report-issues-summary [issues sprint]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
+        raised?  (fn [x] (raised-in-sprint? sprint x))]
+    {:title   "Issue summary"
+     :columns [:category :open :raised :closed]
+     :rows [{:category "Story" :open (count-of story? open?) :raised (count-of story? raised?) :closed (count-of story? closed?)}
+            {:category "Task"  :open (count-of task?  open?) :raised (count-of task?  raised?) :closed (count-of task?  closed?)}
+            {:category "Bug"   :open (count-of bug?   open?) :raised (count-of bug?   raised?) :closed (count-of bug?   closed?)}
+            {:category "GDPR"  :open (count-of gdpr?  open?) :raised (count-of gdpr?  raised?) :closed (count-of gdpr?  closed?)}
+            {:category "Total" :open (count-of open?)        :raised (count-of raised?)        :closed (count-of closed?)}]}))
+
+(defn- raised-in-sprint? [sprint issue]
+  (and (before-or-equal? (:startDate sprint) (:created issue))
+       (before-or-equal? (:created issue)    (:endDate sprint))))
+
+(defn report-issues-raised-in-sprint [issues sprint]
+  {:title   "Issues raised in the sprint"
+   :columns [:id :type :title]
+   :rows    (filter (partial raised-in-sprint? sprint) issues)})
+
+(defn report-issues-closed-in-sprint [issues sprint]
+  (let [add-raised-in-sprint (fn [x] (assoc x :raised-in-sprint? (raised-in-sprint? sprint x)))]
+    {:title   "Issues closed in the sprint"
+     :columns [:id :type :title :raised-in-sprint?]
+     :rows    (->> issues
+                   (filter (fn [x] (closed? x)))
+                   (map add-raised-in-sprint))}))
+
+(def white-dbg (atom nil))
+
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (->> (issues-in-sprint-named board-name sprint-name)
-                                               (map (partial issues-at-date (:endDate sprint)))
+                                               ((partial issues-at-date (:endDate sprint)))
                                                (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
-     (generate-sprint-report options issues)))
+     (generate-sprint-report options issues sprint)))
 
-  ([options issues]
+  ([options issues sprint]
+   (swap! white-dbg (fn [_] issues))
    [(report-work-delivered issues)
-    (report-issues-summary issues)]))
+    (report-issues-summary issues sprint)
+    (report-issues-raised-in-sprint issues sprint)
+    (report-issues-closed-in-sprint issues sprint)]))
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown
@@ -139,11 +169,6 @@
      :bugs-closed (count-of bug? closed?)
      :points      (->> issues (filter closed?) (sum-points))}))
 
-;; TODO: Move to filters or dates
-(defn- before-or-equal? [a b]
-  (let [date-a (date/truncate-to-days a)
-        date-b (date/truncate-to-days b)]
-    (or (= date-a date-b) (.isBefore date-a date-b))))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
   (calculate-burndown-metrics date (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
@@ -159,13 +184,13 @@
    :columns [:date :open :closed :total :points :bugs-open :bugs-closed]
    :rows    (calculate-burndown start-date end-date issues)})
 
-(defn generate-burndown-report
-  "Generate a burndown report."
+(defn generate-burndown
+  "Generate a burndown."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
-     (generate-burndown-report options (:startDate sprint) (:endDate sprint) issues)))
+     (generate-burndown options (:startDate sprint) (:endDate sprint) issues)))
 
   ([options start-date end-date issues]
    [(report-burndown start-date end-date issues)]))
@@ -212,7 +237,7 @@
                {:status "In progress" :count (count-of epic? in-progress?)}
                {:status "Closed"      :count (count-of epic? closed?)}]})) 
 
-(defn to-age-in-days [issues]
+(defn- to-age-in-days [issues]
   (map (fn [x] (.between java.time.temporal.ChronoUnit/DAYS (:created x) (date/current-date))) issues))
 
 (defn- mean
@@ -242,7 +267,6 @@
     (report-epic-counts-by-state issues)
     (report-epics-open issues)
     (report-epics-in-progress issues)]))
-
 
 (defn generate-backlog-sprint-report
   "Generate a backlog report."

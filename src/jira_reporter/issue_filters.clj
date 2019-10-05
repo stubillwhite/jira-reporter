@@ -14,14 +14,20 @@
 (defn- before-or-equal? [a b]
   (or (= a b) (.isBefore a b)))
 
-(defn- set-status-at-date [cutoff-date {:keys [history] :as issue}]
-  (let [status-history (filter (fn [x] (= (:field x) "status")) history)]
-    (if (empty? status-history)
+(defn- set-field-state-at-date [{:keys [history] :as issue} cutoff-date field]
+  (let [filtered-history (filter (fn [x] (= field (:field x))) history)]
+    (if (empty? filtered-history)
       issue
       (reduce
-       (fn [acc {:keys [date field to]}] (if (= field "status") (assoc issue :status to) issue))
-       (assoc issue :status (-> status-history first :from))
-       (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) status-history)))))
+       (fn [acc {:keys [date field to]}] (assoc issue (keyword field) to) issue)
+       (assoc issue (keyword field) (-> filtered-history first :from))
+       (take-while (fn [x] (before-or-equal? (:date x) cutoff-date)) filtered-history)))))
+
+(defn- field-value-at-date [issue field date history]
+  (reduce
+   (fn [value entry] (if (= field (:field entry)) (:to entry) value))
+   (get issue (keyword field))
+   history))
 
 ;; -----------------------------------------------------------------------------
 ;; Public functions
@@ -29,9 +35,13 @@
 
 (defn issue-at-date [date issue]
   "Returns the the issue in the state is was on the specified date, or nil if the issue did not exist. Only certain
-  fields will reflect the state on the date, namely status."
+  fields will reflect the state on the date, namely status, type, and history."
   (when (before-or-equal? (:created issue) date)
-    (set-status-at-date date issue)))
+    (let [history (take-while (fn [x] (before-or-equal? (:date x) date)) (:history issue))]
+      (assoc issue
+             :status  (field-value-at-date issue "status" date history)
+             :type    (field-value-at-date issue "type" date history)
+             :history history))))
 
 (defn issues-at-date [date issues]
   "See issue-at-date. Issues which were created after the specified date will be removed."

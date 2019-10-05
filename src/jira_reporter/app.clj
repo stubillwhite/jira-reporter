@@ -119,7 +119,7 @@
         (:list-sprints options)   (display-report options (reports/generate-sprint-names-report options))
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
-        (:project options)        (display-report options (reports/generate-project-report options))
+        (:burndown options)       (display-report options (reports/generate-burndown options))
         (:project-report options) (display-report options (reports/generate-project-report options))
         (:jql options)            (error "not implemented") ;; 
         :else                     (error "Unrecognised action"))

@@ -47,3 +47,10 @@
      :field "status"
      :from  "todo"
      :to    to}))
+
+(defn type-change [date from to]
+  (let [parsed-date (date/parse-date date)]
+    {:date  parsed-date
+     :field "type"
+     :from  from
+     :to    to}))
