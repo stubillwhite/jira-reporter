@@ -43,7 +43,7 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -- $* burndown
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown --tsv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown --tsv
 
 .PHONY: daily-report
 daily-report: build ${SQUAD_DAILY_REPORTS} ## Generate daily reports
