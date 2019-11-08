@@ -86,7 +86,7 @@
          (pprint/print-table columns rows))
        (println)))))
 
-(def sprint-name "Sprint 6 Hulk")
+(def sprint-name "Sprint 9 Hulk")
 (def board-name "CORE Tribe")
 
 (defn burndown []
@@ -94,6 +94,9 @@
 
 (defn sprint []
   (app/-main "--sprint-report" "--board-name" board-name "--sprint-name" sprint-name))
+
+(defn daily []
+  (app/-main "--daily-report" "--board-name" board-name "--sprint-name" sprint-name))
 
 (defn backlog []
   (app/-main "--backlog-report" "SD Personalized Recommender"))

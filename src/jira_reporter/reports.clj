@@ -51,28 +51,33 @@
 
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
-   :columns [:id :title :parent-id :assignee :lead-time-in-days]
+   :columns [:id :type :title]
    :rows    (filter (every-pred blocked?) issues)})
 
 (defn report-issues-started [issues]
   {:title   "Issues started yesterday"
-   :columns [:id :title :parent-id :assignee]
+   :columns [:id :type :title :assignee]
    :rows    (filter (every-pred changed-state-in-the-last-day? in-progress?) issues)})
 
 (defn report-issues-in-progress [issues]
   {:title   "Issues still in progress"
-   :columns [:id :title :parent-id :assignee :lead-time-in-days]
+   :columns [:id :type :title :assignee]
    :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress?) issues)})
 
 (defn report-issues-ready-for-release [issues]
   {:title   "Issues awaiting release"
-   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
+   :columns [:id :type :title :assignee]
    :rows    (filter (every-pred awaiting-deployment?) issues)})
 
 (defn report-issues-closed [issues]
   {:title   "Issues closed yesterday"
-   :columns [:id :status :title :parent-id :assignee :lead-time-in-days]
+   :columns [:id :type :title :assignee]
    :rows    (filter (every-pred changed-state-in-the-last-day? closed?) issues)})
+
+(defn report-issues-needing-sizing [issues]
+  {:title   "Issues needing sizing"
+   :columns [:id :type :title :assignee]
+   :rows    (filter (every-pred deliverable? (complement sized?)) issues)})
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
@@ -86,7 +91,8 @@
     (report-issues-started issues)
     (report-issues-in-progress issues)
     (report-issues-ready-for-release issues)
-    (report-issues-closed issues)])) 
+    (report-issues-closed issues)
+    (report-issues-needing-sizing issues)])) 
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint report
