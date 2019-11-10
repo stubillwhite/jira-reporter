@@ -8,9 +8,7 @@ IMG_FOREGROUND=gray80
 function generate-report-and-post-to-slack() {
     declare team=$1 channel=$2
 
-    pushd ../jira-reporter
-    make daily-report-${team} > ../recommenders-status-update/daily-report-${team}.txt
-    popd
+    make daily-report-${team} > daily-report-${team}.txt
 
     # Generate the PNG for Slack to avoid text wrapping
     #  - No idea how big it will be, so generate oversized and trim down
@@ -30,7 +28,7 @@ function generate-report-and-post-to-slack() {
         +repage                                     \
         daily-report-${team}.png
 
-    slackcat --channel ${channel} ./daily-report-${team}.png
+    slackcat --channel ${channel} daily-report-${team}.png
 }
 
 generate-report-and-post-to-slack Hulk  green-squad
