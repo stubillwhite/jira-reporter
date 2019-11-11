@@ -29,6 +29,9 @@ function generate-report-and-post-to-slack() {
         daily-report-${team}.png
 
     slackcat --channel ${channel} daily-report-${team}.png
+
+    rm daily-report-${team}.txt
+    rm daily-report-${team}.png
 }
 
 generate-report-and-post-to-slack Hulk  green-squad
