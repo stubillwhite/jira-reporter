@@ -41,6 +41,7 @@
     :title       "issue-1-title"
     :status      "issue-1-status"
     :assignee    "issue-1-assignee"
+    :labels      ["issue-1-label-1" "issue-1-label-2"]
     :history     expected-issue-1-history},
    {:id          "issue-2-key"
     :created     (utc-date-time 1970 1 1)
@@ -52,6 +53,7 @@
     :title       "issue-2-title"
     :status      "issue-2-status"
     :assignee    "issue-2-assignee"
+    :labels      []
     :history     expected-issue-2-history}])
 
 (defn- stub-board [id name]

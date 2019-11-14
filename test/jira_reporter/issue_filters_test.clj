@@ -79,7 +79,10 @@
       (is (= false (issue-filters/closed? {:status "not closed"}))))
     (testing "open?"
       (is (= true (issue-filters/open? {:status "not closed"})))
-      (is (= false (issue-filters/open? {:status "closed"}))))))
+      (is (= false (issue-filters/open? {:status "closed"}))))
+    (testing "has-labels?"
+      (is (= true (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :bar :baz}})))
+      (is (= false (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :baz}}))))))
 
 (deftest changed-state-in-the-last-day
   (with-redefs [date/current-date (fn [] (date/parse-date today))]

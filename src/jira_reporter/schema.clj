@@ -19,6 +19,7 @@
 (spec/def ::title             string?)
 (spec/def ::points            (spec/nilable float?))
 (spec/def ::epic              (spec/nilable string?))
+(spec/def ::labels            (spec/coll-of string?))
 (spec/def ::history           (spec/coll-of map?))   ;; TODO: Should be history elements
 (spec/def ::lead-time-in-days (spec/nilable int?))
 (spec/def ::time-in-state     (spec/map-of keyword? int?))

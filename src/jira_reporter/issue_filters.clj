@@ -1,7 +1,8 @@
 (ns jira-reporter.issue-filters
   (:require [jira-reporter.date :as date]
             [jira-reporter.jira :as jira]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [clojure.set :as set]))
 
 (timbre/refer-timbre)
 
@@ -130,4 +131,11 @@
   "Returns true if the issue is not closed, false otherwise."
   [issue]
   (not (closed? issue)))
+
+(defn has-labels?
+  "Returns true if the issue contains the specified labels, false otherwise."
+  [labels issue]
+  (let [label-set (into #{} labels)]
+    (= label-set (clojure.set/intersection label-set (into #{} (:labels issue))))))
+
 

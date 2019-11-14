@@ -1,4 +1,4 @@
-(defproject jira-reporter "0.1.8-SNAPSHOT"
+(defproject jira-reporter "0.1.9-SNAPSHOT"
 
   :description "A simple script to pull information from JIRA"
 

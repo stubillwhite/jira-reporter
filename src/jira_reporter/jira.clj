@@ -60,6 +60,7 @@
    :title       (get-in issue-json [:fields :summary])
    :points      (get-in issue-json [:fields (keyword (story-points-field))])
    :epic        (get-in issue-json [:fields (keyword (epic-link-field))])
+   :labels      (get-in issue-json [:fields :labels])
    :history     (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint

@@ -13,7 +13,8 @@
             "status": {
                 "name": "issue-1-status"
             },
-            "summary": "issue-1-title"
+            "summary": "issue-1-title",
+            "labels": ["issue-1-label-1", "issue-1-label-2"]
         },
         "changelog": {
             "startAt": 0,
@@ -53,7 +54,8 @@
                 {"key": "issue-2-subtask-2"}
             ],            
             "customfield_10002": 3.0,
-            "customfield_10236": "issue-2-epic"            
+            "customfield_10236": "issue-2-epic",
+            "labels": []
         },
         "changelog": {
             "startAt": 0,

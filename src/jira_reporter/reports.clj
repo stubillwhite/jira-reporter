@@ -79,6 +79,11 @@
    :columns [:id :type :title :assignee]
    :rows    (filter (every-pred deliverable? (complement sized?)) issues)})
 
+(defn report-issues-needing-triage [issues]
+  {:title   "Issues needing triage"
+   :columns [:id :type :title :assignee]
+   :rows    (filter (every-pred bug? (complement (partial has-labels? ["recs_triaged"]))) issues)})
+
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([options]
@@ -92,7 +97,8 @@
     (report-issues-in-progress issues)
     (report-issues-ready-for-release issues)
     (report-issues-closed issues)
-    (report-issues-needing-sizing issues)])) 
+    (report-issues-needing-sizing issues)
+    (report-issues-needing-triage issues)])) 
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint report
