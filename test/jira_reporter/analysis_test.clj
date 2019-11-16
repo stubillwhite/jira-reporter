@@ -6,15 +6,17 @@
             [jira-reporter.utils :refer [def-]])
   (:import [java.time ZonedDateTime ZoneId]))
 
-(defn- add-transition [new-state history t]
+(defn- add-transition [field new-value history t]
   (conj history {:date  t
+                 :field field
                  :from  (-> history last :to)
-                 :to    new-state}))
+                 :to    new-value}))
 
-(def- to-do       (partial add-transition "To Do"))
-(def- in-progress (partial add-transition "In Progress"))
-(def- blocked     (partial add-transition "Blocked"))
-(def- done        (partial add-transition "Closed - DONE"))
+(def- type-change (partial add-transition "type" "story"))
+(def- to-do       (partial add-transition "status" "To Do"))
+(def- in-progress (partial add-transition "status" "In Progress"))
+(def- blocked     (partial add-transition "status" "Blocked"))
+(def- done        (partial add-transition "status" "Closed - DONE"))
 
 (def- utc (ZoneId/of "UTC"))
 
@@ -54,6 +56,7 @@
   (with-redefs [config stub-config]
     (let [stub-closed-issue      (stub-issue-with {:history (-> []
                                                                 (in-progress (utc-time 9))
+                                                                (type-change (utc-time 9))
                                                                 (blocked     (utc-time 11))
                                                                 (in-progress (utc-time 12))
                                                                 (done        (utc-time 13)))})

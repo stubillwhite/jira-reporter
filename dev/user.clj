@@ -58,14 +58,14 @@
 
 (defn read-and-cache-issues! []
   (let [board  "CORE Tribe"
-        sprint "Backlog to delete"]
+        sprint "Sprint 10 Hulk"]
     (->> (jira/get-issues-in-sprint-named board sprint)
          (map analysis/add-derived-fields)
          (write-object "recs-issues.nippy"))))
 
 (defn read-and-cache-sprint! []
   (let [board  "CORE Tribe"
-        sprint "Backlog to delete"]
+        sprint "Sprint 10 Hulk"]
    (->> (jira/get-sprint-named board sprint)
         (write-object "recs-sprint.nippy"))))
 

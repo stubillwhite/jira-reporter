@@ -25,9 +25,12 @@
       (warn "Unknown JIRA state" state "for issue with ID" id)
       :other)))
 
+(defn- status-change-only [history]
+  (filter (fn [x] (= (:field x) "status")) history))
+
 (defn- calculate-time-in-state [issue]
   (let [id       (:id issue)
-        history  (add-current-state-if-open (:history issue))
+        history  (-> (:history issue) add-current-state-if-open status-change-only)
         add-time (fn [a b] (fnil (partial + (date/working-hours-between (:date a) (:date b))) 0))]
     (reduce (fn [acc [a b]] (update acc (state-category id (:to a)) (add-time a b)))
             {}
