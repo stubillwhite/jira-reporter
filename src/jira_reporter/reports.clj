@@ -202,10 +202,10 @@
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
-     (generate-burndown options (:startDate sprint) (:endDate sprint) issues)))
+     (generate-burndown options sprint issues)))
 
-  ([options start-date end-date issues]
-   [(report-burndown start-date end-date issues)]))
+  ([options sprint issues]
+   [(report-burndown (:startDate sprint) (:endDate sprint) issues)]))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

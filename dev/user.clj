@@ -56,18 +56,22 @@
 
 ;; Exploratory methods
 
+(def sprint-name  "Sprint 10 Hulk")
+(def board-name   "CORE Tribe")
+(def project-name "SD Personalized Recommender")
+
 (defn read-and-cache-issues! []
-  (let [board  "CORE Tribe"
-        sprint "Sprint 10 Hulk"]
-    (->> (jira/get-issues-in-sprint-named board sprint)
-         (map analysis/add-derived-fields)
-         (write-object "recs-issues.nippy"))))
+  (->> (jira/get-issues-in-sprint-named board-name sprint-name)
+       (map analysis/add-derived-fields)
+       (write-object "recs-issues.nippy")))
 
 (defn read-and-cache-sprint! []
-  (let [board  "CORE Tribe"
-        sprint "Sprint 10 Hulk"]
-   (->> (jira/get-sprint-named board sprint)
-        (write-object "recs-sprint.nippy"))))
+  (->> (jira/get-sprint-named board-name sprint-name)
+       (write-object "recs-sprint.nippy")))
+
+(defn read-and-cache-project! []
+  (->> (jira/get-issues-in-project-named project-name)
+       (write-object "recs-project.nippy")))
 
 (defn load-cached-issues []
   (read-object "recs-issues.nippy"))
@@ -75,19 +79,29 @@
 (defn load-cached-sprint []
   (read-object "recs-sprint.nippy"))
 
-(defn- display-table
-  [report]
-  (dorun
-   (for [{:keys [title columns rows]} report]
-     (do
-       (println title)
-       (if (empty? rows)
-         (println "\nNone")
-         (pprint/print-table columns rows))
-       (println)))))
+(defn load-cached-project []
+  (read-object "recs-project.nippy"))
 
-(def sprint-name "Sprint 9 Hulk")
-(def board-name "CORE Tribe")
+(defn refresh-cached-data! []
+  (read-and-cache-issues!)
+  (read-and-cache-sprint!)
+  (read-and-cache-project!))
+
+;; From cache
+
+(defn burndown-from-cache []
+  (app/display-report config (reports/generate-burndown config (load-cached-sprint) (load-cached-issues))))
+
+(defn sprint-from-cache []
+  (app/display-report config (reports/generate-sprint-report config (load-cached-issues) (load-cached-sprint))))
+
+(defn daily-from-cache []
+  (app/display-report config (reports/generate-daily-report config (load-cached-issues))))
+
+(defn backlog-from-cache []
+  (app/display-report config (reports/generate-backlog-sprint-report config (load-cached-project))))
+
+;; From real ssytem
 
 (defn burndown []
   (app/-main "--burndown" "--board-name" board-name "--sprint-name" sprint-name))
@@ -99,7 +113,7 @@
   (app/-main "--daily-report" "--board-name" board-name "--sprint-name" sprint-name))
 
 (defn backlog []
-  (app/-main "--backlog-report" "SD Personalized Recommender"))
+  (app/-main "--backlog-report" project-name))
 
 (defn sprint-backlog []
   (app/display-report {} (reports/generate-backlog-sprint-report {:board-name board-name :sprint-name sprint-name})))
