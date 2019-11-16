@@ -96,11 +96,11 @@
   (let [epic-link-field    (get-in config [:custom-fields :epic-link])
         story-points-field (get-in config [:custom-fields :story-points])]
     (->> (paginated-request (merge-in (build-request :get (build-api-v2-url "/search"))
-                                                 [:query-params]
-                                                 {:jql    (str "project=\"" name "\"")
-                                                  ;; :expand "changelog"
-                                                  :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field]
-                                                  })
-                            is-empty-issues?)
+                                      [:query-params]
+                                      {:jql    (str "project=\"" name "\"")
+                                       ;; :expand "changelog"
+                                       :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field "labels"]
+                                       }
+                                      is-empty-issues?))
                     (mapcat :issues))))
 
