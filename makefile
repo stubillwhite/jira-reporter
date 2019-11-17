@@ -16,7 +16,7 @@ SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
-APP_JAR=jira-reporter-0.1.9-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.10-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
