@@ -14,7 +14,21 @@
                 "name": "issue-1-status"
             },
             "summary": "issue-1-title",
-            "labels": ["issue-1-label-1", "issue-1-label-2"]
+            "labels": ["issue-1-label-1", "issue-1-label-2"],
+            "sprint": {
+                "id": "sprint-2-id"
+                "name": "sprint-2-name",
+                "state": "sprint-2-state",
+                "startDate": "1970-01-01T00:00:00.000+0000",
+                "endDate": "1970-01-01T00:00:00.000+0000"
+            },
+            "closedSprints": [{
+                "id": "sprint-1-id"
+                "name": "sprint-1-name",
+                "state": "sprint-1-state",
+                "startDate": "1970-01-01T00:00:00.000+0000",
+                "endDate": "1970-01-01T00:00:00.000+0000"
+            }]
         },
         "changelog": {
             "startAt": 0,
@@ -55,7 +69,21 @@
             ],            
             "customfield_10002": 3.0,
             "customfield_10236": "issue-2-epic",
-            "labels": []
+            "labels": [],
+            "sprint": {
+                "id": "sprint-2-id"
+                "name": "sprint-2-name",
+                "state": "sprint-2-state",
+                "startDate": "1970-01-01T00:00:00.000+0000",
+                "endDate": "1970-01-01T00:00:00.000+0000"
+            },
+            "closedSprints": [{
+                "id": "sprint-1-id"
+                "name": "sprint-1-name",
+                "state": "sprint-1-state",
+                "startDate": "1970-01-01T00:00:00.000+0000",
+                "endDate": "1970-01-01T00:00:00.000+0000"
+            }]
         },
         "changelog": {
             "startAt": 0,

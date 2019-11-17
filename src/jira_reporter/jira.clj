@@ -48,20 +48,28 @@
           board
           (throw+ {:type ::board-not-found :boards (map :name boards)}))))))
 
+(defn- extract-sprint [sprint-json]
+  {:id         (str (get-in sprint-json [:id]))
+   :name       (get-in sprint-json [:name])
+   :state      (get-in sprint-json [:state])
+   :start-date (get-in sprint-json [:startDate])
+   :end-date   (get-in sprint-json [:endDate])})
+
 (defn- extract-issue [issue-json]
-  {:id          (get-in issue-json [:key])
-   :created     (or (get-in issue-json [:created])
-                    (get-in issue-json [:fields :created]))
-   :parent-id   (get-in issue-json [:fields :parent :key])
-   :subtask-ids (->> (get-in issue-json [:fields :subtasks]) (map :key))
-   :type        (get-in issue-json [:fields :issuetype :name])
-   :status      (get-in issue-json [:fields :status :name])
-   :assignee    (get-in issue-json [:fields :assignee :displayName])
-   :title       (get-in issue-json [:fields :summary])
-   :points      (get-in issue-json [:fields (keyword (story-points-field))])
-   :epic        (get-in issue-json [:fields (keyword (epic-link-field))])
-   :labels      (get-in issue-json [:fields :labels])
-   :history     (extract-issue-history issue-json)})
+  {:id             (get-in issue-json [:key])
+   :created        (or (get-in issue-json [:created])
+                       (get-in issue-json [:fields :created]))
+   :parent-id      (get-in issue-json [:fields :parent :key])
+   :subtask-ids    (->> (get-in issue-json [:fields :subtasks]) (map :key))
+   :type           (get-in issue-json [:fields :issuetype :name])
+   :status         (get-in issue-json [:fields :status :name])
+   :assignee       (get-in issue-json [:fields :assignee :displayName])
+   :title          (get-in issue-json [:fields :summary])
+   :points         (get-in issue-json [:fields (keyword (story-points-field))])
+   :epic           (get-in issue-json [:fields (keyword (epic-link-field))])
+   :labels         (get-in issue-json [:fields :labels])
+   :sprints        (cons (extract-sprint (get-in issue-json [:fields :sprint])) (->> (get-in issue-json [:fields :closedSprints]) (map extract-sprint)))
+   :history        (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint
   [sprint-id]
@@ -75,12 +83,13 @@
 
 (defn get-sprint-named
   "Get the named sprint."
-  ([board-name sprint-name]
-   (let [board   (get-board-named board-name)
-         sprints (rest-client/get-sprints-for-board (:id board))]
-     (if-let [sprint (find-first #(= (:name %) sprint-name) sprints)]
-       sprint
-       (throw+ {:type ::sprint-not-found :sprints (map :name sprints)})))))
+  [board-name sprint-name]
+  {:post [(spec/assert ::schema/sprint %)]}
+  (let [board   (get-board-named board-name)
+        sprints (rest-client/get-sprints-for-board (:id board))]
+    (if-let [sprint-json (find-first #(= (:name %) sprint-name) sprints)]
+      (extract-sprint sprint-json)
+      (throw+ {:type ::sprint-not-found :sprints (map :name sprints)}))))
 
 (defn get-sprint-names
   "Get the names of the sprints."

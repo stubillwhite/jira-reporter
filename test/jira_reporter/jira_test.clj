@@ -30,6 +30,20 @@
     :from  "In Progress"
     :to    "Closed"}])
 
+(def- expected-previous-sprint
+  {:id         "sprint-1-id"
+   :name       "sprint-1-name"
+   :state      "sprint-1-state"
+   :start-date (utc-date-time 1970 1 1)
+   :end-date   (utc-date-time 1970 1 1)})
+
+(def- expected-current-sprint
+  {:id         "sprint-2-id"
+   :name       "sprint-2-name"
+   :state      "sprint-2-state"
+   :start-date (utc-date-time 1970 1 1)
+   :end-date   (utc-date-time 1970 1 1)})
+
 (def- expected-current-sprint-issues
   [{:id          "issue-1-key"
     :created     (utc-date-time 1970 1 1)
@@ -42,6 +56,7 @@
     :status      "issue-1-status"
     :assignee    "issue-1-assignee"
     :labels      ["issue-1-label-1" "issue-1-label-2"]
+    :sprints     [expected-current-sprint expected-previous-sprint]
     :history     expected-issue-1-history},
    {:id          "issue-2-key"
     :created     (utc-date-time 1970 1 1)
@@ -54,20 +69,23 @@
     :status      "issue-2-status"
     :assignee    "issue-2-assignee"
     :labels      []
+    :sprints     [expected-current-sprint expected-previous-sprint]
     :history     expected-issue-2-history}])
 
 (defn- stub-board [id name]
   {:id   id
    :name name})
 
-(def- stub-boards [(stub-board 1 "board-1-name") (stub-board 2 "board-2-name")])
+(def- stub-boards [(stub-board "1" "board-1-name") (stub-board "2" "board-2-name")])
 
 (defn- stub-sprint [id name state]
-  {:id    id
-   :name  name
-   :state state})
+  {:id         id
+   :name       name
+   :state      state
+   :startDate  (utc-date-time 1970 1 1)
+   :endDate    (utc-date-time 1970 1 1)})
 
-(def- stub-sprints [(stub-sprint 1 "stub-sprint-1-name" "active") (stub-sprint 2 "stub-sprint-2-name" "inactive")])
+(def- stub-sprints [(stub-sprint "1" "stub-sprint-1-name" "active") (stub-sprint "2" "stub-sprint-2-name" "inactive")])
 
 (def- stub-config
   {:jira           {:board "board-1-name"}
@@ -78,12 +96,13 @@
 (deftest get-sprint-names-then-returns-sprint-names
   (with-redefs [config/config                     stub-config
                 rest-client/get-boards            (fn [] stub-boards)
-                rest-client/get-sprints-for-board (fn [id] (when (= 1 id) stub-sprints))]
+                rest-client/get-sprints-for-board (fn [id] (when (= "1" id) stub-sprints))]
     (is (= ["stub-sprint-1-name" "stub-sprint-2-name"] (get-sprint-names "board-1-name")))))
 
 (deftest get-issues-in-sprint-named-then-decodes-issues
   (with-redefs [config/config                     stub-config
                 rest-client/get-boards            (fn [] stub-boards)
-                rest-client/get-sprints-for-board (fn [id] (when (= 1 id) stub-sprints))
-                rest-client/get-issues-for-sprint (fn [id] (when (= 1 id) current-sprint-json))]
+                rest-client/get-sprints-for-board (fn [id] (when (= "1" id) stub-sprints))
+                rest-client/get-issues-for-sprint (fn [id] (when (= "1" id) current-sprint-json))]
     (is (= expected-current-sprint-issues (get-issues-in-sprint-named "board-1-name" "stub-sprint-1-name")))))
+

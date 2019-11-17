@@ -60,6 +60,11 @@
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
+(defn read-and-cache-raw-issues! []
+  (let [sprint (jira/get-sprint-named board-name sprint-name)]
+    (->> (rest-client/get-issues-for-sprint (:id sprint))
+         (write-object "recs-raw.nippy"))))
+
 (defn read-and-cache-issues! []
   (->> (jira/get-issues-in-sprint-named board-name sprint-name)
        (map analysis/add-derived-fields)
@@ -72,6 +77,9 @@
 (defn read-and-cache-project! []
   (->> (jira/get-issues-in-project-named project-name)
        (write-object "recs-project.nippy")))
+
+(defn load-cached-raw-issues []
+  (read-object "recs-raw.nippy"))
 
 (defn load-cached-issues []
   (read-object "recs-issues.nippy"))
@@ -117,3 +125,14 @@
 
 (defn sprint-backlog []
   (app/display-report {} (reports/generate-backlog-sprint-report {:board-name board-name :sprint-name sprint-name})))
+
+;; Work in progress
+
+;; Need bug reports by sprint
+
+(defn full-bug-report []
+  (->> (load-cached-project)
+       (filter issue-filters/bug?)
+       (map (fn [x] (select-keys x [:id :title :labels])))
+       (pprint/print-table)))
+

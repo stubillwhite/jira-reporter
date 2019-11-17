@@ -110,8 +110,8 @@
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
 
 (defn- raised-in-sprint? [sprint issue]
-  (and (before-or-equal? (:startDate sprint) (:created issue))
-       (before-or-equal? (:created issue)    (:endDate sprint))))
+  (and (before-or-equal? (:start-date sprint) (:created issue))
+       (before-or-equal? (:created issue)     (:end-date sprint))))
 
 (defn report-issues-summary [issues sprint]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
@@ -205,7 +205,7 @@
      (generate-burndown options sprint issues)))
 
   ([options sprint issues]
-   [(report-burndown (:startDate sprint) (:endDate sprint) issues)]))
+   [(report-burndown (:start-date sprint) (:end-date sprint) issues)]))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

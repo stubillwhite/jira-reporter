@@ -4,12 +4,29 @@
   (:import java.time.ZonedDateTime))
 
 ;; -----------------------------------------------------------------------------
-;; Issue
+;; Common
 ;; -----------------------------------------------------------------------------
 
 (defn- zoned-date-time? [x] (instance? ZonedDateTime x))
 
-(spec/def ::id                string?)
+(spec/def ::id string?)
+
+;; -----------------------------------------------------------------------------
+;; Sprint
+;; -----------------------------------------------------------------------------
+
+(spec/def ::name       string?)
+(spec/def ::state      string?)
+(spec/def ::start-date zoned-date-time?)
+(spec/def ::end-date   zoned-date-time?)
+
+(spec/def ::sprint
+  (spec/keys :req-un [::id ::name ::start-date ::end-date ::state]))
+
+;; -----------------------------------------------------------------------------
+;; Issue
+;; -----------------------------------------------------------------------------
+
 (spec/def ::created           zoned-date-time?)
 (spec/def ::parent-id         (spec/nilable string?))
 (spec/def ::subtask-ids       (spec/coll-of string?))
@@ -21,6 +38,7 @@
 (spec/def ::epic              (spec/nilable string?))
 (spec/def ::labels            (spec/coll-of string?))
 (spec/def ::history           (spec/coll-of map?))   ;; TODO: Should be history elements
+(spec/def ::sprints           (spec/coll-of ::sprint))
 (spec/def ::lead-time-in-days (spec/nilable int?))
 (spec/def ::time-in-state     (spec/map-of keyword? int?))
 
