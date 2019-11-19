@@ -125,8 +125,8 @@
             {:category "Total" :open (count-of open?)        :raised (count-of raised?)        :closed (count-of closed?)}]}))
 
 (defn- raised-in-sprint? [sprint issue]
-  (and (before-or-equal? (:startDate sprint) (:created issue))
-       (before-or-equal? (:created issue)    (:endDate sprint))))
+  (and (before-or-equal? (:start-date sprint) (:created issue))
+       (before-or-equal? (:created issue)     (:end-date sprint))))
 
 (defn report-issues-raised-in-sprint [issues sprint]
   {:title   "Issues raised in the sprint"
@@ -149,8 +149,8 @@
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (->> (issues-in-sprint-named board-name sprint-name)
-                                               ((partial issues-at-date (:endDate sprint)))
-                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:startDate sprint) x)))))))]
+                                               ((partial issues-at-date (:end-date sprint)))
+                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:start-date sprint) x)))))))]
      (generate-sprint-report options issues sprint)))
 
   ([options issues sprint]
