@@ -18,6 +18,7 @@
             :deployment-states       #{"deploy"}
             :story-types             #{"story"}
             :task-types              #{"task"}
+            :subtask-types           #{"subtask"}
             :bug-types               #{"bug"}
             :gdpr-types              #{"gdpr"}
             :story-closed-state      "Closed"

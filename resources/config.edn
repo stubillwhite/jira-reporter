@@ -18,8 +18,9 @@
           :deployment-states       #{"Deploy to SIT" "Deploy to Prod" "Ready for Release" "In Review" "In Test"}
           :epic-types              #{"Epic"}
           :story-types             #{"Story"}
-          :task-types              #{"Task" "Sub-task"}
-          :bug-types               #{"Bug" "Bug Sub-task"}
+          :task-types              #{"Task"}
+          :subtask-types           #{"Sub-task" "Bug Sub-task"}
+          :bug-types               #{"Bug"}
           :gdpr-types              #{"GDPR Compliance"}
           :story-closed-state      "Closed"
           :story-open-state        "To Do"

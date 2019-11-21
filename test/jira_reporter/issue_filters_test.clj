@@ -56,6 +56,9 @@
     (testing "task?"
       (is (= true (issue-filters/task? {:type "task"})))
       (is (= false (issue-filters/task? {:type "not task"}))))
+    (testing "subtask?"
+      (is (= true (issue-filters/subtask? {:type "subtask"})))
+      (is (= false (issue-filters/subtask? {:type "not subtask"}))))
     (testing "no-parent?"
       (is (= true (issue-filters/no-parent? {})))
       (is (= false (issue-filters/no-parent? {:parent-id "parent"}))))

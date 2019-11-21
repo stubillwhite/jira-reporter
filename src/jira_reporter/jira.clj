@@ -121,6 +121,7 @@
 (defn epic-types         [] (get-in config [:schema :epic-types]))
 (defn story-types        [] (get-in config [:schema :story-types]))
 (defn task-types         [] (get-in config [:schema :task-types]))
+(defn subtask-types      [] (get-in config [:schema :subtask-types]))
 (defn bug-types          [] (get-in config [:schema :bug-types]))
 (defn gdpr-types         [] (get-in config [:schema :gdpr-types]))
 (defn epic-types         [] (get-in config [:schema :epic-types]))

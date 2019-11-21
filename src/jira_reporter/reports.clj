@@ -118,11 +118,12 @@
         raised?  (fn [x] (raised-in-sprint? sprint x))]
     {:title   "Issue summary"
      :columns [:category :open :raised :closed]
-     :rows [{:category "Story" :open (count-of story? open?) :raised (count-of story? raised?) :closed (count-of story? closed?)}
-            {:category "Task"  :open (count-of task?  open?) :raised (count-of task?  raised?) :closed (count-of task?  closed?)}
-            {:category "Bug"   :open (count-of bug?   open?) :raised (count-of bug?   raised?) :closed (count-of bug?   closed?)}
-            {:category "GDPR"  :open (count-of gdpr?  open?) :raised (count-of gdpr?  raised?) :closed (count-of gdpr?  closed?)}
-            {:category "Total" :open (count-of open?)        :raised (count-of raised?)        :closed (count-of closed?)}]}))
+     :rows [{:category "Story"   :open (count-of story?   open?) :raised (count-of story?   raised?) :closed (count-of story?   closed?)}
+            {:category "Task"    :open (count-of task?    open?) :raised (count-of task?    raised?) :closed (count-of task?    closed?)}
+            {:category "Subtask" :open (count-of subtask? open?) :raised (count-of subtask? raised?) :closed (count-of subtask? closed?)}
+            {:category "Bug"     :open (count-of bug?     open?) :raised (count-of bug?     raised?) :closed (count-of bug?     closed?)}
+            {:category "GDPR"    :open (count-of gdpr?    open?) :raised (count-of gdpr?    raised?) :closed (count-of gdpr?    closed?)}
+            {:category "Total"   :open (count-of open?)          :raised (count-of raised?)          :closed (count-of closed?)}]}))
 
 (defn- raised-in-sprint? [sprint issue]
   (and (before-or-equal? (:start-date sprint) (:created issue))

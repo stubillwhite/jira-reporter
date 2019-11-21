@@ -87,6 +87,11 @@
   [issue]
   (type-is? (jira/task-types) issue))
 
+(defn subtask?
+  "Returns true if the issue is a subtask, false otherwise."
+  [issue]
+  (type-is? (jira/subtask-types) issue))
+
 (defn no-parent?
   "Returns true if the issue has no parent, false otherwise."
   [issue]
