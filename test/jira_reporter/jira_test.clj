@@ -1,6 +1,5 @@
 (ns jira-reporter.jira-test
-  (:require [clojure.data.json :as json]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [clojure.test :refer :all]
             [jira-reporter.config :as config]
             [jira-reporter.jira :as jira :refer :all]

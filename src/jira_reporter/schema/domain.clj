@@ -1,4 +1,4 @@
-(ns jira-reporter.schema
+(ns jira-reporter.schema.domain
   (:require [clojure.spec.alpha :as spec]
             [expound.alpha :as expound])
   (:import java.time.ZonedDateTime))

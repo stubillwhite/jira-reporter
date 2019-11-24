@@ -4,9 +4,10 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.java.javadoc :refer [javadoc]]
-            [clojure.pprint :refer [pprint print-table]]
+            [clojure.pprint :as pprint :refer [pprint print-table]]
             [clojure.reflect :refer [reflect]]
             [clojure.repl :refer [apropos dir doc find-doc pst source]]
+            [clojure.spec.alpha :as spec]
             [clojure.stacktrace :refer [print-stack-trace]]
             [clojure.test :as test]
             [clojure.tools.namespace.repl :refer [refresh refresh-all]]
@@ -15,16 +16,16 @@
             [jira-reporter.app :as app]
             [jira-reporter.cache :as cache]
             [jira-reporter.config :refer [config]]
+            [jira-reporter.date :as date]
+            [jira-reporter.issue-filters :as issue-filters]
             [jira-reporter.jira :as jira]
             [jira-reporter.reports :as reports]
-            [jira-reporter.issue-filters :as issue-filters]
             [jira-reporter.rest-client :as rest-client]
+            [jira-reporter.schema.jira :as schema]
             [mount.core :as mount]
+            [oz.core :as oz]
             [taoensso.nippy :as nippy]
-            [taoensso.timbre :as timbre]
-            [clojure.pprint :as pprint]
-            [jira-reporter.date :as date]
-            [oz.core :as oz])
+            [taoensso.timbre :as timbre])
   (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
@@ -135,4 +136,10 @@
        (filter issue-filters/bug?)
        (map (fn [x] (select-keys x [:id :title :labels])))
        (pprint/print-table)))
+
+(defn validate-raw-issues []
+  (if-let [invalid-issue (->> (load-cached-raw-issues)
+                              (filter (fn [x] (not (spec/valid? ::schema/issue x))))
+                              (first))]
+    (spec/assert ::schema/issue invalid-issue)))
 

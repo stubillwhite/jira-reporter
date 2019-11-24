@@ -2,7 +2,7 @@
   (:require [clojure.spec.alpha :as spec]
             [jira-reporter.date :as date]
             [jira-reporter.jira :as jira]
-            [jira-reporter.schema :as schema]
+            [jira-reporter.schema.domain :as schema-domain]
             [jira-reporter.utils :refer [def-]]
             [taoensso.timbre :as timbre])
   (:import [java.time ZonedDateTime ZoneId]))
@@ -53,7 +53,7 @@
 (defn add-derived-fields
   "Augment the specified issue with derived fields."  
   [issue]
-  {:post [(spec/assert ::schema/enriched-issue %)]}
+  {:post [(spec/assert ::schema-domain/enriched-issue %)]}
   (-> issue
       (with-lead-time-in-days)
       (with-time-in-state)))

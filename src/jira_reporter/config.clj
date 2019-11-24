@@ -1,7 +1,7 @@
 (ns jira-reporter.config
   (:require [clojure.edn :as edn]
             [clojure.spec.alpha :as spec]
-            [jira-reporter.schema :as schema]
+            [jira-reporter.schema.domain :as schema-domain]
             [mount.core :refer [defstate]]
             [taoensso.timbre :as timbre]))
 
@@ -10,7 +10,7 @@
 (defn load-config
   "Returns the configuration file loaded from path."
   [path]
-  {:post [(spec/assert ::schema/config %)]}
+  {:post [(spec/assert ::schema-domain/config %)]}
   (info "Loading configuration file" path)
   (-> path 
       slurp 

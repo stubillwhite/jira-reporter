@@ -5,7 +5,7 @@
             [jira-reporter.cache :as cache]
             [jira-reporter.config :refer [config]]
             [jira-reporter.rest-client :as rest-client]
-            [jira-reporter.schema :as schema]
+            [jira-reporter.schema.domain :as schema-domain]
             [jira-reporter.utils :refer [def-]]
             [slingshot.slingshot :refer [throw+]]
             [taoensso.timbre :as timbre])
@@ -73,7 +73,7 @@
 
 (defn- get-issues-for-sprint
   [sprint-id]
-  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
+  {:post [(spec/assert (spec/coll-of ::schema-domain/issue) %)]}
   (->> (rest-client/get-issues-for-sprint sprint-id)
        (transform* [ALL] extract-issue)))
 
@@ -84,7 +84,7 @@
 (defn get-sprint-named
   "Get the named sprint."
   [board-name sprint-name]
-  {:post [(spec/assert ::schema/sprint %)]}
+  {:post [(spec/assert ::schema-domain/sprint %)]}
   (let [board   (get-board-named board-name)
         sprints (rest-client/get-sprints-for-board (:id board))]
     (if-let [sprint-json (find-first #(= (:name %) sprint-name) sprints)]
@@ -108,7 +108,7 @@
 (defn get-issues-in-project-named
   "Get the issues in the named project."
   [name]
-  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
+  {:post [(spec/assert (spec/coll-of ::schema-domain/issue) %)]}
   (info "Finding issues in the project")
   (->> (rest-client/get-issues-for-project name)
        (transform* [ALL] extract-issue)))
