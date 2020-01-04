@@ -1,5 +1,9 @@
 # jira-reporter
 
+<p>
+  <a href="https://github.com/stubillwhite/jira-reporter"><img alt="Build status" src="https://github.com/stubillwhite/jira-reporter/workflows/build-and-test/badge.svg"></a>
+</p>
+
 A simple script to pull information out of JIRA for the daily stand-up. Tested on JIRA 7.9.0, probably highly configuration dependent.
 
 ## Build instructions
