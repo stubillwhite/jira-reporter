@@ -12,8 +12,11 @@
              (app/validate-args ["--burndown"])))))
   (testing "backlog"
     (testing "given valid options then passes validation"
-      (is (= {:options {:backlog-report "backlog"} :ok? true}
-             (app/validate-args ["--backlog-report" "backlog"])))))
+      (is (= {:options {:backlog-report true :project-name "project" :board-name "board"} :ok? true}
+             (app/validate-args ["--backlog-report" "--project-name" "project" "--board-name" "board"]))))
+    (testing "given invalid options then fails validation"
+      (is (= {:exit-message "Option backlog-report requires the following options to also be specified: project-name, board-name" :ok? false}
+             (app/validate-args ["--backlog-report"])))))
   (testing "daily report"
     (testing "given valid options then passes validation"
       (is (= {:options {:daily-report true :board-name "board" :sprint-name "sprint"} :ok? true}
