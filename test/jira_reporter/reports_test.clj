@@ -110,12 +110,12 @@
    (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
 
 (def- expected-burndown
-  [{:date "2000-01-27 Thu" :open 4 :closed 0 :total 4 :bugs-open 0 :bugs-closed 0 :points 0.0}
-   {:date "2000-01-28 Fri" :open 2 :closed 2 :total 4 :bugs-open 0 :bugs-closed 0 :points 6.0}
-   {:date "2000-01-31 Mon" :open 4 :closed 3 :total 7 :bugs-open 0 :bugs-closed 0 :points 9.0}
-   {:date "2000-02-01 Tue" :open 3 :closed 4 :total 7 :bugs-open 0 :bugs-closed 0 :points 12.0}
-   {:date "2000-02-02 Wed" :open 2 :closed 5 :total 7 :bugs-open 0 :bugs-closed 0 :points 15.0}
-   {:date "2000-02-03 Thu" :open 1 :closed 6 :total 7 :bugs-open 0 :bugs-closed 0 :points 18.0}])
+  [{:date "2000-01-27 Thu" :open 4 :closed 0 :total 4 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 0.0}
+   {:date "2000-01-28 Fri" :open 2 :closed 2 :total 4 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 6.0}
+   {:date "2000-01-31 Mon" :open 4 :closed 3 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 9.0}
+   {:date "2000-02-01 Tue" :open 3 :closed 4 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 12.0}
+   {:date "2000-02-02 Wed" :open 2 :closed 5 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 15.0}
+   {:date "2000-02-03 Thu" :open 1 :closed 6 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 18.0}])
 
 (deftest report-burndown-then-generates-burndown
   (with-redefs [date/current-date date-today

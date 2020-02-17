@@ -30,9 +30,10 @@
    [nil "--sprint-report"       "Generate a report for the sprint"]
    [nil "--daily-report"        "Generate a daily status report for the sprint"]
    [nil "--burndown"            "Generate a burndown for the sprint"]
-   [nil "--project-report NAME" "Generate a project report for the project named NAME"]
+   [nil "--backlog-report"      "Generate a backlog report"]
    [nil "--sprint-name NAME"    "Use sprint named NAME"]
    [nil "--board-name NAME"     "Use board named NAME"]
+   [nil "--project-name NAME"   "Use project named NAME"]
    [nil "--jql QUERY"           "Use the specified JQL query"]
    [nil "--tsv"                 "Output the data as TSV for Excel"]
    ["-h" "--help"]])
@@ -54,17 +55,19 @@
   (str "Option " (name report-type) " requires the following options to also be specified: " (->> requirements (map name) (string/join ", "))))
 
 (defn- validate-options [options]
-  (let [valid-options {:burndown      [:board-name :sprint-name]
-                       :daily-report  [:board-name :sprint-name]
-                       :sprint-report [:board-name :sprint-name]
-                       :list-sprints  [:board-name]
-                       :jql           nil}
+  (let [valid-options {:burndown       [:board-name :sprint-name]
+                       :daily-report   [:board-name :sprint-name]
+                       :sprint-report  [:board-name :sprint-name]
+                       :backlog-report [:project-name :board-name]
+                       :list-sprints   [:board-name]
+                       :jql            nil}
         report-type   (cond
-                        (:burndown options)      :burndown
-                        (:daily-report options)  :daily-report
-                        (:sprint-report options) :sprint-report
-                        (:list-sprints options)  :list-sprints
-                        (:jql options)           :jql)
+                        (:burndown options)       :burndown
+                        (:daily-report options)   :daily-report
+                        (:sprint-report options)  :sprint-report
+                        (:backlog-report options) :backlog-report
+                        (:list-sprints options)   :list-sprints
+                        (:jql options)            :jql)
         requirements  (get valid-options report-type)]
     (if-not (= requirements (keys (select-keys options requirements)))
       {:exit-message (generate-exit-message report-type requirements) :ok? false}
@@ -120,8 +123,8 @@
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
         (:burndown options)       (display-report options (reports/generate-burndown options))
-        (:project-report options) (display-report options (reports/generate-project-report options))
-        (:jql options)            (error "not implemented") ;; 
+        (:backlog-report options) (display-report options (reports/generate-backlog-report options))
+        (:jql options)            (error "not implemented")
         :else                     (error "Unrecognised action"))
       )))
 

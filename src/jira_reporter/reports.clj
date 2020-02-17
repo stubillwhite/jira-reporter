@@ -43,7 +43,7 @@
   [options]
   [{:title   "Sprint names"
     :columns [:name]
-    :rows    (for [name (jira/get-sprint-names (:board-name options))] {:name name})}])
+    :rows    (for [sprint (jira/get-sprints (:board-name options))] {:name (:name sprint)})}])
 
 ;; -----------------------------------------------------------------------------
 ;; Daily report
@@ -77,12 +77,12 @@
 (defn report-issues-needing-sizing [issues]
   {:title   "Issues needing sizing"
    :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred deliverable? (complement sized?)) issues)})
+   :rows    (filter needs-size? issues)})
 
 (defn report-issues-needing-triage [issues]
   {:title   "Issues needing triage"
    :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred bug? (complement (partial has-labels? ["recs_triaged"]))) issues)})
+   :rows    (filter needs-triage? issues)})
 
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
@@ -171,17 +171,18 @@
   (.format formatter date))
 
 (defn- calculate-burndown-metrics [date issues]
-  (let [count-of   (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
-        non-bug?   (complement bug?)
-        sum-points (fn [xs] (->> xs (map :points) (filter identity) (reduce + 0.0)))]
-    {:date        (format-date date)
-     :open        (count-of non-bug? open?)
-     :closed      (count-of non-bug? closed?)
-     :total       (count-of non-bug?)
-     :bugs-open   (count-of bug? open?)
-     :bugs-closed (count-of bug? closed?)
-     :points      (->> issues (filter closed?) (sum-points))}))
-
+  (let [count-of    (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
+        non-defect? (every-pred (complement bug?) (complement breakage?))
+        sum-points  (fn [xs] (->> xs (map :points) (filter identity) (reduce + 0.0)))]
+    {:date             (format-date date)
+     :open             (count-of non-defect? open?)
+     :closed           (count-of non-defect? closed?)
+     :total            (count-of non-defect?)
+     :bugs-open        (count-of bug? open?)
+     :bugs-closed      (count-of bug? closed?)
+     :breakages-open   (count-of breakage? open?)
+     :breakages-closed (count-of breakage? closed?)
+     :points           (->> issues (filter closed?) (sum-points))}))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
   (calculate-burndown-metrics date (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
@@ -194,7 +195,7 @@
 
 (defn report-burndown [start-date end-date issues]
   {:title   "Burndown"
-   :columns [:date :open :closed :total :points :bugs-open :bugs-closed]
+   :columns [:date :open :closed :total :points :bugs-open :bugs-closed :breakages-open :breakages-closed]
    :rows    (calculate-burndown start-date end-date issues)})
 
 (defn generate-burndown
@@ -212,13 +213,52 @@
 ;; Backlog
 ;; -----------------------------------------------------------------------------
 
-(defn report-sized-and-unsized-stories [issues]
+(defn report-sized-and-unsized-deliverables [name issues]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
-    {:title   "Sized and unsized open stories"
+    {:title   (str name ": Sized and unsized open deliverables")
      :columns [:status :count]
-     :rows    [{:status "Open and sized"   :count (count-of story? (complement closed?) sized?)}
-               {:status "Open and unsized" :count (count-of story? (complement closed?) (complement sized?))}
-               {:status "Open total"       :count (count-of story? (complement closed?))}]}))
+     :rows    [{:status "Open and sized"   :count (count-of deliverable? (complement closed?) sized?)}
+               {:status "Open and unsized" :count (count-of deliverable? (complement closed?) (complement sized?))}
+               {:status "Open total"       :count (count-of deliverable? (complement closed?))}]}))
+
+(defn- to-age-in-days [issues]
+  (map (fn [x] (.between java.time.temporal.ChronoUnit/DAYS (:created x) (date/current-date))) issues))
+
+(defn- mean
+  [& numbers]
+    (if (empty? numbers)
+      0
+      (float (/ (reduce + numbers) (count numbers)))))
+
+(defn report-deliverable-age-metrics [name issues]
+  (let [issue-ages (->> issues (filter deliverable?) to-age-in-days)]
+    {:title   (str name ": Deliverable ages in days")
+     :columns [:metric :age-in-days]
+     :rows    [{:metric "Oldest" :age-in-days (if (empty? issue-ages) 0 (apply max issue-ages))}
+               {:metric "Newest" :age-in-days (if (empty? issue-ages) 0 (apply min issue-ages))}
+               {:metric "Mean"   :age-in-days (if (empty? issue-ages) 0 (apply mean issue-ages))}]}))
+
+(defn- report-bucket-metrics [name issues]
+  [(report-deliverable-age-metrics name issues)
+   (report-sized-and-unsized-deliverables name issues)])
+
+(defn- report-bucket-metrics [name issues]
+  [(report-deliverable-age-metrics name issues)
+   (report-sized-and-unsized-deliverables name issues)])
+
+(defn- report-metrics-for-future-sprints [board-name]
+  (let [get-metrics (fn [sprint-name]
+                      (report-bucket-metrics sprint-name
+                                             (jira/get-issues-in-sprint-named board-name sprint-name)))]
+    (->> (jira/get-sprints board-name)
+         (filter (fn [x] (= (:state x) "future")))
+         (map :name)
+         (sort)
+         (mapcat get-metrics))))
+
+(defn- report-metrics-for-backlog [board-name]
+  (->> (jira/get-issues-in-backlog board-name)
+       (report-bucket-metrics "Backlog")))
 
 (defn report-epics-in-progress [issues]
   (let [count-of         (fn [xs & preds] (->> xs (filter (apply every-pred preds)) count))
@@ -250,50 +290,17 @@
                {:status "In progress" :count (count-of epic? in-progress?)}
                {:status "Closed"      :count (count-of epic? closed?)}]})) 
 
-(defn- to-age-in-days [issues]
-  (map (fn [x] (.between java.time.temporal.ChronoUnit/DAYS (:created x) (date/current-date))) issues))
-
-(defn- mean
-  [& numbers]
-    (if (empty? numbers)
-      0
-      (float (/ (reduce + numbers) (count numbers)))))
-
-(defn report-story-age-metrics [issues]
-  (let [issue-ages (->> issues (filter (every-pred story? to-do?)) to-age-in-days)]
-    {:title   "Story ages in days"
-     :columns [:metric :age-in-days]
-     :rows    [{:metric "Oldest story" :age-in-days (apply max issue-ages)}
-               {:metric "Newest story" :age-in-days (apply min issue-ages)}
-               {:metric "Mean age"     :age-in-days (apply mean issue-ages)}]}))
-
-(defn generate-project-report
-  "Generate a project report."
-  ([options]
-   (let [{:keys [project-report]} options
-         issues                 (jira/get-issues-in-project-named project-report)]
-     (generate-project-report options issues)))
-
-  ([options issues]
-   [(report-story-age-metrics issues)
-    (report-sized-and-unsized-stories issues)
-    (report-epic-counts-by-state issues)
-    (report-epics-open issues)
-    (report-epics-in-progress issues)]))
-
-(defn generate-backlog-sprint-report
+(defn generate-backlog-report
   "Generate a backlog report."
-  ([options]
-   (let [{:keys [board-name sprint-name]} options
-         issues (issues-in-sprint-named board-name sprint-name)]
-     (generate-backlog-sprint-report options issues)))
-
-  ([options issues]
-   [(report-story-age-metrics issues)
-    (report-sized-and-unsized-stories issues)
-    (report-epic-counts-by-state issues)
-    (report-epics-open issues)
-    (report-epics-in-progress issues)]))
+  [options]
+  (let [{:keys [board-name project-name]} options]
+    (concat
+     (report-metrics-for-backlog board-name)
+     (report-metrics-for-future-sprints board-name)
+     (let [all-issues (jira/get-issues-in-project-named project-name)]
+       [(report-epic-counts-by-state all-issues)
+        (report-epics-open all-issues)
+        (report-epics-in-progress all-issues)]))))
 
 ;; -----------------------------------------------------------------------------
 ;; TODO: Sort all this out

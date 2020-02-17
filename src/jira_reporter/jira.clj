@@ -39,7 +39,6 @@
   (first (filter pred coll)))
 
 (defn- get-board-named [board-name]
-  (info (str "Getting board named '" board-name "'"))
   (cache/with-cache [:boards board-name]
     (fn []
       (info (str "Failed to find board \"" board-name "\" in cache"))
@@ -49,11 +48,12 @@
           (throw+ {:type ::board-not-found :boards (map :name boards)}))))))
 
 (defn- extract-sprint [sprint-json]
-  {:id         (str (get-in sprint-json [:id]))
-   :name       (get-in sprint-json [:name])
-   :state      (get-in sprint-json [:state])
-   :start-date (get-in sprint-json [:startDate])
-   :end-date   (get-in sprint-json [:endDate])})
+  (when sprint-json
+    {:id         (str (get-in sprint-json [:id]))
+     :name       (get-in sprint-json [:name])
+     :state      (get-in sprint-json [:state])
+     :start-date (get-in sprint-json [:startDate])
+     :end-date   (get-in sprint-json [:endDate])}))
 
 (defn- extract-issue [issue-json]
   {:id             (get-in issue-json [:key])
@@ -68,7 +68,8 @@
    :points         (get-in issue-json [:fields (keyword (story-points-field))])
    :epic           (get-in issue-json [:fields (keyword (epic-link-field))])
    :labels         (get-in issue-json [:fields :labels])
-   :sprints        (cons (extract-sprint (get-in issue-json [:fields :sprint])) (->> (get-in issue-json [:fields :closedSprints]) (map extract-sprint)))
+   :current-sprint (extract-sprint (get-in issue-json [:fields :sprint]))
+   :closed-sprints (->> (get-in issue-json [:fields :closedSprints]) (map extract-sprint))
    :history        (extract-issue-history issue-json)})
 
 (defn- get-issues-for-sprint
@@ -81,35 +82,48 @@
 ;; Public
 ;; -----------------------------------------------------------------------------
 
+(defn get-sprints
+  "Get the sprints."
+  [board-name]
+  {:post [(spec/assert (spec/coll-of ::schema/sprint) %)]}
+  (info (str "Getting sprints in board '" board-name "'"))
+  (let [board   (get-board-named board-name)
+        sprints (rest-client/get-sprints-for-board (:id board))]
+    (map extract-sprint sprints)))
+
 (defn get-sprint-named
   "Get the named sprint."
   [board-name sprint-name]
   {:post [(spec/assert ::schema/sprint %)]}
+  (info (str "Getting sprint named '" sprint-name "' in board '" board-name "'"))
   (let [board   (get-board-named board-name)
         sprints (rest-client/get-sprints-for-board (:id board))]
     (if-let [sprint-json (find-first #(= (:name %) sprint-name) sprints)]
       (extract-sprint sprint-json)
       (throw+ {:type ::sprint-not-found :sprints (map :name sprints)}))))
 
-(defn get-sprint-names
-  "Get the names of the sprints."
-  [board-name]
-  (let [board   (get-board-named board-name)
-        sprints (rest-client/get-sprints-for-board (:id board))]
-    (map :name sprints)))
-
 (defn get-issues-in-sprint-named
   "Get the issues in the named sprint."
   [board-name sprint-name]
+  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
   (let [sprint (get-sprint-named board-name sprint-name)]
     (info (str "Getting the issues in sprint '" sprint-name "' of board '" board-name "'"))
     (get-issues-for-sprint (:id sprint))))
+
+(defn get-issues-in-backlog
+  "Get issues in the backlog."
+  [board-name]
+  {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
+  (let [board (get-board-named board-name)]
+    (info (str "Getting the issues in the backlog of board '" board-name "'"))
+    (->> (rest-client/get-issues-for-backlog (:id board))
+         (transform* [ALL] extract-issue))))
 
 (defn get-issues-in-project-named
   "Get the issues in the named project."
   [name]
   {:post [(spec/assert (spec/coll-of ::schema/issue) %)]}
-  (info "Finding issues in the project")
+  (info (str "Finding issues in the the project '" name "'"))
   (->> (rest-client/get-issues-for-project name)
        (transform* [ALL] extract-issue)))
 

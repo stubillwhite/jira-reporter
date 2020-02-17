@@ -89,6 +89,16 @@
                     (mapcat :issues))]
     result))
 
+(defn get-issues-for-backlog
+  "Returns a seq of the issues for the backlog of the board with the specified ID."
+  [board-id]
+  (let [result (->> (paginated-request (merge-in (build-request :get (build-api-v1-url "/board/" board-id "/backlog"))
+                                                 [:query-params]
+                                                 {:expand "changelog"})
+                                       is-empty-issues?)
+                    (mapcat :issues))]
+    result))
+
 ;; https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/?&_ga=2.213181971.682771901.1564552031-322924290.1564431140#api/2/search-search
 (defn get-issues-for-project
   "Returns a seq of the issues for the project with the specified name."
@@ -99,8 +109,8 @@
                                       [:query-params]
                                       {:jql    (str "project=\"" name "\"")
                                        ;; :expand "changelog"
-                                       :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field "labels"]
-                                       }
-                                      is-empty-issues?))
-                    (mapcat :issues))))
+                                       :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field "customfield_10005" "labels" "currentSprint" "closedSprints"]
+                                       })
+                            is-empty-issues?)
+         (mapcat :issues))))
 

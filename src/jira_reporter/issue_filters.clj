@@ -112,10 +112,13 @@
   [issue]
   (not (nil? (:points issue))))
 
+(declare breakage?)
+
 (defn bug?
   "Returns true if the issue is a bug, false otherwise."
   [issue]
-  (type-is? (jira/bug-types) issue))
+  (and (type-is? (jira/bug-types) issue)
+       (not (breakage? issue))))
 
 (defn gdpr?
   "Returns true if the issue is a GDPR issue, false otherwise."
@@ -143,4 +146,19 @@
   (let [label-set (into #{} labels)]
     (= label-set (clojure.set/intersection label-set (into #{} (:labels issue))))))
 
+(defn needs-size?
+  "Returns true if the issue needs size, false otherwise."
+  [issue]
+  (and (deliverable? issue) (not (sized? issue))))
 
+(defn needs-triage?
+  "Returns true if the issue needs triage, false otherwise."
+  [issue]
+  (and (bug? issue)
+       (not (has-labels? ["recs_triaged"] issue))))
+
+(defn breakage?
+  "Returns true if the issue is a breakage, false otherwise."
+  [issue]
+  (and (type-is? (jira/bug-types) issue)
+       (has-labels? ["recs_breakage"] issue)))

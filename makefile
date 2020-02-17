@@ -9,14 +9,14 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 10 
+SPRINT_PREFIX=Sprint 15 
 SQUAD_NAMES=Hulk Flash
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
-APP_JAR=jira-reporter-0.1.10-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.11-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -72,4 +72,4 @@ backlog-report: build ## Generate backlog report
 	@echo -- Backlog report
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --backlog-report "${PROJECT_NAME}" --tsv
+	@./jira-reporter --backlog-report --board-name "${BOARD_NAME}" --project-name "${PROJECT_NAME}"

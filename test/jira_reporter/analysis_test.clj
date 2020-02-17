@@ -39,7 +39,10 @@
           :title             "stub-title"
           :points            nil
           :epic              nil
+          :labels            []
           :history           []
+          :current-sprint    nil
+          :closed-sprints    []
           :lead-time-in-days nil
           :time-in-state     {}}
          m))

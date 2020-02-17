@@ -1,7 +1,9 @@
 (ns jira-reporter.schema
   (:require [clojure.spec.alpha :as spec]
-            [expound.alpha :as expound])
-  (:import java.time.ZonedDateTime))
+            ;; [clojure.spec.gen.alpha :as gen]
+            [expound.alpha :as expound]
+            [jira-reporter.date :refer :all])
+  (:import [java.time Instant ZonedDateTime ZoneId]))
 
 ;; -----------------------------------------------------------------------------
 ;; Common
@@ -15,13 +17,31 @@
 ;; Sprint
 ;; -----------------------------------------------------------------------------
 
-(spec/def ::name       string?)
-(spec/def ::state      string?)
-(spec/def ::start-date zoned-date-time?)
-(spec/def ::end-date   zoned-date-time?)
-
 (spec/def ::sprint
   (spec/keys :req-un [::id ::name ::start-date ::end-date ::state]))
+
+(defn to-zoned-date-time [ms]
+  (-> (Instant/ofEpochMilli ms) (ZonedDateTime/ofInstant utc)))
+
+(defn- year-to-ms-since-epoch [year]
+  (-> (ZonedDateTime/of year 1 1 0 0 0 0 utc) (.toInstant) (.toEpochMilli)))
+
+(def min-date (year-to-ms-since-epoch 2015))
+(def max-date (year-to-ms-since-epoch 2030))
+
+;; (def zoned-date-time-gen
+;;   (gen/generate (gen/fmap to-zoned-date-time (gen/choose min-date max-date))))
+;; 
+;; (spec/def ::zoned-date-time (spec/with-gen zoned-date-time? zoned-date-time-gen))
+
+(spec/def ::name       string?)
+(spec/def ::state      string?)
+(spec/def ::start-date (spec/nilable zoned-date-time?))
+(spec/def ::end-date   (spec/nilable zoned-date-time?))
+;; (spec/def ::start-date (spec/nilable ::zoned-date-time))
+;; (spec/def ::end-date   (spec/nilable ::zoned-date-time))
+
+;; (gen/generate (spec/gen ::sprint))
 
 ;; -----------------------------------------------------------------------------
 ;; Issue
@@ -38,15 +58,16 @@
 (spec/def ::epic              (spec/nilable string?))
 (spec/def ::labels            (spec/coll-of string?))
 (spec/def ::history           (spec/coll-of map?))   ;; TODO: Should be history elements
-(spec/def ::sprints           (spec/coll-of ::sprint))
+(spec/def ::current-sprint    (spec/nilable ::sprint))
+(spec/def ::closed-sprints    (spec/coll-of ::sprint))
 (spec/def ::lead-time-in-days (spec/nilable int?))
 (spec/def ::time-in-state     (spec/map-of keyword? int?))
 
 (spec/def ::issue
-  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::epic ::history]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::epic ::labels ::history ::current-sprint ::closed-sprints]))
 
 (spec/def ::enriched-issue
-  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::epic ::history ::lead-time-in-days ::time-in-state]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::epic ::labels ::history ::current-sprint ::closed-sprints ::lead-time-in-days ::time-in-state]))
 
 ;; -----------------------------------------------------------------------------
 ;; Config
@@ -75,3 +96,5 @@
 
 (spec/check-asserts true)
 ;; (set! spec/*explain-out* expound/printer)
+
+

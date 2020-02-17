@@ -56,14 +56,18 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 10 Hulk")
+(def sprint-name  "Sprint 15 Hulk")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
-(defn read-and-cache-raw-issues! []
+(defn read-and-cache-raw-sprint-issues! []
   (let [sprint (jira/get-sprint-named board-name sprint-name)]
     (->> (rest-client/get-issues-for-sprint (:id sprint))
-         (write-object "recs-raw.nippy"))))
+         (write-object "recs-raw-sprint.nippy"))))
+
+(defn read-and-cache-raw-project-issues! []
+  (->> (rest-client/get-issues-for-project project-name)
+       (write-object "recs-raw-project.nippy")))
 
 (defn read-and-cache-issues! []
   (->> (jira/get-issues-in-sprint-named board-name sprint-name)
@@ -78,8 +82,11 @@
   (->> (jira/get-issues-in-project-named project-name)
        (write-object "recs-project.nippy")))
 
-(defn load-cached-raw-issues []
-  (read-object "recs-raw.nippy"))
+(defn load-cached-raw-sprint-issues []
+  (read-object "recs-raw-sprint.nippy"))
+
+(defn load-cached-raw-project-issues []
+  (read-object "recs-raw-project.nippy"))
 
 (defn load-cached-issues []
   (read-object "recs-issues.nippy"))
@@ -87,10 +94,15 @@
 (defn load-cached-sprint []
   (read-object "recs-sprint.nippy"))
 
+(defn load-cached-raw-project []
+  (read-object "recs-raw-project.nippy"))
+
 (defn load-cached-project []
   (read-object "recs-project.nippy"))
 
 (defn refresh-cached-data! []
+  (read-and-cache-raw-sprint-issues!)
+  (read-and-cache-raw-project-issues!)
   (read-and-cache-issues!)
   (read-and-cache-sprint!)
   (read-and-cache-project!))
@@ -107,7 +119,7 @@
   (app/display-report config (reports/generate-daily-report config (load-cached-issues))))
 
 (defn backlog-from-cache []
-  (app/display-report config (reports/generate-backlog-sprint-report config (load-cached-project))))
+  (app/display-report config (reports/generate-backlog-report config (load-cached-project))))
 
 ;; From real ssytem
 
@@ -121,10 +133,10 @@
   (app/-main "--daily-report" "--board-name" board-name "--sprint-name" sprint-name))
 
 (defn backlog []
-  (app/-main "--backlog-report" project-name))
+  (app/-main "--backlog-report" "--board-name" board-name "--project-name" project-name))
 
 (defn sprint-backlog []
-  (app/display-report {} (reports/generate-backlog-sprint-report {:board-name board-name :sprint-name sprint-name})))
+  (app/display-report {} (reports/generate-backlog-report {:board-name board-name :sprint-name sprint-name})))
 
 ;; Work in progress
 

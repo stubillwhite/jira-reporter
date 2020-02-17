@@ -1,4 +1,4 @@
-(defproject jira-reporter "0.1.10-SNAPSHOT"
+(defproject jira-reporter "0.1.11-SNAPSHOT"
 
   :description "A simple script to pull information from JIRA"
 
@@ -45,6 +45,7 @@
 
   :profiles {:uberjar {:aot :all}
 
-             :dev {:dependencies   [[org.clojure/tools.namespace "0.2.10"]]
+             :dev {:dependencies   [[org.clojure/tools.namespace "0.2.10"]
+                                    [org.clojure/test.check "0.10.0"]]
                    :resource-paths ["test-resources"]
                    :source-paths   ["dev"]}})
