@@ -84,6 +84,27 @@
    :columns [:id :type :title :assignee]
    :rows    (filter needs-triage? issues)})
 
+(defn report-issue-allocation [issues]
+  {:title   "Issue discipline allocation"
+   :columns [:id :type :title :assignee]
+   :rows    (filter needs-triage? issues)})
+
+(defn report-issue-allocation [issues]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Issue allocation"
+     :columns [:category :open :closed]
+     :rows [{:category "Data Science"         :open (count-of data-science?   open?)  :closed (count-of data-science?   closed?)}
+            {:category "Engineering"          :open (count-of engineering?    open?)  :closed (count-of engineering?    closed?)}
+            {:category "Infrastructure"       :open (count-of infrastructure? open?)  :closed (count-of infrastructure? closed?)}
+            {:category "Miscellaneous"        :open (count-of miscellaneous?  open?)  :closed (count-of miscellaneous?  closed?)}
+            {:category "Unallocated"          :open (count-of unallocated?    open?)  :closed (count-of unallocated?    closed?)}]}))
+
+(defn report-issues-awaiting-allocation [issues]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Issue awaiting allocation"
+     :columns [:id :type :parent-id :title]
+     :rows    (filter unallocated? issues)}))
+
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([options]
@@ -98,7 +119,9 @@
     (report-issues-ready-for-release issues)
     (report-issues-closed issues)
     (report-issues-needing-sizing issues)
-    (report-issues-needing-triage issues)])) 
+    (report-issues-needing-triage issues)
+    (report-issue-allocation issues)
+    (report-issues-awaiting-allocation issues)])) 
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint report

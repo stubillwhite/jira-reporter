@@ -162,3 +162,39 @@
   [issue]
   (and (type-is? (jira/bug-types) issue)
        (has-labels? ["recs_breakage"] issue)))
+
+(defn data-science?
+  "Returns true if the issue is a data science issue, false otherwise."
+  [issue]
+  (has-labels? ["recs_ds"] issue))
+
+(defn engineering?
+  "Returns true if the issue is an engineering issue, false otherwise."
+  [issue]
+  (has-labels? ["recs_eng"] issue))
+
+(defn infrastructure?
+  "Returns true if the issue is an infrastructure issue, false otherwise."
+  [issue]
+  (has-labels? ["recs_infra"] issue))
+
+(defn personal-development?
+  "Returns true if the issue is a personal development issue, false otherwise."
+  [issue]
+  (has-labels? ["recs_pd"] issue))
+
+(defn miscellaneous?
+  "Returns true if the issue is a miscellaneous project issue, false otherwise."
+  [issue]
+  (or (personal-development? issue)
+      (gdpr? issue)))
+
+(defn unallocated?
+  "Returns true if the issue has not been allocated to a discipline, false otherwise."
+  [issue]
+  (not (or (data-science? issue)
+           (engineering? issue)
+           (infrastructure? issue)
+           (miscellaneous? issue))))
+
+;; https://github.com/metasoarous/oz
