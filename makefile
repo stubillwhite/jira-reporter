@@ -16,6 +16,8 @@ SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
+VEGA_LITE=node_modules/vega-lite/bin/vl2png
+
 APP_JAR=jira-reporter-0.1.11-SNAPSHOT-standalone.jar
 
 CMDSEP=;
@@ -35,6 +37,10 @@ ${APP_JAR}:
 	@mv target/${APP_JAR} ./${APP_JAR}
 
 build: ${APP_JAR}
+
+${VEGA_LITE}:
+	@echo 'Installing vega-lite'
+	@npm install vega-cli vega-lite
 
 .PHONY: burndown 
 burndown: build ${SQUAD_BURNDOWNS} ## Generate burndown metrics
