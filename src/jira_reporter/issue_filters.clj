@@ -197,4 +197,3 @@
            (infrastructure? issue)
            (miscellaneous? issue))))
 
-;; https://github.com/metasoarous/oz

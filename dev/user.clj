@@ -148,3 +148,34 @@
        (map (fn [x] (select-keys x [:id :title :labels])))
        (pprint/print-table)))
 
+(defn white-test []
+  (let [options {}
+        sprint  (load-cached-sprint)
+        issues  (load-cached-issues)]
+    (pprint (reports/generate-burndown options sprint issues))))
+
+
+(def issue (->>(load-cached-issues)
+               (filter (fn [x] (= (:id x) "SDPR-3499")))
+               (first)))
+
+;; (pprint issue)
+
+;; (issue-filters/closed? issue)
+
+;; (->> (load-cached-issues)
+;;      )
+
+;; (issue-filters/closed? issue)
+
+;; (keys issue)
+
+
+;; (let [issues (load-cached-issues)
+;;       sprint (load-cached-sprint)]
+;;   (->> issues
+;;        (filter (fn [x] (issue-filters/closed? (issue-filters/issue-at-date (:start-date sprint) x))))
+;;        (count)))
+
+;; (load-cached-sprint)
+

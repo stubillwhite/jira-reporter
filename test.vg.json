@@ -8,55 +8,19 @@
       "data": {
         "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/burndown.csv"
       },
+      "transform": [ { "filter": { "field": "Discipline", "equal": "Engineering" } } ],
       "layer": [
         {
-          "mark": {
-            "type": "line",
-            "strokeWidth": 4,
-            "stroke": "#4682b4"
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Remaining"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": {
-            "type": "line",
-            "strokeDash": [
-              6,
-              4
-            ]
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Scope"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": {
-            "type": "line",
-            "strokeDash": [
-              6,
-              4
-            ]
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Ideal"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {
@@ -84,55 +48,59 @@
       "data": {
         "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/burndown.csv"
       },
+      "transform": [ { "filter": { "field": "Discipline", "equal": "Infrastructure" } } ],
       "layer": [
         {
-          "mark": {
-            "type": "line",
-            "strokeWidth": 4,
-            "stroke": "#4682b4"
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Remaining"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": {
-            "type": "line",
-            "strokeDash": [
-              6,
-              4
-            ]
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Scope"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": {
-            "type": "line",
-            "strokeDash": [
-              6,
-              4
-            ]
-          },
-          "transform": [
-            {
-              "filter": {
-                "field": "Category",
-                "equal": "Ideal"
-              }
-            }
-          ]
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
+        }
+      ],
+      "encoding": {
+        "x": {
+          "field": "Day",
+          "type": "quantitative",
+          "axis": {
+            "tickMinStep": 1
+          }
+        },
+        "y": {
+          "field": "Count",
+          "type": "quantitative"
+        },
+        "color": {
+          "field": "Category",
+          "type": "nominal"
+        }
+      }
+    },
+    {
+      "title": "Data Science",
+      "width": 800,
+      "height": 400,
+      "data": {
+        "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/burndown.csv"
+      },
+      "transform": [ { "filter": { "field": "Discipline", "equal": "Data Science" } } ],
+      "layer": [
+        {
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
+        },
+        {
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
+        },
+        {
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {

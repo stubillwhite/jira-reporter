@@ -6,7 +6,9 @@
             [jira-reporter.issue-filters :refer :all]
             [jira-reporter.jira :as jira]
             [jira-reporter.utils :refer [def- map-vals]]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as timbre]
+            [clojure.string :as str]
+            [clojure.string :as string])
   (:import java.time.format.DateTimeFormatter
            java.time.temporal.ChronoUnit))
 
@@ -193,22 +195,15 @@
 (defn- format-date [date]
   (.format formatter date))
 
-(defn- calculate-burndown-metrics [date issues]
+(defn- calculate-burndown-metrics [issues]
   (let [count-of    (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
-        non-defect? (every-pred (complement bug?) (complement breakage?))
-        sum-points  (fn [xs] (->> xs (map :points) (filter identity) (reduce + 0.0)))]
-    {:date             (format-date date)
-     :open             (count-of non-defect? open?)
-     :closed           (count-of non-defect? closed?)
-     :total            (count-of non-defect?)
-     :bugs-open        (count-of bug? open?)
-     :bugs-closed      (count-of bug? closed?)
-     :breakages-open   (count-of breakage? open?)
-     :breakages-closed (count-of breakage? closed?)
-     :points           (->> issues (filter closed?) (sum-points))}))
+        non-defect? (every-pred (complement bug?) (complement breakage?))]
+    {:open   (count-of non-defect? (complement closed?))
+     :closed (count-of non-defect? closed?)
+     :total  (count-of non-defect?)}))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
-  (calculate-burndown-metrics date (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
+  (calculate-burndown-metrics (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
 
 (defn- calculate-burndown [start-date end-date issues]
   (->> (date/timestream (date/truncate-to-days start-date) 1 ChronoUnit/DAYS)
@@ -216,21 +211,39 @@
        (filter (fn [x] (date/working-day? x)))
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
-(defn report-burndown [start-date end-date issues]
-  {:title   "Burndown"
-   :columns [:date :open :closed :total :points :bugs-open :bugs-closed :breakages-open :breakages-closed]
-   :rows    (calculate-burndown start-date end-date issues)})
+(defn report-burndown [start-date end-date issues discipline]
+  (let [open-in-sprint? (fn [x] (not (closed? (:status (issue-at-date start-date x)))))
+        sprint-issues   (filter open-in-sprint? issues)
+        data            (calculate-burndown start-date end-date sprint-issues)]
+    (map
+     (partial str/join ",")
+     (concat
+      (map-indexed (fn [i x] [discipline "Remaining" i (:open x)]) data)
+      (map-indexed (fn [i x] [discipline "Scope"     i (:total x)]) data)
+      [[discipline "Ideal" 0 (:open (first data))]
+       [discipline "Ideal" 9 0]]))))
+
+(defn- issues-open-at-start-of-sprint [board-name sprint-name start-date]
+  (let [issues (jira/get-issues-in-sprint-named board-name sprint-name)]
+    (filter (fn [x] (open? (issue-at-date start-date x))) issues)))
 
 (defn generate-burndown
   "Generate a burndown."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
-         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
+         issues                           (issues-open-at-start-of-sprint board-name sprint-name (:start-date sprint))]
      (generate-burndown options sprint issues)))
 
   ([options sprint issues]
-   [(report-burndown (:start-date sprint) (:end-date sprint) issues)]))
+   (let [start-date        (:start-date sprint)
+         end-date          (:end-date sprint)]
+     (string/join "\n"
+                  (concat
+                   ["Discipline,Category,Day,Count"]
+                   (report-burndown start-date end-date (filter engineering? issues) "Engineering")
+                   (report-burndown start-date end-date (filter infrastructure? issues) "Infrastructure")
+                   (report-burndown start-date end-date (filter data-science? issues) "Data Science"))))))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog
