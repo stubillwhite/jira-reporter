@@ -100,29 +100,7 @@
 ;; Burndown
 ;; -----------------------------------------------------------------------------
 
-(def- burndown-sprint-issues
-  [(delivered-issue "1"  "2000-01-01Z" "2000-01-28Z" 3.0)
-   (delivered-issue "2"  "2000-01-01Z" "2000-01-28Z" 3.0)
-   (delivered-issue "3"  "2000-01-01Z" "2000-01-31Z" 3.0)
-   (delivered-issue "4"  "2000-01-01Z" "2000-02-01Z" 3.0)
-   (delivered-issue "5"  "2000-01-31Z" "2000-02-02Z" 3.0)
-   (delivered-issue "6"  "2000-01-31Z" "2000-02-03Z" 3.0)
-   (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
-
-(def- expected-burndown
-  [{:date "2000-01-27 Thu" :open 4 :closed 0 :total 4 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 0.0}
-   {:date "2000-01-28 Fri" :open 2 :closed 2 :total 4 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 6.0}
-   {:date "2000-01-31 Mon" :open 4 :closed 3 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 9.0}
-   {:date "2000-02-01 Tue" :open 3 :closed 4 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 12.0}
-   {:date "2000-02-02 Wed" :open 2 :closed 5 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 15.0}
-   {:date "2000-02-03 Thu" :open 1 :closed 6 :total 7 :bugs-open 0 :bugs-closed 0 :breakages-open 0 :breakages-closed 0 :points 18.0}])
-
-(deftest report-burndown-then-generates-burndown
-  (with-redefs [date/current-date date-today
-                config            stub-config]
-    (let [start-date (date/parse-date "2000-01-27Z")
-          end-date   (date/parse-date "2000-02-10Z")]
-      (is (= expected-burndown (:rows (report-burndown start-date end-date burndown-sprint-issues)))))))
+;; TBD
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

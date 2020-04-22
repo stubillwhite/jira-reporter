@@ -10,7 +10,7 @@ COLOR_CLEAR_LINE=\r\033[K
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
 SPRINT_PREFIX=Sprint 20 
-SQUAD_NAMES=Hulk Flash
+SQUAD_NAMES=Hulk
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
@@ -18,7 +18,7 @@ SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.11-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.12-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -28,6 +28,12 @@ help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "$(COLOR_BLUE)%-15s$(COLOR_NONE) %s\n", $$1, $$2}'
+
+.PHONY: clean
+clean: ## Remove all artefacts
+	@echo 'Cleaning application'
+	@lein clean
+	@rm ./${APP_JAR}
 
 ${APP_JAR}:
 	@echo 'Building application'
@@ -50,7 +56,11 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -- $* burndown
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown --tsv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown > burndown.csv
+	@${VEGA_LITE} burndown.vg.json $*-burndown.png
+	@imgcat $*-burndown.png
+
+burndown-%: ${VEGA_LITE}
 
 .PHONY: daily-report
 daily-report: build ${SQUAD_DAILY_REPORTS} ## Generate daily reports

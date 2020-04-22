@@ -1,4 +1,4 @@
-(defproject jira-reporter "0.1.11-SNAPSHOT"
+(defproject jira-reporter "0.1.12-SNAPSHOT"
 
   :description "A simple script to pull information from JIRA"
 
@@ -23,9 +23,6 @@
                  
                  ;; Spec helpers
                  [expound "0.7.2"]
-
-                 ;; Graphing
-                 [metasoarous/oz "1.6.0-alpha3"]
 
                  ;; DI
                  [mount "0.1.16"]

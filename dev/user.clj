@@ -23,8 +23,7 @@
             [taoensso.nippy :as nippy]
             [taoensso.timbre :as timbre]
             [clojure.pprint :as pprint]
-            [jira-reporter.date :as date]
-            [oz.core :as oz])
+            [jira-reporter.date :as date])
   (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
