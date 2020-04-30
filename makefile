@@ -9,7 +9,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 20 
+SPRINT_PREFIX=Sprint 21 
 SQUAD_NAMES=Hulk
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -33,7 +33,7 @@ help:
 clean: ## Remove all artefacts
 	@echo 'Cleaning application'
 	@lein clean
-	@rm ./${APP_JAR}
+	@rm -f ./${APP_JAR}
 
 ${APP_JAR}:
 	@echo 'Building application'

@@ -37,11 +37,15 @@ function generate-report-and-post-to-slack() {
 function generate-burndown-and-post-to-slack() {
     declare team=$1 channel=$2
 
+    rm -f ${team}-burndown.png
+
     make burndown-${team}
+
+    slackcat --channel ${channel} ${team}-burndown.png
+
+    rm -f burndown.txt
+    rm -f ${team}-burndown.png
 }
 
-
-#generate-report-and-post-to-slack Hulk  green-squad
-# generate-report-and-post-to-slack Flash red-squad
-
-generate-burndown-and-post-to-slack Hulk  green-squad
+generate-report-and-post-to-slack   Hulk green-squad
+generate-burndown-and-post-to-slack Hulk green-squad

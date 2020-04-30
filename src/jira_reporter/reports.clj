@@ -131,7 +131,7 @@
 
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
-   :columns [:id :title :points :time-in-blocked :time-in-progress :time-in-deployment]
+   :columns [:id :title :points :discipline]
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
 
 (defn- raised-in-sprint? [sprint issue]
@@ -167,24 +167,30 @@
                    (filter (fn [x] (closed? x)))
                    (map add-raised-in-sprint))}))
 
-(def white-dbg (atom nil))
+(defn- add-discipline [x]
+  (assoc x :discipline (cond
+                         (engineering? x)    :engineering
+                         (data-science? x)   :data-science
+                         (infrastructure? x) :infrastructure
+                         :else               :other)))
 
 (defn generate-sprint-report
   "Generate the sprint summary report."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
-         issues                           (->> (issues-in-sprint-named board-name sprint-name)
-                                               ((partial issues-at-date (:end-date sprint)))
-                                               (filter (fn [x] (not (closed? (:status (issue-at-date (:start-date sprint) x)))))))]
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
      (generate-sprint-report options issues sprint)))
 
   ([options issues sprint]
-   (swap! white-dbg (fn [_] issues))
-   [(report-work-delivered issues)
-    (report-issues-summary issues sprint)
-    (report-issues-raised-in-sprint issues sprint)
-    (report-issues-closed-in-sprint issues sprint)]))
+   (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))
+         open-issues     (->> issues
+                              (filter open-in-sprint?)
+                              (map add-discipline))]
+     [(report-work-delivered open-issues)
+      (report-issues-summary open-issues sprint)
+      (report-issues-raised-in-sprint open-issues sprint)
+      (report-issues-closed-in-sprint open-issues sprint)])))
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown
@@ -196,11 +202,10 @@
   (.format formatter date))
 
 (defn- calculate-burndown-metrics [issues]
-  (let [count-of    (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
-        non-defect? (every-pred (complement bug?) (complement breakage?))]
-    {:open   (count-of non-defect? (complement closed?))
-     :closed (count-of non-defect? closed?)
-     :total  (count-of non-defect?)}))
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:open   (count-of open?)
+     :closed (count-of closed?)
+     :total  (count-of identity)}))
 
 (defn- calculate-burndown-metrics-at-date [date issues]
   (calculate-burndown-metrics (issues-at-date (.plus date 23 ChronoUnit/HOURS) issues)))
@@ -212,9 +217,7 @@
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
 (defn report-burndown [start-date end-date issues discipline]
-  (let [open-in-sprint? (fn [x] (not (closed? (:status (issue-at-date start-date x)))))
-        sprint-issues   (filter open-in-sprint? issues)
-        data            (calculate-burndown start-date end-date sprint-issues)]
+  (let [data (calculate-burndown start-date end-date issues)]
     (map
      (partial str/join ",")
      (concat
@@ -223,27 +226,25 @@
       [[discipline "Ideal" 0 (:open (first data))]
        [discipline "Ideal" 9 0]]))))
 
-(defn- issues-open-at-start-of-sprint [board-name sprint-name start-date]
-  (let [issues (jira/get-issues-in-sprint-named board-name sprint-name)]
-    (filter (fn [x] (open? (issue-at-date start-date x))) issues)))
-
 (defn generate-burndown
   "Generate a burndown."
   ([options]
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
-         issues                           (issues-open-at-start-of-sprint board-name sprint-name (:start-date sprint))]
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
      (generate-burndown options sprint issues)))
 
   ([options sprint issues]
-   (let [start-date        (:start-date sprint)
-         end-date          (:end-date sprint)]
+   (let [start-date      (:start-date sprint)
+         end-date        (:end-date sprint)
+         all-of          (fn [& preds] (filter (apply every-pred preds) issues))
+         open-in-sprint? (fn [x] (open? (issue-at-date start-date x)))]
      (string/join "\n"
                   (concat
                    ["Discipline,Category,Day,Count"]
-                   (report-burndown start-date end-date (filter engineering? issues) "Engineering")
-                   (report-burndown start-date end-date (filter infrastructure? issues) "Infrastructure")
-                   (report-burndown start-date end-date (filter data-science? issues) "Data Science"))))))
+                   (report-burndown start-date end-date (all-of open-in-sprint? engineering?)    "Engineering")
+                   (report-burndown start-date end-date (all-of open-in-sprint? infrastructure?) "Infrastructure")
+                   (report-burndown start-date end-date (all-of open-in-sprint? data-science?)   "Data Science"))))))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

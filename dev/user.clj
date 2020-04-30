@@ -158,23 +158,3 @@
                (filter (fn [x] (= (:id x) "SDPR-3499")))
                (first)))
 
-;; (pprint issue)
-
-;; (issue-filters/closed? issue)
-
-;; (->> (load-cached-issues)
-;;      )
-
-;; (issue-filters/closed? issue)
-
-;; (keys issue)
-
-
-;; (let [issues (load-cached-issues)
-;;       sprint (load-cached-sprint)]
-;;   (->> issues
-;;        (filter (fn [x] (issue-filters/closed? (issue-filters/issue-at-date (:start-date sprint) x))))
-;;        (count)))
-
-;; (load-cached-sprint)
-

@@ -19,18 +19,28 @@
 (declare epic-link-field)
 (declare story-points-field)
 
+;; (defn- extract-issue-history [json]
+;;   (let [field-names  [:date :field :from :to ]
+;;         field-values (select* [ALL
+;;                                (selected? [:items ALL #(= (:field %) "status")])
+;;                                (collect :created)
+;;                                (collect :items ALL :field)
+;;                                (collect :items ALL :fromString)
+;;                                (collect :items ALL :toString) END]
+;;                               (get-in json [:changelog :histories]))]
+;;     (->> field-values
+;;          (map flatten)
+;;          (map (fn [x] (apply hash-map (interleave field-names x)))))))
+
 (defn- extract-issue-history [json]
-  (let [field-names  [:date :field :from :to ]
-        field-values (select* [ALL
-                               (selected? [:items ALL #(= (:field %) "status")])
-                               (collect :created)
-                               (collect :items ALL :field)
-                               (collect :items ALL :fromString)
-                               (collect :items ALL :toString) END]
-                              (get-in json [:changelog :histories]))]
-    (->> field-values
-         (map flatten)
-         (map (fn [x] (apply hash-map (interleave field-names x)))))))
+  (->> (get-in json [:changelog :histories])
+       (mapcat (fn [x] (map #(assoc % :date (:created x)) (:items x))))
+       (filter (fn [x] (= (:field x) "status")))
+       (map (fn [{:keys [date field fromString toString]}]
+              {:date  date
+               :field field
+               :from  fromString
+               :to    toString}))))
 
 (defn- add-additional-issue-details [issue]
   (assoc issue :history (extract-issue-history issue)))
