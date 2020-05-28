@@ -178,6 +178,11 @@
   [issue]
   (has-labels? ["recs_infra"] issue))
 
+(defn support?
+  "Returns true if the issue is a support issue, false otherwise."
+  [issue]
+  (has-labels? ["recs_support"] issue))
+
 (defn personal-development?
   "Returns true if the issue is a personal development issue, false otherwise."
   [issue]
@@ -195,5 +200,6 @@
   (not (or (data-science? issue)
            (engineering? issue)
            (infrastructure? issue)
+           (support? issue)
            (miscellaneous? issue))))
 

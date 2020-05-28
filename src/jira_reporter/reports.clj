@@ -129,10 +129,31 @@
 ;; Sprint report
 ;; -----------------------------------------------------------------------------
 
+(defn report-work-committed [issues]
+  {:title   "Stories and tasks committed to in this sprint"
+   :columns [:id :title :points :discipline]
+   :rows    (filter deliverable? (map add-time-in-state issues))})
+
+(defn report-points-committed [issues]
+  (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
+    {:title   "Total points of stories and tasks committed to in this sprint"
+     :columns [:discipline :total]
+     :rows    [{:discipline :engineering    :total (sum-of deliverable? engineering?)}
+               {:discipline :data-science   :total (sum-of deliverable? data-science?)}
+               {:discipline :infrastructure :total (sum-of deliverable? infrastructure?)}]}))
+
 (defn report-work-delivered [issues]
   {:title   "Stories and tasks delivered this sprint"
    :columns [:id :title :points :discipline]
    :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
+
+(defn report-points-delivered [issues]
+  (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
+    {:title   "Total points of stories and tasks delivered in this sprint"
+     :columns [:discipline :total]
+     :rows    [{:discipline :engineering    :total (sum-of deliverable? closed? engineering?)}
+               {:discipline :data-science   :total (sum-of deliverable? closed? data-science?)}
+               {:discipline :infrastructure :total (sum-of deliverable? closed? infrastructure?)}]}))
 
 (defn- raised-in-sprint? [sprint issue]
   (and (before-or-equal? (:start-date sprint) (:created issue))
@@ -187,7 +208,10 @@
          open-issues     (->> issues
                               (filter open-in-sprint?)
                               (map add-discipline))]
-     [(report-work-delivered open-issues)
+     [(report-work-committed open-issues)
+      (report-points-committed open-issues)
+      (report-work-delivered open-issues)
+      (report-points-delivered open-issues)
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
       (report-issues-closed-in-sprint open-issues sprint)])))
@@ -244,7 +268,8 @@
                    ["Discipline,Category,Day,Count"]
                    (report-burndown start-date end-date (all-of open-in-sprint? engineering?)    "Engineering")
                    (report-burndown start-date end-date (all-of open-in-sprint? infrastructure?) "Infrastructure")
-                   (report-burndown start-date end-date (all-of open-in-sprint? data-science?)   "Data Science"))))))
+                   (report-burndown start-date end-date (all-of open-in-sprint? data-science?)   "Data Science")
+                   (report-burndown start-date end-date (all-of open-in-sprint? support?)        "Support"))))))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog
