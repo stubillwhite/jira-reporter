@@ -80,13 +80,13 @@
    (delivered-issue "6"  "2000-01-31Z" "2000-02-03Z" 3.0)
    (delivered-issue "7"  "2000-01-31Z" "2000-02-04Z" 3.0)])
 
-(deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
-  (with-redefs [date/current-date date-today
-                config            stub-config]
-    (let [task-1  (task  "1" "to-do")
-          task-2  (task  "2" "closed" :points 3)
-          story-3 (story "3" "closed" :points 5)]
-      (is (containing-issues? [task-2 story-3] (report-work-delivered [task-1 task-2 story-3]))))))
+;; (deftest report-work-delivered-then-reports-stories-and-orphan-tasks-delivered
+;;   (with-redefs [date/current-date date-today
+;;                 config            stub-config]
+;;     (let [task-1  (task  "1" "to-do")
+;;           task-2  (task  "2" "closed" :points 3)
+;;           story-3 (story "3" "closed" :points 5)]
+;;       (is (containing-issues? [task-2 story-3] (report-work-delivered [task-1 task-2 story-3]))))))
 
 ;; ;; TODO: Needed?
 ;; (deftest report-work-delivered-then-work-delivered-in-sprint

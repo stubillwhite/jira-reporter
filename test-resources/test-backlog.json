@@ -1,0 +1,26 @@
+[
+    {
+        "key": "issue-1-key",
+        "created": "1970-01-01T00:00:00.000+0000",
+        "fields": {
+            "parent": {"key": "issue-1-parent"},
+            "assignee": {
+                "displayName": "issue-1-assignee"
+            },
+            "issuetype": {
+                "name": "issue-1-type"
+            },
+            "status": {
+                "name": "issue-1-status"
+            },
+            "summary": "issue-1-title",
+            "labels": ["issue-1-label-1", "issue-1-label-2"]
+        },
+        "changelog": {
+            "startAt": 0,
+            "maxResults": 4,
+            "total": 4,
+            "histories": []
+        }
+    }    
+]

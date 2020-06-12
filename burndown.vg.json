@@ -24,21 +24,9 @@
         }
       ],
       "encoding": {
-        "x": {
-          "field": "Day",
-          "type": "quantitative",
-          "axis": {
-            "tickMinStep": 1
-          }
-        },
-        "y": {
-          "field": "Count",
-          "type": "quantitative"
-        },
-        "color": {
-          "field": "Category",
-          "type": "nominal"
-        }
+        "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "color": { "field": "Category", "type": "nominal" }
       }
     },
     {
@@ -64,21 +52,9 @@
         }
       ],
       "encoding": {
-        "x": {
-          "field": "Day",
-          "type": "quantitative",
-          "axis": {
-            "tickMinStep": 1
-          }
-        },
-        "y": {
-          "field": "Count",
-          "type": "quantitative"
-        },
-        "color": {
-          "field": "Category",
-          "type": "nominal"
-        }
+        "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "color": { "field": "Category", "type": "nominal" }
       }
     },
     {
@@ -104,21 +80,37 @@
         }
       ],
       "encoding": {
-        "x": {
-          "field": "Day",
-          "type": "quantitative",
-          "axis": {
-            "tickMinStep": 1
-          }
+        "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "color": { "field": "Category", "type": "nominal" }
+      }
+    },
+    {
+      "title": "Support",
+      "width": 800,
+      "height": 400,
+      "data": {
+        "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/burndown.csv"
+      },
+      "transform": [ { "filter": { "field": "Discipline", "equal": "Support" } } ],
+      "layer": [
+        {
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
-        "y": {
-          "field": "Count",
-          "type": "quantitative"
+        {
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
-        "color": {
-          "field": "Category",
-          "type": "nominal"
+        {
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
+      ],
+      "encoding": {
+        "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
+        "color": { "field": "Category", "type": "nominal" }
       }
     }
   ]

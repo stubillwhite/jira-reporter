@@ -130,30 +130,22 @@
 ;; -----------------------------------------------------------------------------
 
 (defn report-work-committed [issues]
-  {:title   "Stories and tasks committed to in this sprint"
-   :columns [:id :title :points :discipline]
-   :rows    (filter deliverable? (map add-time-in-state issues))})
+  (let [add-was-delivered (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))]
+    {:title   "Stories and tasks committed to in this sprint"
+     :columns [:id :title :points :discipline :delivered]
+     :rows    (filter deliverable?
+                      (->> issues
+                           (map add-time-in-state)
+                           (map add-was-delivered)))}))
 
 (defn report-points-committed [issues]
   (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
-    {:title   "Total points of stories and tasks committed to in this sprint"
-     :columns [:discipline :total]
-     :rows    [{:discipline :engineering    :total (sum-of deliverable? engineering?)}
-               {:discipline :data-science   :total (sum-of deliverable? data-science?)}
-               {:discipline :infrastructure :total (sum-of deliverable? infrastructure?)}]}))
+    {:title   "Total points of stories and tasks committed to and delivered in this sprint"
+     :columns [:discipline :committed :delivered]
+     :rows    [{:discipline :engineering    :committed (sum-of deliverable? engineering?)    :delivered (sum-of deliverable? closed? engineering?)}
+               {:discipline :data-science   :committed (sum-of deliverable? data-science?)   :delivered (sum-of deliverable? closed? data-science?)}
+               {:discipline :infrastructure :committed (sum-of deliverable? infrastructure?) :delivered (sum-of deliverable? closed? infrastructure?)}]}))
 
-(defn report-work-delivered [issues]
-  {:title   "Stories and tasks delivered this sprint"
-   :columns [:id :title :points :discipline]
-   :rows    (filter (every-pred deliverable? closed?) (map add-time-in-state issues))})
-
-(defn report-points-delivered [issues]
-  (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
-    {:title   "Total points of stories and tasks delivered in this sprint"
-     :columns [:discipline :total]
-     :rows    [{:discipline :engineering    :total (sum-of deliverable? closed? engineering?)}
-               {:discipline :data-science   :total (sum-of deliverable? closed? data-science?)}
-               {:discipline :infrastructure :total (sum-of deliverable? closed? infrastructure?)}]}))
 
 (defn- raised-in-sprint? [sprint issue]
   (and (before-or-equal? (:start-date sprint) (:created issue))
@@ -210,8 +202,6 @@
                               (map add-discipline))]
      [(report-work-committed open-issues)
       (report-points-committed open-issues)
-      (report-work-delivered open-issues)
-      (report-points-delivered open-issues)
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
       (report-issues-closed-in-sprint open-issues sprint)])))
