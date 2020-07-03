@@ -8,31 +8,92 @@
   (:import [java.time DayOfWeek ZonedDateTime ZoneId]
            java.time.temporal.ChronoUnit))
 
-(def- today        "2000-01-07Z")
-(def- one-day-ago  "2000-01-06Z")
-(def- two-days-ago "2000-01-05Z")
+(def- str-4th "2000-01-04Z")
+(def- str-5th "2000-01-05Z")
+(def- str-6th "2000-01-06Z")
+(def- str-7th "2000-01-07Z")
+
+(def- date-4th (date/parse-date str-4th))
+(def- date-5th (date/parse-date str-5th))
+(def- date-6th (date/parse-date str-6th))
+(def- date-7th (date/parse-date str-7th))
 
 (defn- hours-offset [n]
-  (.plus (date/parse-date today) n ChronoUnit/HOURS))
+  (.plus date-7th n ChronoUnit/HOURS))
 
 (defn- issue-modified-at [t-mod]
   {:history [{:date t-mod}]})
 
+(defn status-change-x [date to]
+  (let [parsed-date (date/parse-date-time date)]
+    {:date  parsed-date
+     :field "status"
+     :from  "todo"
+     :to    to}))
+
+;; (deftest issue-at-date
+;;   (testing "given created after date then nil"
+;;     (is (nil? (issue-filters/issue-at-date date-6th {:created date-7th}))))
+  
+;;   (testing "given status changed then can restore previous history"
+;;     (let [history  [(status-change str-6th "in-progress") (status-change str-7th "closed")]
+;;           issue    (story "1" "closed" :created date-5th :history history)
+;;           expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
+;;       (is (= expected (issue-filters/issue-at-date date-6th issue)))))
+
+;;   (testing "problem case"
+;;     (let [history  [(status-change-x "2020-07-01T09:05:57Z" "in-progress") (status-change-x "2020-07-01T13:10:29Z" "closed")]
+;;           issue    (story "1" "closed" :created (date/parse-date-time "2020-06-25T11:56:45Z") :history history)
+;;           expected (-> issue (assoc :status "todo" :history []))]
+;;       (is (= expected (issue-filters/issue-at-date (date/parse-date-time "2020-06-25T15:59:14.608Z") issue)))))
+  
+;;   (testing "given non-status field changed then ignores changes"
+;;     (let [history  [(type-change str-5th "epic" "story")
+;;                     (status-change str-6th "in-progress")
+;;                     (status-change str-7th "closed")]
+;;           issue    (story "1" "closed" :created date-5th :history history)
+;;           expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
+;;       (is (= expected (issue-filters/issue-at-date date-6th issue)))))
+;;   )
+
 (deftest issue-at-date
-  (testing "given created after date then nil"
-    (is (nil? (issue-filters/issue-at-date (date/parse-date one-day-ago) {:created (date/parse-date today)}))))
-  (testing "given status changed then can restore previous history"
-    (let [history  [(status-change one-day-ago "in-progress") (status-change today "closed")]
-          issue    (story "1" "closed" :created (date/parse-date two-days-ago) :history history)
-          expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
-      (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue)))))
-  (testing "given non-status field changed then ignores changes"
-    (let [history  [(type-change two-days-ago "epic" "story")
-                    (status-change one-day-ago "in-progress")
-                    (status-change today "closed")]
-          issue    (story "1" "closed" :created (date/parse-date two-days-ago) :history history)
-          expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
-      (is (= expected (issue-filters/issue-at-date (date/parse-date one-day-ago) issue))))))
+  (let [history  [(type-change str-5th "epic" "story") (status-change str-6th "todo" "in-progress") (status-change str-7th "in-progress" "closed")]
+        issue    (story "1" "closed" :created date-5th :history history)]
+
+    (testing "given created after date then nil"
+      (is (= nil (issue-filters/issue-at-date date-4th issue))))
+
+    (testing "given before any changes then initial state"
+      (let [expected (-> issue (assoc :status "todo" :history (take 1 history)))]
+        (is (= expected (issue-filters/issue-at-date date-5th issue)))))
+
+    (testing "given after single change then changed state"
+      (let [expected (-> issue (assoc :status "in-progress" :history (take 2 history)))]
+        (is (= expected (issue-filters/issue-at-date date-6th issue)))))
+
+    (testing "given after multiple changes then changed state"
+      (is (= issue (issue-filters/issue-at-date date-7th issue))))))
+
+
+;; {:history
+;;  ({:date
+;;    #object[java.time.ZonedDateTime 0x42afbe50 "2020-07-01T09:05:57Z[UTC]"],
+;;    :field "status",
+;;    :from "To Do",
+;;    :to "In Progress"}
+;;   {:date
+;;    #object[java.time.ZonedDateTime 0x7710d17c "2020-07-01T13:10:29Z[UTC]"],
+;;    :field "status",
+;;    :from "In Progress",
+;;    :to "Closed - DONE"}),
+;;  :type "Task",
+;;  :created
+;;  #object[java.time.ZonedDateTime 0xc098de1 "2020-06-25T11:56:45Z[UTC]"],
+;;  :status "Closed - DONE",
+;;  :id "SDPR-3840",
+;; }
+;; #object[java.time.ZonedDateTime 0x9f5d69e "2020-06-25T15:59:14.608Z[UTC]"]
+
 
 ;; TODO issues-at-date
 ;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
@@ -88,7 +149,7 @@
       (is (= false (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :baz}}))))))
 
 (deftest changed-state-in-the-last-day
-  (with-redefs [date/current-date (fn [] (date/parse-date today))]
+  (with-redefs [date/current-date (fn [] date-7th)]
     (is (= true  (issue-filters/changed-state-in-the-last-day? (issue-modified-at (hours-offset -6)))))
     (is (= true  (issue-filters/changed-state-in-the-last-day? (issue-modified-at (hours-offset -12)))))
     (is (= false (issue-filters/changed-state-in-the-last-day? (issue-modified-at (hours-offset -48)))))

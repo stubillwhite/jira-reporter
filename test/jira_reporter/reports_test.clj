@@ -11,9 +11,9 @@
 (def- today        "2000-02-03Z")
 
 (def- untouched-issue            (issue "1" "to-do"))
-(def- existing-in-progress-issue (issue "2" "in-progress" :history [(status-change two-days-ago "in-progress")]))
-(def- newly-in-progress-issue    (issue "3" "in-progress" :history [(status-change yesterday    "in-progress")]))
-(def- newly-closed-issue         (issue "4" "closed"      :history [(status-change yesterday    "closed")]))
+(def- existing-in-progress-issue (issue "2" "in-progress" :history [(status-change two-days-ago "todo" "in-progress")]))
+(def- newly-in-progress-issue    (issue "3" "in-progress" :history [(status-change yesterday    "in-progress" "in-progress")]))
+(def- newly-closed-issue         (issue "4" "closed"      :history [(status-change yesterday    "in-progress" "closed")]))
 (def- deploy-issue               (issue "5" "deploy"))
 
 (def- all-issues
@@ -69,7 +69,7 @@
 ;; 28  29          
 
 (defn- delivered-issue [id date-created date-closed points]
-  (issue id "todo" :created (date/parse-date date-created) :history [(status-change date-closed "closed")] :points points))
+  (issue id "todo" :created (date/parse-date date-created) :history [(status-change date-closed "todo" "closed")] :points points))
 
 (def- sprint-issues
   [(delivered-issue "1"  "2000-01-01Z" "2000-01-28Z" 3.0)

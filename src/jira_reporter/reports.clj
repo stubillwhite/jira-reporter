@@ -53,7 +53,7 @@
 
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
-   :columns [:id :type :title]
+   :columns [:id :type :title :assignee]
    :rows    (filter (every-pred blocked?) issues)})
 
 (defn report-issues-started [issues]
@@ -205,6 +205,8 @@
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
       (report-issues-closed-in-sprint open-issues sprint)])))
+
+
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown

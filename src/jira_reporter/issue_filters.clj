@@ -30,6 +30,16 @@
    (get issue (keyword field))
    history))
 
+(defn- field-value-at-date [issue field date history]
+  (let [history-for-field (filter (fn [x] (= (:field x) field)) history)
+        filtered-history  (filter (fn [x] (before-or-equal? (:date x) date)) history-for-field)
+        initial-value     (or (get (first history-for-field) :from)
+                              (get issue (keyword field)))]
+    (reduce
+     (fn [value entry] (:to entry))
+     initial-value
+     filtered-history)))
+
 ;; -----------------------------------------------------------------------------
 ;; Public functions
 ;; -----------------------------------------------------------------------------
@@ -40,8 +50,8 @@
   (when (before-or-equal? (:created issue) date)
     (let [history (take-while (fn [x] (before-or-equal? (:date x) date)) (:history issue))]
       (assoc issue
-             :status  (field-value-at-date issue "status" date history)
-             :type    (field-value-at-date issue "type" date history)
+             :status  (field-value-at-date issue "status" date (:history issue))
+             :type    (field-value-at-date issue "type" date (:history issue))
              :history history))))
 
 (defn issues-at-date [date issues]

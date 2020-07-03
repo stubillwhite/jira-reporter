@@ -55,7 +55,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 23 Hulk")
+(def sprint-name  "Sprint 25 Hulk")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -153,7 +153,9 @@
         issues  (load-cached-issues)]
     (pprint (reports/generate-burndown options sprint issues))))
 
-(def issue (->>(load-cached-issues)
-               (filter (fn [x] (= (:id x) "SDPR-3499")))
-               (first)))
+(def issues (->> (load-cached-issues)
+                 (filter (fn [x] (= (:id x) "SDPR-3840")))
+                 ))
 
+(defn white-test []
+  (app/display-report config (reports/generate-sprint-report config issues (load-cached-sprint))))

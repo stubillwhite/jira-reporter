@@ -42,11 +42,11 @@
 (defn story [id status & kvs] (apply stub-issue id "story" status kvs))
 (defn task  [id status & kvs] (apply stub-issue id "task"  status kvs))
 
-(defn status-change [date to]
+(defn status-change [date from to]
   (let [parsed-date (date/parse-date date)]
     {:date  parsed-date
      :field "status"
-     :from  "todo"
+     :from  from
      :to    to}))
 
 (defn type-change [date from to]
