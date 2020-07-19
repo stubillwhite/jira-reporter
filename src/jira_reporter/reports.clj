@@ -138,14 +138,22 @@
                            (map add-time-in-state)
                            (map add-was-delivered)))}))
 
-(defn report-points-committed [issues]
+(defn report-discipline-statistics-for-tasks [issues]
+  (let [unit-of-work? (fn [x] (or (task? x) (subtask? x)))
+        count-of      (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+    {:title   "Statistics for tasks committed to and delivered in this sprint"
+     :columns [:discipline :committed :delivered]
+     :rows    [{:discipline :engineering    :committed (count-of unit-of-work? engineering?)    :delivered (count-of unit-of-work? closed? engineering?)}
+               {:discipline :data-science   :committed (count-of unit-of-work? data-science?)   :delivered (count-of unit-of-work? closed? data-science?)}
+               {:discipline :infrastructure :committed (count-of unit-of-work? infrastructure?) :delivered (count-of unit-of-work? closed? infrastructure?)}]}))
+
+(defn report-discipline-statistics-for-points [issues]
   (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
-    {:title   "Total points of stories and tasks committed to and delivered in this sprint"
+    {:title   "Statistics for points committed to and delivered in this sprint"
      :columns [:discipline :committed :delivered]
      :rows    [{:discipline :engineering    :committed (sum-of deliverable? engineering?)    :delivered (sum-of deliverable? closed? engineering?)}
                {:discipline :data-science   :committed (sum-of deliverable? data-science?)   :delivered (sum-of deliverable? closed? data-science?)}
                {:discipline :infrastructure :committed (sum-of deliverable? infrastructure?) :delivered (sum-of deliverable? closed? infrastructure?)}]}))
-
 
 (defn- raised-in-sprint? [sprint issue]
   (and (before-or-equal? (:start-date sprint) (:created issue))
@@ -201,7 +209,8 @@
                               (filter open-in-sprint?)
                               (map add-discipline))]
      [(report-work-committed open-issues)
-      (report-points-committed open-issues)
+      (report-discipline-statistics-for-tasks issues)
+      (report-discipline-statistics-for-points open-issues)
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
       (report-issues-closed-in-sprint open-issues sprint)])))
