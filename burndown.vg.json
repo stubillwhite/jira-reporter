@@ -11,22 +11,38 @@
       "transform": [ { "filter": { "field": "Discipline", "equal": "Engineering" } } ],
       "layer": [
         {
-          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "Navy" },
           "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Maroon" },
           "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Olive" },
           "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {
-        "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
-        "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
-        "color": { "field": "Category", "type": "nominal" }
+        "x": {
+          "field": "Day",
+          "type": "quantitative",
+          "axis": {
+            "tickMinStep": 1
+          }
+        },
+        "y": {
+          "field": "Count",
+          "type": "quantitative"
+        },
+        "color": {
+          "field": "Category",
+          "type": "nominal",
+          "scale": {
+            "domain": ["Remaining", "Scope", "Ideal"],
+            "range": ["Navy", "Maroon", "Olive"]
+          }
+        }
       }
     },
     {
@@ -39,22 +55,29 @@
       "transform": [ { "filter": { "field": "Discipline", "equal": "Infrastructure" } } ],
       "layer": [
         {
-          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "Navy" },
           "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Maroon" },
           "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Olive" },
           "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {
         "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
         "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
-        "color": { "field": "Category", "type": "nominal" }
+        "color": {
+          "field": "Category",
+          "type": "nominal",
+          "scale": {
+            "domain": ["Remaining", "Scope", "Ideal"],
+            "range": ["Navy", "Maroon", "Olive"]
+          }
+        }
       }
     },
     {
@@ -67,22 +90,29 @@
       "transform": [ { "filter": { "field": "Discipline", "equal": "Data Science" } } ],
       "layer": [
         {
-          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "Navy" },
           "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Maroon" },
           "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Olive" },
           "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {
         "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
         "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
-        "color": { "field": "Category", "type": "nominal" }
+        "color": {
+          "field": "Category",
+          "type": "nominal",
+          "scale": {
+            "domain": ["Remaining", "Scope", "Ideal"],
+            "range": ["Navy", "Maroon", "Olive"]
+          }
+        }
       }
     },
     {
@@ -95,22 +125,29 @@
       "transform": [ { "filter": { "field": "Discipline", "equal": "Support" } } ],
       "layer": [
         {
-          "mark": { "type": "line", "strokeWidth": 4, "stroke": "#4682b4" },
+          "mark": { "type": "line", "strokeWidth": 4, "stroke": "Navy" },
           "transform": [ { "filter": { "field": "Category", "equal": "Remaining" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Maroon" },
           "transform": [ { "filter": { "field": "Category", "equal": "Scope" } } ]
         },
         {
-          "mark": { "type": "line", "strokeDash": [ 6, 4 ] },
+          "mark": { "type": "line", "strokeDash": [ 6, 4 ], "stroke": "Olive" },
           "transform": [ { "filter": { "field": "Category", "equal": "Ideal" } } ]
         }
       ],
       "encoding": {
         "x": { "field": "Day", "type": "quantitative", "axis": { "tickMinStep": 1 } },
         "y": { "field": "Count", "type": "quantitative", "axis": { "tickMinStep": 1 } },
-        "color": { "field": "Category", "type": "nominal" }
+        "color": {
+          "field": "Category",
+          "type": "nominal",
+          "scale": {
+            "domain": ["Remaining", "Scope", "Ideal"],
+            "range": ["Navy", "Maroon", "Olive"]
+          }
+        }
       }
     }
   ]

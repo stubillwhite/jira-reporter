@@ -39,8 +39,7 @@ ${APP_JAR}:
 	@echo 'Building application'
 	@lein clean
 	@lein test
-	@lein uberjar
-	@mv target/${APP_JAR} ./${APP_JAR}
+	@lein uberjar @mv target/${APP_JAR} ./${APP_JAR}
 
 build: ${APP_JAR}
 
