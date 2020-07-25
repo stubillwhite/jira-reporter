@@ -107,6 +107,15 @@
      :columns [:id :type :parent-id :title]
      :rows    (filter unallocated? issues)}))
 
+(defn report-personal-development [issues]
+  (let [count-of              (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
+        add-completion-status (fn [x] (assoc x :complete? (closed? x)))]
+    {:title   "Personal development tasks"
+     :columns [:id :title :complete?]
+     :rows    (->> issues
+                   (filter personal-development?)
+                   (map add-completion-status))}))
+
 (defn generate-daily-report
   "Generate the daily report for the current sprint."
   ([options]
@@ -123,7 +132,8 @@
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)
     (report-issue-allocation issues)
-    (report-issues-awaiting-allocation issues)])) 
+    (report-issues-awaiting-allocation issues)
+    (report-personal-development issues)])) 
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint report

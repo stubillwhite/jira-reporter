@@ -150,6 +150,11 @@
   [issue]
   (not (closed? issue)))
 
+(defn assigned?
+  "Returns true if the issue is assigned, false otherwise."
+  [issue]
+  (not (nil? (:assignee issue))))
+
 (defn has-labels?
   "Returns true if the issue contains the specified labels, false otherwise."
   [labels issue]
