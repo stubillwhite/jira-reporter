@@ -136,26 +136,3 @@
 
 (defn sprint-backlog []
   (app/display-report {} (reports/generate-backlog-report {:board-name board-name :sprint-name sprint-name})))
-
-;; Work in progress
-
-;; Need bug reports by sprint
-
-(defn full-bug-report []
-  (->> (load-cached-project)
-       (filter issue-filters/bug?)
-       (map (fn [x] (select-keys x [:id :title :labels])))
-       (pprint/print-table)))
-
-(defn white-test []
-  (let [options {}
-        sprint  (load-cached-sprint)
-        issues  (load-cached-issues)]
-    (pprint (reports/generate-burndown options sprint issues))))
-
-(def issues (->> (load-cached-issues)
-                 (filter (fn [x] (= (:id x) "SDPR-3840")))
-                 ))
-
-(defn white-test []
-  (app/display-report config (reports/generate-sprint-report config issues (load-cached-sprint))))

@@ -39,7 +39,8 @@ ${APP_JAR}:
 	@echo 'Building application'
 	@lein clean
 	@lein test
-	@lein uberjar @mv target/${APP_JAR} ./${APP_JAR}
+	@lein uberjar 
+	@mv target/${APP_JAR} ./${APP_JAR}
 
 build: ${APP_JAR}
 
@@ -47,8 +48,11 @@ ${VEGA_LITE}:
 	@echo 'Installing vega-lite'
 	@npm install node-gyp vega-cli vega-lite
 
+.PHONY: vega
+vega: ${VEGA_LITE}
+
 .PHONY: burndown 
-burndown: build ${SQUAD_BURNDOWNS} ## Generate burndown metrics
+burndown: build vega ${SQUAD_BURNDOWNS} ## Generate burndown metrics
 
 ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -------------------------------------------------------------------------------- 

@@ -2,8 +2,8 @@
          :port 7878}
 
  :jira {:username   "white1"
-        :password   ""
-        :server     ""
+        :password   "Dr0wn3dM4n"
+        :server     "jira.cbsels.com"
         :batch-size 50}
 
  :cache-filename "cached-data.edn"
