@@ -2,7 +2,7 @@
          :port 7878}
 
  :jira {:username   "white1"
-        :password   "Dr0wn3dM4n"
+        :password   ""
         :server     "jira.cbsels.com"
         :batch-size 50}
 
