@@ -25,18 +25,20 @@
             :story-open-state        "To Do"
             :story-in-progress-state "In Progress"}})
 
-(defn stub-issue [id type status & {:keys [created subtasks history points]
-                                    :or {created  (date/parse-date "2000-01-01Z")
-                                         subtasks []
-                                         history  []
-                                         points   nil}}]
-  {:id       id
-   :type     type
-   :status   status
-   :created  created
-   :subtasks subtasks
-   :history  history
-   :points   points})
+(defn stub-issue [id type status & {:keys [created subtasks history points parent-id]
+                                    :or {created   (date/parse-date "2000-01-01Z")
+                                         subtasks  []
+                                         history   []
+                                         points    nil
+                                         parent-id nil}}]
+  {:id        id
+   :type      type
+   :status    status
+   :created   created
+   :subtasks  subtasks
+   :history   history
+   :points    points
+   :parent-id parent-id})
 
 (defn issue [id status & kvs] (apply stub-issue id "issue" status kvs))
 (defn story [id status & kvs] (apply stub-issue id "story" status kvs))
