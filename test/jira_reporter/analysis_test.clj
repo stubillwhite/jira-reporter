@@ -37,6 +37,7 @@
           :status            "stub-status"
           :assignee          nil
           :title             "stub-title"
+          :team              "stub-team"
           :points            nil
           :epic              nil
           :labels            []

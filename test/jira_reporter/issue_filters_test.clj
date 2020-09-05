@@ -129,6 +129,9 @@
     (testing "deliverable?"
       (is (= true (issue-filters/deliverable? {})))
       (is (= false (issue-filters/deliverable? {:parent-id "parent"}))))
+    (testing "sized?"
+      (is (= true (issue-filters/sized? {:points 1.0})))
+      (is (= false (issue-filters/sized? {}))))
     (testing "bug?"
       (is (= true (issue-filters/bug? {:type "bug"})))
       (is (= false (issue-filters/bug? {:type "not bug"}))))
@@ -149,7 +152,14 @@
       (is (= false (issue-filters/assigned? {:assignee nil}))))
     (testing "has-labels?"
       (is (= true (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :bar :baz}})))
-      (is (= false (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :baz}}))))))
+      (is (= false (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :baz}}))))
+    (testing "needs-size?"
+      (is (= true (issue-filters/needs-size? {})))
+      (is (= false (issue-filters/needs-size? {:points 1.0}))))
+    (testing "needs-triage?"
+      (is (= true (issue-filters/needs-triage? {:type "bug" :labels #{}})))
+      (is (= false (issue-filters/needs-triage? {:type "task" :labels #{}})))
+      (is (= false (issue-filters/needs-triage? {:type "bug" :labels #{"recs_triaged"}}))))))
 
 (deftest changed-state-in-the-last-day
   (with-redefs [date/current-date (fn [] date-7th)]

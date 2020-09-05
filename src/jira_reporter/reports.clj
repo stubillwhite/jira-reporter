@@ -51,6 +51,9 @@
 ;; Daily report
 ;; -----------------------------------------------------------------------------
 
+(defn- user-level-task? [issue]
+  (:parent-id issue))
+
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
    :columns [:id :type :title :assignee]
@@ -64,7 +67,7 @@
 (defn report-issues-in-progress [issues]
   {:title   "Issues still in progress"
    :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress?) issues)})
+   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress? user-level-task?) issues)})
 
 (defn report-issues-ready-for-release [issues]
   {:title   "Issues awaiting release"
@@ -101,11 +104,16 @@
             {:category "Miscellaneous"        :open (count-of miscellaneous?  open?)  :closed (count-of miscellaneous?  closed?)}
             {:category "Unallocated"          :open (count-of unallocated?    open?)  :closed (count-of unallocated?    closed?)}]}))
 
-(defn report-issues-awaiting-allocation [issues]
-  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
-    {:title   "Issue awaiting allocation"
-     :columns [:id :type :parent-id :title]
-     :rows    (filter unallocated? issues)}))
+(defn report-issues-needing-jira-clean-up [issues]
+  (let [problem-types        {:missing-discipline-allocation unallocated?
+                              :missing-team-assignment       missing-team-assignment?}
+        add-attention-needed (fn [x] (assoc x :problems (string/join " " (for [[k v] problem-types :when (v x)] k))))
+        needs-attention?     (fn [x] (not (empty? (:problems x))))]
+    {:title   "Issues needing JIRA clean-up"
+     :columns [:id :title :problems]
+     :rows    (->> issues
+                   (map add-attention-needed)
+                   (filter needs-attention?))}))
 
 (defn report-personal-development [issues]
   (let [count-of              (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
@@ -132,7 +140,7 @@
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)
     (report-issue-allocation issues)
-    (report-issues-awaiting-allocation issues)
+    (report-issues-needing-jira-clean-up issues)
     (report-personal-development issues)])) 
 
 ;; -----------------------------------------------------------------------------

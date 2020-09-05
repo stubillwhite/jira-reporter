@@ -9,7 +9,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 27 
+SPRINT_PREFIX=Sprint 30 
 SQUAD_NAMES=Hulk
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -18,7 +18,7 @@ SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.15-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.16-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -48,7 +48,6 @@ ${VEGA_LITE}:
 	@echo 'Installing vega-lite'
 	@npm install node-gyp vega-cli vega-lite
 
-.PHONY: vega
 vega: ${VEGA_LITE}
 
 .PHONY: burndown 

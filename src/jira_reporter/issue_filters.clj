@@ -218,3 +218,8 @@
            (support? issue)
            (miscellaneous? issue))))
 
+(defn missing-team-assignment?
+  "Returns true if the issue has not been assigned to a team, false otherwise."
+  [issue]
+  (and (deliverable? issue)
+       (nil? (:team issue))))

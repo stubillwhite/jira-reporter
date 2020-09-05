@@ -50,6 +50,7 @@
     :parent-id      "issue-1-parent"
     :subtask-ids    []
     :points         nil
+    :team           nil
     :epic           nil
     :type           "issue-1-type"
     :title          "issue-1-title"
@@ -64,6 +65,7 @@
     :parent-id      "issue-2-parent"
     :subtask-ids    ["issue-2-subtask-1" "issue-2-subtask-2"]
     :points         3.0
+    :team           "issue-2-team"
     :epic           "issue-2-epic"
     :type           "issue-2-type"
     :title          "issue-2-title"
@@ -104,6 +106,7 @@
   {:jira           {:board "board-1-name"}
    :cache-filename "target/cached-data.edn"
    :custom-fields  {:epic-link    "customfield_10236"
+                    :team         "customfield_12604"
                     :story-points "customfield_10002"}})
 
 (deftest get-sprints-then-returns-sprints

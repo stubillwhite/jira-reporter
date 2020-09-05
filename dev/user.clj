@@ -55,7 +55,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 26 Hulk")
+(def sprint-name  "Sprint 30 Hulk")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -136,3 +136,4 @@
 
 (defn sprint-backlog []
   (app/display-report {} (reports/generate-backlog-report {:board-name board-name :sprint-name sprint-name})))
+
