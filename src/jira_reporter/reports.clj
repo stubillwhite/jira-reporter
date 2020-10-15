@@ -51,6 +51,7 @@
 ;; Daily report
 ;; -----------------------------------------------------------------------------
 
+;; Replace with unit of work
 (defn- user-level-task? [issue]
   (:parent-id issue))
 
@@ -227,13 +228,11 @@
                               (filter open-in-sprint?)
                               (map add-discipline))]
      [(report-work-committed open-issues)
-      (report-discipline-statistics-for-tasks issues)
+      (report-discipline-statistics-for-tasks open-issues)
       (report-discipline-statistics-for-points open-issues)
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
       (report-issues-closed-in-sprint open-issues sprint)])))
-
-
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown

@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar ./jira-reporter-0.1.16-SNAPSHOT-standalone.jar "$@"
+java -jar ./jira-reporter-0.1.17-SNAPSHOT-standalone.jar "$@"

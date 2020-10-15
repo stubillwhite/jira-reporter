@@ -23,7 +23,8 @@
             [taoensso.nippy :as nippy]
             [taoensso.timbre :as timbre]
             [clojure.pprint :as pprint]
-            [jira-reporter.date :as date])
+            [jira-reporter.date :as date]
+            [clojure.string :as string])
   (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
@@ -55,7 +56,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 30 Hulk")
+(def sprint-name  "Sprint 31 Hulk")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -80,6 +81,13 @@
 (defn read-and-cache-project! []
   (->> (jira/get-issues-in-project-named project-name)
        (write-object "recs-project.nippy")))
+
+(defn read-and-cache-all! []
+  (read-and-cache-raw-sprint-issues!)
+  (read-and-cache-raw-project-issues!)
+  (read-and-cache-issues!)
+  (read-and-cache-sprint!)
+  (read-and-cache-project!))
 
 (defn load-cached-raw-sprint-issues []
   (read-object "recs-raw-sprint.nippy"))
@@ -120,7 +128,7 @@
 (defn backlog-from-cache []
   (app/display-report config (reports/generate-backlog-report config (load-cached-project))))
 
-;; From real ssytem
+;; From real system
 
 (defn burndown []
   (app/-main "--burndown" "--board-name" board-name "--sprint-name" sprint-name))
@@ -137,3 +145,32 @@
 (defn sprint-backlog []
   (app/display-report {} (reports/generate-backlog-report {:board-name board-name :sprint-name sprint-name})))
 
+;; Historicals
+
+(def historical-sprints
+  (for [x (range 20 31)] (format "Sprint %d Hulk" x)))
+
+(defn build-metrics [report metric]
+  (let [make-keyword (fn [k suffix] (keyword (str (symbol k) suffix "-" metric)))]
+    (->> (:rows report)
+         (mapcat (fn [{:keys [discipline committed delivered]}]
+                   {(make-keyword discipline "-committed") committed
+                    (make-keyword discipline "-delivered") delivered}))
+         (into {}))))
+
+(defn historical-statistics [sprint-name]
+  (let [sprint (jira/get-sprint-named board-name sprint-name)
+        issues (jira/get-issues-in-sprint-named board-name sprint-name)]
+    (merge 
+     (build-metrics (reports/report-discipline-statistics-for-tasks issues) "tasks")
+     (build-metrics (reports/report-discipline-statistics-for-points issues) "points")
+     {:sprint sprint-name})))
+
+(defn display-all-historical-stats []
+  (let [columns (cons :sprint
+                      (for [metric ["points" "tasks"]
+                            state  ["committed" "delivered"]
+                            role   ["engineering" "data-science" "infrastructure"]]
+                        (keyword (str role "-" state "-" metric))))
+        rows     (map historical-statistics historical-sprints)]
+    (print-table columns rows)))
