@@ -84,11 +84,9 @@
   [report]
   (dorun
    (for [{:keys [title columns rows]} report]
-     (do
+     (when (not (empty? rows))
        (println title)
-       (if (empty? rows)
-         (println "\nNone")
-         (pprint/print-table columns rows))
+       (pprint/print-table columns rows)
        (println)))))
 
 (defn- select-vals [m ks]
@@ -98,15 +96,12 @@
   [report]
   (dorun
    (for [{:keys [title columns rows]} report]
-     (do
+     (when (not (empty? rows))
        (println title)
-       (if (empty? rows)
-         (println "\nNone")
-         (do
-           (println)
-           (println (string/join "\t" columns))
-           (dorun (for [row rows] (println (string/join "\t" (select-vals row columns)))))
-           (println)))))))
+       (println)
+       (println (string/join "\t" columns))
+       (dorun (for [row rows] (println (string/join "\t" (select-vals row columns)))))
+       (println)))))
 
 (defn display-report [options report]
   (info options)

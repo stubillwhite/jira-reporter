@@ -155,7 +155,8 @@
      :rows    (filter deliverable?
                       (->> issues
                            (map add-time-in-state)
-                           (map add-was-delivered)))}))
+                           (map add-was-delivered)
+                           (sort-by (juxt :discipline :delivered :id))))}))
 
 (defn report-discipline-statistics-for-tasks [issues]
   (let [unit-of-work? (fn [x] (or (task? x) (subtask? x)))
@@ -200,12 +201,27 @@
    :rows    (filter (partial raised-in-sprint? sprint) issues)})
 
 (defn report-issues-closed-in-sprint [issues sprint]
-  (let [add-raised-in-sprint (fn [x] (assoc x :raised-in-sprint? (raised-in-sprint? sprint x)))]
+  (let [add-was-delivered    (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))
+        add-raised-in-sprint (fn [x] (assoc x :raised-in-sprint? (raised-in-sprint? sprint x)))]
     {:title   "Issues closed in the sprint"
-     :columns [:id :type :title :raised-in-sprint?]
-     :rows    (->> issues
-                   (filter (fn [x] (closed? x)))
-                   (map add-raised-in-sprint))}))
+     :columns [:id :type :title :discipline :raised-in-sprint?]
+     :rows
+     (filter deliverable?
+             (->> issues
+                  (map add-was-delivered)
+                  (map add-raised-in-sprint)
+                  (filter (fn [x] (closed? x)))
+                  (sort-by (juxt :discipline :delivered :raised-in-sprint? :id))))}))
+
+(defn report-work-committed [issues]
+  (let [add-was-delivered (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))]
+    {:title   "Stories and tasks committed to in this sprint"
+     :columns [:id :title :points :discipline :delivered]
+     :rows    (filter deliverable?
+                      (->> issues
+                           (map add-time-in-state)
+                           (map add-was-delivered)
+                           (sort-by (juxt :discipline :delivered :id))))}))
 
 (defn- add-discipline [x]
   (assoc x :discipline (cond
