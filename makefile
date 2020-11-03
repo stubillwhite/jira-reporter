@@ -9,7 +9,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 33 
+SPRINT_PREFIX=Sprint 34 
 SQUAD_NAMES=Hulk
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -59,7 +59,7 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown > burndown.csv
-	@${VEGA_LITE} burndown.vg.json $*-burndown.png
+	@${VEGA_LITE} burndown.vg.json > $*-burndown.png
 	@imgcat $*-burndown.png
 
 burndown-%: ${VEGA_LITE}

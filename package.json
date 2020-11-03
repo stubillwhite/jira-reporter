@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "node-gyp": "^7.0.0",
+    "vega-cli": "^5.13.0",
+    "vega-lite": "^4.14.1"
+  }
+}
