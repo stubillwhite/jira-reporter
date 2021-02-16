@@ -9,17 +9,17 @@
 
   :repl-options {:port 4555}
 
-  :plugins []
-
   :main jira-reporter.app
+
+  :plugins [[lein-eftest "0.5.9"]]
 
   :dependencies [;; Core
                  [org.clojure/tools.nrepl "0.2.13"]
-                 [org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojure "1.10.1"]
                  [org.clojure/tools.trace "0.7.10"]
 
                  ;; Logging
-                 [com.taoensso/timbre "4.10.0"]
+                 [com.taoensso/timbre "5.1.0"]
                  
                  ;; Spec helpers
                  [expound "0.7.2"]
@@ -42,7 +42,7 @@
 
   :profiles {:uberjar {:aot :all}
 
-             :dev {:dependencies   [[org.clojure/tools.namespace "0.2.10"]
+             :dev {:dependencies   [[org.clojure/tools.namespace "1.0.0"]
                                     [org.clojure/test.check "0.10.0"]]
                    :resource-paths ["test-resources"]
                    :source-paths   ["dev"]}})
