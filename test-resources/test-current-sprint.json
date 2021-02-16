@@ -7,6 +7,10 @@
             "assignee": {
                 "displayName": "issue-1-assignee"
             },
+            "customfield_12811": [
+                {"displayName": "issue-1-buddy-1"},
+                {"displayName": "issue-1-buddy-2"}
+            ],
             "issuetype": {
                 "name": "issue-1-type"
             },

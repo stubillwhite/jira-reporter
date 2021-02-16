@@ -10,7 +10,8 @@
 
  :custom-fields {:epic-link    "customfield_10236"
                  :story-points "customfield_10002"
-                 :team         "customfield_12604"}
+                 :team         "customfield_12604"
+                 :buddy        "customfield_12811"}
  
  :schema {:to-do-states            #{"To Do" "Ready" "Open" "Software Simplified Workflow for Project SDPR" "Ready for Dev"}
           :in-progress-states      #{"In Progress"}

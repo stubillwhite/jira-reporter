@@ -19,6 +19,7 @@
 (declare epic-link-field)
 (declare story-points-field)
 (declare team-field)
+(declare buddy-field)
 
 ;; (defn- extract-issue-history [json]
 ;;   (let [field-names  [:date :field :from :to ]
@@ -75,6 +76,7 @@
    :type           (get-in issue-json [:fields :issuetype :name])
    :status         (get-in issue-json [:fields :status :name])
    :assignee       (get-in issue-json [:fields :assignee :displayName])
+   :buddy          (->> (get-in issue-json [:fields (keyword (buddy-field))]) (map :displayName))
    :title          (get-in issue-json [:fields :summary])
    :points         (get-in issue-json [:fields (keyword (story-points-field))])
    :team           (get-in issue-json [:fields (keyword (team-field))])
@@ -155,4 +157,4 @@
 (defn epic-link-field    [] (get-in config [:custom-fields :epic-link]))
 (defn story-points-field [] (get-in config [:custom-fields :story-points]))
 (defn team-field         [] (get-in config [:custom-fields :team]))
-
+(defn buddy-field        [] (get-in config [:custom-fields :buddy]))

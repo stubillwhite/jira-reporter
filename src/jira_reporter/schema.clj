@@ -53,6 +53,7 @@
 (spec/def ::type              string?)
 (spec/def ::status            string?)
 (spec/def ::assignee          (spec/nilable string?))
+(spec/def ::buddy             (spec/coll-of string?))
 (spec/def ::title             string?)
 (spec/def ::points            (spec/nilable float?))
 (spec/def ::team              (spec/nilable string?))
@@ -65,10 +66,10 @@
 (spec/def ::time-in-state     (spec/map-of keyword? int?))
 
 (spec/def ::issue
-  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::team ::epic ::labels ::history ::current-sprint ::closed-sprints]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::buddy ::title ::points ::team ::epic ::labels ::history ::current-sprint ::closed-sprints]))
 
 (spec/def ::enriched-issue
-  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::title ::points ::team ::epic ::labels ::history ::current-sprint ::closed-sprints ::lead-time-in-days ::time-in-state]))
+  (spec/keys :req-un [::id ::created ::parent-id ::subtask-ids ::type ::status ::assignee ::buddy ::title ::points ::team ::epic ::labels ::history ::current-sprint ::closed-sprints ::lead-time-in-days ::time-in-state]))
 
 ;; -----------------------------------------------------------------------------
 ;; Config

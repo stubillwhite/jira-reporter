@@ -1,14 +1,13 @@
 (ns jira-reporter.reports
   (:require [clojure.pprint :as pprint]
+            [clojure.string :as string]
             [jira-reporter.analysis :as analysis]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
             [jira-reporter.issue-filters :refer :all]
             [jira-reporter.jira :as jira]
-            [jira-reporter.utils :refer [def- map-vals]]
-            [taoensso.timbre :as timbre]
-            [clojure.string :as str]
-            [clojure.string :as string])
+            [jira-reporter.utils :refer [any-pred def- map-vals]]
+            [taoensso.timbre :as timbre])
   (:import java.time.format.DateTimeFormatter
            java.time.temporal.ChronoUnit))
 
@@ -85,6 +84,12 @@
    :columns [:id :type :title :assignee]
    :rows    (filter needs-size? issues)})
 
+(defn report-issues-needing-buddies [issues]
+  (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress? closed?) (complement personal-development?) (complement buddied?))]
+    {:title   "Issues needing buddies"
+     :columns [:id :type :title :assignee]
+     :rows    (filter needs-buddy? issues)}))
+
 (defn report-issues-needing-triage [issues]
   {:title   "Issues needing triage"
    :columns [:id :type :title :assignee]
@@ -139,6 +144,7 @@
     (report-issues-ready-for-release issues)
     (report-issues-closed issues)
     (report-issues-needing-sizing issues)
+    (report-issues-needing-buddies issues)
     (report-issues-needing-triage issues)
     (report-issue-allocation issues)
     (report-issues-needing-jira-clean-up issues)
@@ -159,7 +165,7 @@
                            (sort-by (juxt :discipline :delivered :id))))}))
 
 (defn report-discipline-statistics-for-tasks [issues]
-  (let [unit-of-work? (fn [x] (or (task? x) (subtask? x)))
+  (let [unit-of-work? (fn [x] (or (task? x) (subtask? x) (and (story? x) (no-parent? x)))) ;; TODO: This is wrong
         count-of      (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:title   "Statistics for tasks committed to and delivered in this sprint"
      :columns [:discipline :committed :delivered]
@@ -277,7 +283,7 @@
 (defn report-burndown [start-date end-date issues discipline]
   (let [data (calculate-burndown start-date end-date issues)]
     (map
-     (partial str/join ",")
+     (partial string/join ",")
      (concat
       (map-indexed (fn [i x] [discipline "Remaining" i (:open x)]) data)
       (map-indexed (fn [i x] [discipline "Scope"     i (:total x)]) data)

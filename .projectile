@@ -6,3 +6,5 @@
 -/newsflo-issues.txt
 -/*.jar
 -/*.nippy
+-/node_modules
+-/node_modules_bak

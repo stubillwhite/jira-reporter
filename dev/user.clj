@@ -56,7 +56,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 33 Hulk")
+(def sprint-name  "Sprint 40 Helix")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -148,7 +148,7 @@
 ;; Historicals
 
 (def historical-sprints
-  (for [x (range 20 31)] (format "Sprint %d Hulk" x)))
+  (for [x (range 30 40)] (format "Sprint %d Helix" x)))
 
 (defn build-metrics [report metric]
   (let [make-keyword (fn [k suffix] (keyword (str (symbol k) suffix "-" metric)))]
@@ -174,3 +174,5 @@
                         (keyword (str role "-" state "-" metric))))
         rows     (map historical-statistics historical-sprints)]
     (print-table columns rows)))
+
+;; (display-all-historical-stats)

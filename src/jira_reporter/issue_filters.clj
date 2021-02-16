@@ -155,6 +155,11 @@
   [issue]
   (not (nil? (:assignee issue))))
 
+(defn buddied?
+  "Returns true if the issue has a buddy, false otherwise."
+  [issue]
+  (not (empty? (:buddy issue))))
+
 (defn has-labels?
   "Returns true if the issue contains the specified labels, false otherwise."
   [labels issue]

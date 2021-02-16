@@ -33,12 +33,15 @@
 (defn- is-empty-issues? [response]
   (or (not (contains? response :issues)) (empty? (:issues response))))
 
+(defn- redact-credentials [request]
+  (update request :basic-auth (fn [x] (if x "REDACTED"))))
+
 (defn- paginated-request
   ([method url f-terminate?]
    (paginated-request (build-request method url) f-terminate?))
   
   ([req f-terminate?]
-   (debug "Request: " req)
+   (debug "Request: " (redact-credentials req))
    (let [response (decode-body (client/request req))]
      (trace "Response:" response)
      (if (f-terminate? response)

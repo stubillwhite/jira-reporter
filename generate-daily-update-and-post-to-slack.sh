@@ -47,5 +47,5 @@ function generate-burndown-and-post-to-slack() {
     rm -f ${team}-burndown.png
 }
 
-generate-report-and-post-to-slack   Hulk green-squad
-generate-burndown-and-post-to-slack Hulk green-squad
+generate-report-and-post-to-slack   Helix recs-helix
+generate-burndown-and-post-to-slack Helix recs-helix

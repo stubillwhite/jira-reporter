@@ -36,6 +36,7 @@
           :type              "stub-type"
           :status            "stub-status"
           :assignee          nil
+          :buddy             []
           :title             "stub-title"
           :team              "stub-team"
           :points            nil
