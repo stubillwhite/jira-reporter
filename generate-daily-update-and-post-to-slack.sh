@@ -52,7 +52,7 @@ function generate-buddy-map-and-post-to-slack() {
 
     rm -f ${team}-burndown.png
 
-    make burndown-${team}
+    make buddy-map-${team}
 
     slackcat --channel ${channel} ${team}-buddy-map.png
 

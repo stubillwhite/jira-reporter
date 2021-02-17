@@ -4,8 +4,6 @@
     "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/buddy-map.csv"
   },
   "title": "Buddy heatmap",
-  "width": 800,
-  "height": 400,
   "mark": "rect",
   "encoding": {
     "y": {
