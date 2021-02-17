@@ -30,6 +30,7 @@
    [nil "--sprint-report"       "Generate a report for the sprint"]
    [nil "--daily-report"        "Generate a daily status report for the sprint"]
    [nil "--burndown"            "Generate a burndown for the sprint"]
+   [nil "--buddy-map"           "Generate a buddy map for the sprint"]
    [nil "--backlog-report"      "Generate a backlog report"]
    [nil "--sprint-name NAME"    "Use sprint named NAME"]
    [nil "--board-name NAME"     "Use board named NAME"]
@@ -56,6 +57,7 @@
 
 (defn- validate-options [options]
   (let [valid-options {:burndown       [:board-name :sprint-name]
+                       :buddy-map      [:board-name :sprint-name]
                        :daily-report   [:board-name :sprint-name]
                        :sprint-report  [:board-name :sprint-name]
                        :backlog-report [:project-name :board-name]
@@ -63,6 +65,7 @@
                        :jql            nil}
         report-type   (cond
                         (:burndown options)       :burndown
+                        (:buddy-map options)      :buddy-map
                         (:daily-report options)   :daily-report
                         (:sprint-report options)  :sprint-report
                         (:backlog-report options) :backlog-report
@@ -118,6 +121,7 @@
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
         (:burndown options)       (println (reports/generate-burndown options))
+        (:buddy-map options)      (println (reports/generate-buddy-map options))
         (:backlog-report options) (display-report options (reports/generate-backlog-report options))
         (:jql options)            (error "not implemented")
         :else                     (error "Unrecognised action"))

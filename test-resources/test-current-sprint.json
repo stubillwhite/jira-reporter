@@ -5,11 +5,11 @@
         "fields": {
             "parent": {"key": "issue-1-parent"},
             "assignee": {
-                "displayName": "issue-1-assignee"
+                "emailAddress": "issue-1-assignee"
             },
             "customfield_12811": [
-                {"displayName": "issue-1-buddy-1"},
-                {"displayName": "issue-1-buddy-2"}
+                {"emailAddress": "issue-1-buddy-1"},
+                {"emailAddress": "issue-1-buddy-2"}
             ],
             "issuetype": {
                 "name": "issue-1-type"
@@ -58,7 +58,7 @@
         "fields": {
             "parent": {"key": "issue-2-parent"},
             "assignee": {
-                "displayName": "issue-2-assignee"
+                "emailAddress": "issue-2-assignee"
             },
             "issuetype": {
                 "name": "issue-2-type"

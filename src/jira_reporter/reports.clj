@@ -50,10 +50,6 @@
 ;; Daily report
 ;; -----------------------------------------------------------------------------
 
-;; Replace with unit of work
-(defn- user-level-task? [issue]
-  (:parent-id issue))
-
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
    :columns [:id :type :title :assignee]
@@ -310,6 +306,32 @@
                    (report-burndown start-date end-date (all-of open-in-sprint? infrastructure?) "Infrastructure")
                    (report-burndown start-date end-date (all-of open-in-sprint? data-science?)   "Data Science")
                    (report-burndown start-date end-date (all-of open-in-sprint? support?)        "Support"))))))
+
+;; -----------------------------------------------------------------------------
+;; Buddy map
+;; -----------------------------------------------------------------------------
+
+(defn buddy-pairings [issues]
+  (let [pairs (fn [{:keys [assignee buddies] :as issue}] (for [buddy buddies] [assignee buddy]))]
+    (->> issues
+         (mapcat pairs))))
+
+(defn generate-buddy-map
+  "Generate a buddy map."
+  ([options]
+   (let [{:keys [board-name sprint-name]} options
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
+     (generate-buddy-map options issues)))
+
+  ([options issues]
+   (let [pairings       (buddy-pairings issues)
+         counts-by-pair (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
+         all-users      (->> issues (map :assignee) (filter some?) (into #{}))]
+     (string/join "\n"
+                  (concat ["Owner,Buddy,Count"]
+                          (for [assignee all-users
+                                buddy    all-users]
+                            (string/join "," [assignee buddy (get counts-by-pair [assignee buddy] 0)])))))))
 
 ;; -----------------------------------------------------------------------------
 ;; Backlog

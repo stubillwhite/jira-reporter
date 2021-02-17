@@ -112,10 +112,18 @@
   [issue]
   (empty? (:subtask-ids issue)))
 
+;; TODO: Do we still need this?
 (defn deliverable?
   "Returns true if the issue is a self-contained deliverable, false otherwise."
   [issue]
   (no-parent? issue))
+
+(defn user-level-task?
+  "Returns true if the issue is a self-contained user task, false otherwise."
+  [issue]
+  (or (task? issue)
+      (subtask? issue)
+      (and (story? issue) (no-subtasks? issue))))
 
 (defn sized?
   "Returns true if the issue is sized, false otherwise."
@@ -158,7 +166,7 @@
 (defn buddied?
   "Returns true if the issue has a buddy, false otherwise."
   [issue]
-  (not (empty? (:buddy issue))))
+  (not (empty? (:buddies issue))))
 
 (defn has-labels?
   "Returns true if the issue contains the specified labels, false otherwise."

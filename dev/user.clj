@@ -117,7 +117,10 @@
 ;; From cache
 
 (defn burndown-from-cache []
-  (app/display-report config (reports/generate-burndown config (load-cached-sprint) (load-cached-issues))))
+  (println (reports/generate-burndown config (load-cached-sprint) (load-cached-issues))))
+
+(defn buddy-map-from-cache []
+  (println (reports/generate-buddy-map config (load-cached-issues))))
 
 (defn sprint-from-cache []
   (app/display-report config (reports/generate-sprint-report config (load-cached-issues) (load-cached-sprint))))

@@ -16,6 +16,7 @@
             :blocked-states          #{"blocked"}
             :closed-states           #{"closed"}
             :deployment-states       #{"deploy"}
+            :epic-types              #{"epic"}
             :story-types             #{"story"}
             :task-types              #{"task"}
             :subtask-types           #{"subtask"}

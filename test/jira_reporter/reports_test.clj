@@ -10,11 +10,11 @@
 (def- yesterday    "2000-02-02Z")
 (def- today        "2000-02-03Z")
 
-(def- untouched-issue            (issue "1" "to-do"       :parent-id "23"))
-(def- existing-in-progress-issue (issue "2" "in-progress" :parent-id "23" :history [(status-change two-days-ago "todo" "in-progress")]))
-(def- newly-in-progress-issue    (issue "3" "in-progress" :parent-id "23" :history [(status-change yesterday    "in-progress" "in-progress")]))
-(def- newly-closed-issue         (issue "4" "closed"      :parent-id "23" :history [(status-change yesterday    "in-progress" "closed")]))
-(def- deploy-issue               (issue "5" "deploy"      :parent-id "23"))
+(def- untouched-issue            (task "1" "to-do"       :parent-id "23"))
+(def- existing-in-progress-issue (task "2" "in-progress" :parent-id "23" :history [(status-change two-days-ago "todo" "in-progress")]))
+(def- newly-in-progress-issue    (task "3" "in-progress" :parent-id "23" :history [(status-change yesterday    "in-progress" "in-progress")]))
+(def- newly-closed-issue         (task "4" "closed"      :parent-id "23" :history [(status-change yesterday    "in-progress" "closed")]))
+(def- deploy-issue               (task "5" "deploy"      :parent-id "23"))
 
 (def- all-issues
   [untouched-issue

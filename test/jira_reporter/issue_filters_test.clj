@@ -111,6 +111,9 @@
     (testing "awaiting-deployment?"
       (is (= true (issue-filters/awaiting-deployment? {:status "deploy"})))
       (is (= false (issue-filters/awaiting-deployment? {:status "not deploy"}))))
+    (testing "epic"
+      (is (= true (issue-filters/epic? {:type "epic"})))
+      (is (= false (issue-filters/epic? {:type "not epic"}))))    
     (testing "story?"
       (is (= true (issue-filters/story? {:type "story"})))
       (is (= false (issue-filters/story? {:type "not story"}))))
@@ -153,6 +156,9 @@
     (testing "has-labels?"
       (is (= true (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :bar :baz}})))
       (is (= false (issue-filters/has-labels? [:foo :bar] {:labels #{:foo :baz}}))))
+    (testing "buddied?"
+      (is (= true (issue-filters/buddied? {:buddies ["someone"]})))
+      (is (= false (issue-filters/buddied? {:buddies []}))))
     (testing "needs-size?"
       (is (= true (issue-filters/needs-size? {})))
       (is (= false (issue-filters/needs-size? {:points 1.0}))))

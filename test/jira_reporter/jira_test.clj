@@ -56,7 +56,7 @@
     :title          "issue-1-title"
     :status         "issue-1-status"
     :assignee       "issue-1-assignee"
-    :buddy          ["issue-1-buddy-1" "issue-1-buddy-2"]
+    :buddies        ["issue-1-buddy-1" "issue-1-buddy-2"]
     :labels         ["issue-1-label-1" "issue-1-label-2"]
     :current-sprint expected-current-sprint
     :closed-sprints [expected-previous-sprint]
@@ -72,7 +72,7 @@
     :title          "issue-2-title"
     :status         "issue-2-status"
     :assignee       "issue-2-assignee"
-    :buddy          []
+    :buddies        []
     :labels         []
     :current-sprint expected-current-sprint
     :closed-sprints [expected-previous-sprint]

@@ -8,6 +8,7 @@ pom.xml.asc
 *.jar
 *.class
 *.nippy
+buddy-map.csv
 cached-data.edn
 .lein-deps-sum
 .lein-failures

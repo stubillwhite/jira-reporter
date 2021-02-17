@@ -16,12 +16,13 @@ SPRINT_PREFIX=Sprint 40
 SQUAD_NAMES=Helix
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
+SQUAD_BUDDY_MAPS=$(addprefix buddy-map-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.17-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.18-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -70,9 +71,9 @@ vega: ${VEGA_LITE}
 # ======================================
 
 .PHONY: buddy-map 
-buddy-map: build vega ${SQUAD_BUDDY_MAP} ## Generate buddy metrics
+buddy-map: build vega ${SQUAD_BUDDY_MAPS} ## Generate buddy metrics
 
-${SQUAD_BUDDY_MAP}: buddy-map-%:
+${SQUAD_BUDDY_MAPS}: buddy-map-%:
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* buddy-map
 	@echo -------------------------------------------------------------------------------- 

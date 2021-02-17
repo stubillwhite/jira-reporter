@@ -20,6 +20,7 @@
 (declare story-points-field)
 (declare team-field)
 (declare buddy-field)
+(declare user-alias)
 
 ;; (defn- extract-issue-history [json]
 ;;   (let [field-names  [:date :field :from :to ]
@@ -75,8 +76,8 @@
    :subtask-ids    (->> (get-in issue-json [:fields :subtasks]) (map :key))
    :type           (get-in issue-json [:fields :issuetype :name])
    :status         (get-in issue-json [:fields :status :name])
-   :assignee       (get-in issue-json [:fields :assignee :displayName])
-   :buddy          (->> (get-in issue-json [:fields (keyword (buddy-field))]) (map :displayName))
+   :assignee       (->> (get-in issue-json [:fields :assignee :emailAddress]) (user-alias))
+   :buddies        (->> (get-in issue-json [:fields (keyword (buddy-field))]) (map :emailAddress) (map user-alias))
    :title          (get-in issue-json [:fields :summary])
    :points         (get-in issue-json [:fields (keyword (story-points-field))])
    :team           (get-in issue-json [:fields (keyword (team-field))])
@@ -158,3 +159,6 @@
 (defn story-points-field [] (get-in config [:custom-fields :story-points]))
 (defn team-field         [] (get-in config [:custom-fields :team]))
 (defn buddy-field        [] (get-in config [:custom-fields :buddy]))
+
+(defn user-alias [user]
+  (get-in config [:user-aliases user] user))

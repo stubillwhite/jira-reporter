@@ -43,9 +43,23 @@ function generate-burndown-and-post-to-slack() {
 
     slackcat --channel ${channel} ${team}-burndown.png
 
-    rm -f burndown.txt
+    rm -f burndown.csv
     rm -f ${team}-burndown.png
 }
 
-generate-report-and-post-to-slack   Helix recs-helix
-generate-burndown-and-post-to-slack Helix recs-helix
+function generate-buddy-map-and-post-to-slack() {
+    declare team=$1 channel=$2
+
+    rm -f ${team}-burndown.png
+
+    make burndown-${team}
+
+    slackcat --channel ${channel} ${team}-buddy-map.png
+
+    rm -f buddy-map.csv
+    rm -f ${team}-buddy-map.png
+}
+
+generate-report-and-post-to-slack    Helix recs-helix
+generate-burndown-and-post-to-slack  Helix recs-helix
+generate-buddy-map-and-post-to-slack Helix recs-helix
