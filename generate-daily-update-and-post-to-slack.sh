@@ -8,7 +8,7 @@ IMG_FOREGROUND=gray80
 function generate-report-and-post-to-slack() {
     declare team=$1 channel=$2
 
-    make daily-report-${team} > daily-report-${team}.txt
+    make daily-report-${team} > ${team}-daily-report.txt
 
     # Generate the PNG for Slack to avoid text wrapping
     #  - No idea how big it will be, so generate oversized and trim down
@@ -21,17 +21,17 @@ function generate-report-and-post-to-slack() {
         -pointsize 32                               \
         -fill ${IMG_FOREGROUND}                     \
         -annotate +32+60                            \
-        "@daily-report-${team}.txt"                 \
+        "@${team}-daily-report.txt"                 \
         -trim                                       \
         -bordercolor ${IMG_BACKGROUND}              \
         -border 32                                  \
         +repage                                     \
-        daily-report-${team}.png
+        ${team}-daily-report.png
 
-    slackcat --channel ${channel} daily-report-${team}.png
+    slackcat --channel ${channel} ${team}-daily-report.png
 
-    rm daily-report-${team}.txt
-    rm daily-report-${team}.png
+    rm ${team}-daily-report.txt
+    rm ${team}-daily-report.png
 }
 
 function generate-burndown-and-post-to-slack() {
@@ -60,6 +60,6 @@ function generate-buddy-map-and-post-to-slack() {
     rm -f ${team}-buddy-map.png
 }
 
-generate-report-and-post-to-slack    Helix recs-helix
-generate-burndown-and-post-to-slack  Helix recs-helix
-generate-buddy-map-and-post-to-slack Helix recs-helix
+generate-report-and-post-to-slack    Helix s.white.1
+generate-burndown-and-post-to-slack  Helix s.white.1
+generate-buddy-map-and-post-to-slack Helix s.white.1
