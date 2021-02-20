@@ -60,6 +60,6 @@ function generate-buddy-map-and-post-to-slack() {
     rm -f ${team}-buddy-map.png
 }
 
-generate-report-and-post-to-slack    Helix s.white.1
-generate-burndown-and-post-to-slack  Helix s.white.1
-generate-buddy-map-and-post-to-slack Helix s.white.1
+generate-report-and-post-to-slack    Helix recs-helix
+generate-burndown-and-post-to-slack  Helix recs-helix
+generate-buddy-map-and-post-to-slack Helix recs-helix

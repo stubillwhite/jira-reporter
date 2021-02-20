@@ -62,8 +62,10 @@
 
 (defn report-issues-in-progress [issues]
   {:title   "Issues still in progress"
-   :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred (complement changed-state-in-the-last-day?) in-progress? user-level-task?) issues)})
+   :columns [:id :type :title :assignee :buddies]
+   :rows   (->> issues
+                (filter (every-pred (complement changed-state-in-the-last-day?) in-progress? user-level-task?))
+                (map (fn [x] (update-in x [:buddies] (partial string/join ", ")))))})
 
 (defn report-issues-ready-for-release [issues]
   {:title   "Issues awaiting release"
