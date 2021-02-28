@@ -30,13 +30,17 @@
    [nil "--sprint-report"       "Generate a report for the sprint"]
    [nil "--daily-report"        "Generate a daily status report for the sprint"]
    [nil "--burndown"            "Generate a burndown for the sprint"]
+   [nil "--epic-burndown"       "Generate a burndown for the epic"]
    [nil "--buddy-map"           "Generate a buddy map for the sprint"]
    [nil "--backlog-report"      "Generate a backlog report"]
+   
    [nil "--sprint-name NAME"    "Use sprint named NAME"]
    [nil "--board-name NAME"     "Use board named NAME"]
    [nil "--project-name NAME"   "Use project named NAME"]
+   [nil "--epic-id ID"          "Use epic with the specified ID"]
    [nil "--jql QUERY"           "Use the specified JQL query"]
    [nil "--tsv"                 "Output the data as TSV for Excel"]
+   
    ["-h" "--help"]])
 
 (defn- usage [options-summary]
@@ -58,6 +62,7 @@
 (defn- validate-options [options]
   (let [valid-options {:burndown       [:board-name :sprint-name]
                        :buddy-map      [:board-name :sprint-name]
+                       :epic-burndown  [:board-name :epic-id]
                        :daily-report   [:board-name :sprint-name]
                        :sprint-report  [:board-name :sprint-name]
                        :backlog-report [:project-name :board-name]
@@ -65,6 +70,7 @@
                        :jql            nil}
         report-type   (cond
                         (:burndown options)       :burndown
+                        (:epic-burndown options)  :epic-burndown
                         (:buddy-map options)      :buddy-map
                         (:daily-report options)   :daily-report
                         (:sprint-report options)  :sprint-report
@@ -121,6 +127,7 @@
         (:daily-report options)   (display-report options (reports/generate-daily-report options))
         (:sprint-report options)  (display-report options (reports/generate-sprint-report options))
         (:burndown options)       (println (reports/generate-burndown options))
+        (:epic-burndown options)  (println (reports/generate-epic-burndown options))
         (:buddy-map options)      (println (reports/generate-buddy-map options))
         (:backlog-report options) (display-report options (reports/generate-backlog-report options))
         (:jql options)            (error "not implemented")

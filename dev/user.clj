@@ -24,7 +24,9 @@
             [taoensso.timbre :as timbre]
             [clojure.pprint :as pprint]
             [jira-reporter.date :as date]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [jira-reporter.config :as config]
+            [jira-reporter.schema :as schema])
   (:import [java.io DataInputStream DataOutputStream]))
 
 (defn print-methods [x]
@@ -56,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 40 Helix")
+(def sprint-name  "Sprint 41 Helix")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -136,6 +138,12 @@
 (defn burndown []
   (app/-main "--burndown" "--board-name" board-name "--sprint-name" sprint-name))
 
+(defn epic-burndown []
+  (app/-main "--epic-burndown" "--board-name" board-name "--epic-id" "SDPR-4384"))
+
+(defn buddy-map []
+  (app/-main "--buddy-map" "--board-name" board-name "--sprint-name" sprint-name))
+
 (defn sprint []
   (app/-main "--sprint-report" "--board-name" board-name "--sprint-name" sprint-name))
 
@@ -179,3 +187,28 @@
     (print-table columns rows)))
 
 ;; (display-all-historical-stats)
+
+
+(defn min-by [f coll]
+  (when (seq coll)
+    (apply min-key f coll)))
+
+(defn max-by [f coll]
+  (when (seq coll)
+    (apply max-key f coll)))
+
+(defn white-test []
+  (let [id             "SDPR-4384"
+        epic           (first (jira/get-issues-with-ids [id]))
+        issues         (jira/get-issues-in-epic-with-id id)
+        to-in-progress (fn [{:keys [field to]}] (and (= field "status")
+                                                    (or (contains? (jira/in-progress-states) to)
+                                                        (contains? (jira/closed-states) to))))
+        to-closed      (fn [{:keys [field to]}] (and (= field "status") (contains? (jira/closed-states) to)))
+        date-millis    (fn [x] (-> x (:date) (.toInstant) (.toEpochMilli)))
+        start-date     (->> issues (mapcat :history) (filter to-in-progress) (min-by date-millis))
+        end-date       (->> issues (mapcat :history) (filter to-closed)      (max-by date-millis))
+        points         (->> issues (map :points) (filter identity) (apply +))]
+    (println (str "Started: " start-date))
+    (println (str "Closed:  " end-date))
+    (println (str "Points:  " points))))

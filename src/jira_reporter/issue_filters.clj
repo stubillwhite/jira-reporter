@@ -60,6 +60,11 @@
        (map (partial issue-at-date date))
        (filter identity)))
 
+(defn to-do?
+  "Returns true if the issue is in to-do, false otherwise."
+  [issue]
+  (status-is? (jira/to-do-states) issue))
+
 (defn blocked?
   "Returns true if the issue is blocked, false otherwise."
   [issue]

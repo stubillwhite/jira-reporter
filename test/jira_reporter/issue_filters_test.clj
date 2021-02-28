@@ -98,8 +98,6 @@
 ;; TODO issues-at-date
 ;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
 
-
-
 (deftest basic-predicates
   (with-redefs [config stub-config]
     (testing "blocked?"
@@ -161,11 +159,35 @@
       (is (= false (issue-filters/buddied? {:buddies []}))))
     (testing "needs-size?"
       (is (= true (issue-filters/needs-size? {})))
-      (is (= false (issue-filters/needs-size? {:points 1.0}))))
+      (is (= false (issue-filters/needs-size? {:points 1.0})))
+      (is (= false (issue-filters/needs-size? {:parent-id "parent-issue"}))))
     (testing "needs-triage?"
       (is (= true (issue-filters/needs-triage? {:type "bug" :labels #{}})))
       (is (= false (issue-filters/needs-triage? {:type "task" :labels #{}})))
-      (is (= false (issue-filters/needs-triage? {:type "bug" :labels #{"recs_triaged"}}))))))
+      (is (= false (issue-filters/needs-triage? {:type "bug" :labels #{"recs_triaged"}}))))
+    (testing "breakage?"
+      (is (= true (issue-filters/breakage? {:type "bug" :labels #{"recs_breakage"}})))
+      (is (= false (issue-filters/breakage? {:type "bug" :labels #{}})))
+      (is (= false (issue-filters/breakage? {:type "task" :labels #{}}))))
+    (testing "data-science?"
+      (is (= true (issue-filters/data-science? {:type "task" :labels #{"recs_ds"}})))
+      (is (= false (issue-filters/data-science? {:type "task" :labels #{}}))))
+    (testing "engineering?"
+      (is (= true (issue-filters/engineering? {:type "task" :labels #{"recs_eng"}})))
+      (is (= false (issue-filters/engineering? {:type "task" :labels #{}}))))
+    (testing "infrastructure?"
+      (is (= true (issue-filters/infrastructure? {:type "task" :labels #{"recs_infra"}})))
+      (is (= false (issue-filters/infrastructure? {:type "task" :labels #{}}))))
+    (testing "support?"
+      (is (= true (issue-filters/support? {:type "task" :labels #{"recs_support"}})))
+      (is (= false (issue-filters/support? {:type "task" :labels #{}}))))
+    (testing "personal-development?"
+      (is (= true (issue-filters/personal-development? {:type "task" :labels #{"recs_pd"}})))
+      (is (= false (issue-filters/personal-development? {:type "task" :labels #{}}))))
+    (testing "miscellaneous?"
+      (is (= true (issue-filters/miscellaneous? {:type "task" :labels #{"recs_pd"}})))
+      (is (= true (issue-filters/miscellaneous? {:type "gdpr" :labels #{}})))
+      (is (= false (issue-filters/miscellaneous? {:type "task" :labels #{}}))))))
 
 (deftest changed-state-in-the-last-day
   (with-redefs [date/current-date (fn [] date-7th)]

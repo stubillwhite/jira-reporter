@@ -8,6 +8,9 @@ IMG_FOREGROUND=gray80
 function generate-report-and-post-to-slack() {
     declare team=$1 channel=$2
 
+    rm ${team}-daily-report.txt
+    rm ${team}-daily-report.png
+
     make daily-report-${team} > ${team}-daily-report.txt
 
     # Generate the PNG for Slack to avoid text wrapping
@@ -28,36 +31,41 @@ function generate-report-and-post-to-slack() {
         +repage                                     \
         ${team}-daily-report.png
 
-    slackcat --channel ${channel} ${team}-daily-report.png
-
-    rm ${team}-daily-report.txt
-    rm ${team}-daily-report.png
+    ## Integration currently broken
+    ##
+    ## slackcat --channel ${channel} ${team}-daily-report.png
+    ## rm ${team}-daily-report.txt
+    ## rm ${team}-daily-report.png
 }
 
 function generate-burndown-and-post-to-slack() {
     declare team=$1 channel=$2
 
+    rm -f burndown.csv
     rm -f ${team}-burndown.png
 
     make burndown-${team}
 
-    slackcat --channel ${channel} ${team}-burndown.png
-
-    rm -f burndown.csv
-    rm -f ${team}-burndown.png
+    ## Integration currently broken
+    ##
+    ## slackcat --channel ${channel} ${team}-burndown.png
+    ## rm -f burndown.csv
+    ## rm -f ${team}-burndown.png
 }
 
 function generate-buddy-map-and-post-to-slack() {
     declare team=$1 channel=$2
 
-    rm -f ${team}-burndown.png
+    rm -f buddy-map.csv
+    rm -f ${team}-buddy-map.png
 
     make buddy-map-${team}
 
-    slackcat --channel ${channel} ${team}-buddy-map.png
-
-    rm -f buddy-map.csv
-    rm -f ${team}-buddy-map.png
+    ## Integration currently broken
+    ##
+    ## slackcat --channel ${channel} ${team}-buddy-map.png
+    ## rm -f buddy-map.csv
+    ## rm -f ${team}-buddy-map.png
 }
 
 generate-report-and-post-to-slack    Helix recs-helix

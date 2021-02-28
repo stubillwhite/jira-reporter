@@ -57,8 +57,10 @@
 
 (defn report-issues-started [issues]
   {:title   "Issues started yesterday"
-   :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred changed-state-in-the-last-day? in-progress?) issues)})
+   :columns [:id :type :title :assignee :buddies]
+   :rows    (->> issues 
+                 (filter (every-pred changed-state-in-the-last-day? in-progress?))
+                 (map (fn [x] (update-in x [:buddies] (partial string/join ", ")))))})
 
 (defn report-issues-in-progress [issues]
   {:title   "Issues still in progress"
@@ -179,6 +181,27 @@
                {:discipline :data-science   :committed (sum-of deliverable? data-science?)   :delivered (sum-of deliverable? closed? data-science?)}
                {:discipline :infrastructure :committed (sum-of deliverable? infrastructure?) :delivered (sum-of deliverable? closed? infrastructure?)}]}))
 
+(defn- started-issues-with-buddy-status [issues]
+  (->> issues
+       (filter (every-pred (complement to-do?) (complement personal-development?) user-level-task?))
+       (map (fn [x] (assoc x
+                          :buddied?    (buddied? x)
+                          :buddy-names (string/join ", " (:buddies x)))))))
+
+(defn report-buddying-statistics [issues]
+  (let [buddy-issues (started-issues-with-buddy-status issues)
+        count-of     (fn [& preds] (->> buddy-issues (filter (apply every-pred preds)) count))]
+    {:title   "Statistics for tasks worked on which should have had buddies"
+     :columns [:metric :total]
+     :rows    [{:metric "With buddies"    :total (count-of buddied?)}
+               {:metric "Without buddies" :total (count-of (complement buddied?))}]}))
+
+(defn report-buddying-summary [issues]
+  (let [buddy-issues (started-issues-with-buddy-status issues)]
+    {:title   "Summary of tasks worked on which should have had buddies"
+     :columns [:id :title :assignee :buddy-names]
+     :rows    buddy-issues}))
+
 (defn- raised-in-sprint? [sprint issue]
   (and (before-or-equal? (:start-date sprint) (:created issue))
        (before-or-equal? (:created issue)     (:end-date sprint))))
@@ -247,12 +270,16 @@
          open-issues     (->> issues
                               (filter open-in-sprint?)
                               (map add-discipline))]
-     [(report-work-committed open-issues)
+     [
+      (report-work-committed open-issues)
       (report-discipline-statistics-for-tasks open-issues)
       (report-discipline-statistics-for-points open-issues)
+      (report-buddying-summary open-issues)
+      (report-buddying-statistics open-issues)
       (report-issues-summary open-issues sprint)
       (report-issues-raised-in-sprint open-issues sprint)
-      (report-issues-closed-in-sprint open-issues sprint)])))
+      (report-issues-closed-in-sprint open-issues sprint)
+      ])))
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown
@@ -310,6 +337,52 @@
                    (report-burndown start-date end-date (all-of open-in-sprint? support?)        "Support"))))))
 
 ;; -----------------------------------------------------------------------------
+;; Epic burndown
+;; -----------------------------------------------------------------------------
+
+(defn min-by [f coll]
+  (when (seq coll)
+    (apply min-key f coll)))
+
+(defn max-by [f coll]
+  (when (seq coll)
+    (apply max-key f coll)))
+
+(defn- calculate-epic-burndown-metrics [issues]
+  (let [points-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
+    {:open   (points-of open?)
+     :closed (points-of closed?)
+     :total  (points-of identity)}))
+
+(defn- calculate-epic-burndown-metrics-at-date [date issues]
+  (calculate-epic-burndown-metrics (issues-at-date (.plus date 13 ChronoUnit/DAYS) issues)))
+
+(defn report-epic-burndown [start-date end-date issues]
+  (->> (date/timestream (date/truncate-to-days start-date) 14 ChronoUnit/DAYS)
+       (take-while (fn [x] (and (before-or-equal? x (date/current-date)) (before-or-equal? x end-date))))
+       (filter (fn [x] (date/working-day? x)))
+       (map (fn [x] (calculate-epic-burndown-metrics-at-date x issues)))))
+
+
+
+(defn generate-epic-burndown
+  "Generate an epic burndown."
+  ([options]
+   (let [{:keys [board-name epic-id]} options
+         epic                         (first (jira/get-issues-with-ids [epic-id]))
+         issues                       (jira/get-issues-in-epic-with-id epic-id)]
+     (generate-epic-burndown options epic issues)))
+
+  ([options epic issues]
+   (let [to-in-progress (fn [{:keys [field to]}] (and (= field "status") (or (contains? (jira/in-progress-states) to)
+                                                                            (contains? (jira/closed-states) to))))
+         to-closed      (fn [{:keys [field to]}] (and (= field "status") (contains? (jira/closed-states) to)))
+         date-millis    (fn [x] (-> x (:date) (.toInstant) (.toEpochMilli)))
+         start-date     (->> issues (mapcat :history) (filter to-in-progress) (min-by date-millis) (:date))
+         end-date       (->> issues (mapcat :history) (filter to-closed)      (max-by date-millis) (:date))]
+     (report-epic-burndown start-date end-date issues))))
+
+;; -----------------------------------------------------------------------------
 ;; Buddy map
 ;; -----------------------------------------------------------------------------
 
@@ -328,7 +401,9 @@
   ([options issues]
    (let [pairings       (buddy-pairings issues)
          counts-by-pair (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
-         all-users      (->> issues (map :assignee) (filter some?) (into #{}))]
+         assignees      (->> issues (map :assignee))
+         buddies        (->> issues (mapcat :buddies))
+         all-users      (->> (concat assignees buddies) (filter some?) (into #{}))]
      (string/join "\n"
                   (concat ["Owner,Buddy,Count"]
                           (for [assignee all-users

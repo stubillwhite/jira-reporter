@@ -3,7 +3,8 @@
             [clojure.data.json :as json]
             [jira-reporter.config :refer [config]]
             [jira-reporter.date :as date]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [clojure.string :as string]))
 
 (timbre/refer-timbre)
 
@@ -102,18 +103,34 @@
                     (mapcat :issues))]
     result))
 
+;; See documentation for more details at:
 ;; https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/?&_ga=2.213181971.682771901.1564552031-322924290.1564431140#api/2/search-search
-(defn get-issues-for-project
-  "Returns a seq of the issues for the project with the specified name."
-  [name]
+
+(defn- get-issues-for-jql-query [jql]
   (let [epic-link-field    (get-in config [:custom-fields :epic-link])
         story-points-field (get-in config [:custom-fields :story-points])]
     (->> (paginated-request (merge-in (build-request :get (build-api-v2-url "/search"))
                                       [:query-params]
-                                      {:jql    (str "project=\"" name "\"")
-                                       ;; :expand "changelog"
+                                      {:jql jql
+                                       :expand ["changelog"]
                                        :fields ["key" "created" "parent" "subtasks" "issuetype" "status" "summary"  story-points-field epic-link-field "customfield_10005" "labels" "currentSprint" "closedSprints"]
                                        })
                             is-empty-issues?)
          (mapcat :issues))))
 
+(defn get-issues-for-project
+  "Returns a seq of the issues for the project with the specified name."
+  [name]
+  (get-issues-for-jql-query (str "project=\"" name "\"")))
+
+(defn get-issues-for-epic
+  "Returns the issues in the epic with the specified ID."
+  [id]
+  (get-issues-for-jql-query (str "\"Epic Link\"=\"" id "\"")))
+
+(defn get-issues-for-ids
+  "Returns the issues with the specified IDs."
+  [ids]
+  (let [csv-ids (map (fn [xs] (str "'" (string/join "','" xs) "'"))
+                     (partition 20 ids))]
+    (mapcat (fn [ids] (get-issues-for-jql-query (format "key in (%s)" ids))) csv-ids)))

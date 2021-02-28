@@ -24,6 +24,14 @@
 ;; 21  22  23  24  25  26  27
 ;; 28  29          
 
+(deftest test-current-date-time
+  (testing "returns a ZonedDateTime"
+    (is (= true (instance? ZonedDateTime (current-date-time))))))
+
+(deftest test-current-date
+  (testing "returns a ZonedDateTime"
+    (is (= true (instance? ZonedDateTime (current-date))))))
+
 (deftest test-parse-date-time
   (testing "parses ISO 8601 date time"
     (let [expected (ZonedDateTime/of 2000 1 1 0 0 0 0 utc)]

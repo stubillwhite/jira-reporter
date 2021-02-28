@@ -142,6 +142,25 @@
   (->> (rest-client/get-issues-for-project name)
        (transform* [ALL] extract-issue)))
 
+(defn get-issues-in-epic-with-id
+  "Get the issues in the epic with the specified ID."
+  [id]
+  (info (str "Finding issues in epic '" id "'"))
+  (let [directly-in-epic     (->> (rest-client/get-issues-for-epic id)
+                                  (transform* [ALL] extract-issue))
+        transitively-in-epic (->> (rest-client/get-issues-for-ids (mapcat :subtask-ids directly-in-epic))
+                                  (transform* [ALL] extract-issue))]
+    (->> (concat directly-in-epic transitively-in-epic)
+         (into #{})
+         (into []))))
+
+(defn get-issues-with-ids
+  "Get the issues with the specified IDs."
+  [ids]
+  (info (str "Finding issues with IDs '" ids "'"))
+  (->> (rest-client/get-issues-for-ids ids)
+       (transform* [ALL] extract-issue)))
+
 (defn to-do-states       [] (get-in config [:schema :to-do-states]))
 (defn in-progress-states [] (get-in config [:schema :in-progress-states]))
 (defn blocked-states     [] (get-in config [:schema :blocked-states]))
