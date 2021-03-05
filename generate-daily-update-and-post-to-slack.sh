@@ -8,8 +8,8 @@ IMG_FOREGROUND=gray80
 function generate-report-and-post-to-slack() {
     declare team=$1 channel=$2
 
-    rm ${team}-daily-report.txt
-    rm ${team}-daily-report.png
+    rm -f ${team}-daily-report.txt
+    rm -f ${team}-daily-report.png
 
     make daily-report-${team} > ${team}-daily-report.txt
 
