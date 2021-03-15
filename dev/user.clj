@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 41 Helix")
+(def sprint-name  "Sprint 42 Helix")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -147,6 +147,9 @@
 (defn sprint []
   (app/-main "--sprint-report" "--board-name" board-name "--sprint-name" sprint-name))
 
+(defn sprint-raw []
+  (app/-main "--sprint-report-raw" "--board-name" board-name "--sprint-name" sprint-name "--tsv"))
+
 (defn daily []
   (app/-main "--daily-report" "--board-name" board-name "--sprint-name" sprint-name))
 
@@ -188,7 +191,6 @@
 
 ;; (display-all-historical-stats)
 
-
 (defn min-by [f coll]
   (when (seq coll)
     (apply min-key f coll)))
@@ -212,3 +214,4 @@
     (println (str "Started: " start-date))
     (println (str "Closed:  " end-date))
     (println (str "Points:  " points))))
+

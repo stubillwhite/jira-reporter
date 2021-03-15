@@ -8,6 +8,15 @@ A simple script to pull information out of JIRA for the daily stand-up. Tested o
 
 ## Build instructions
 
+- 
+
+`brew install leiningen node `
+brew install "eddieantonio/eddieantonio/imgcat"
+brew install "slackcat"
+
+
+
+
 - Edit `resources/config.edn`
     - Add credentials
     - Add JIRA states

@@ -28,12 +28,5 @@
           :story-open-state        "To Do"
           :story-in-progress-state "In Progress"}
 
- :user-aliases {"c.korakidis@elsevier.com" "Chris"
-                "m.dalco@elsevier.com"     "Marco"
-                "r.koeling@elsevier.com"   "Rob"
-                "l.stan@elsevier.com"      "Ligia"
-                "p.perks@elsevier.com"     "Phil"
-                "s.white.1@elsevier.com"   "Stu"
-                "j.purcell@elsevier.com"   "James"
-                "f.boonen@elsevier.com"    "Finne"}
+ :user-aliases {}
  }

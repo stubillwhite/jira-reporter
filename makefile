@@ -19,10 +19,11 @@ SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_BUDDY_MAPS=$(addprefix buddy-map-,${SQUAD_NAMES})
 SQUAD_DAILY_REPORTS=$(addprefix daily-report-,${SQUAD_NAMES})
 SQUAD_SPRINT_REPORTS=$(addprefix sprint-report-,${SQUAD_NAMES})
+SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.18-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.20-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -35,7 +36,7 @@ CMDSEP=;
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "$(COLOR_BLUE)%-15s$(COLOR_NONE) %s\n", $$1, $$2}'
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "$(COLOR_BLUE)%-18s$(COLOR_NONE) %s\n", $$1, $$2}'
 
 # Clean                             {{{2
 # ======================================
@@ -127,6 +128,20 @@ ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
 	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report
+
+# raw-sprint-report                 {{{2
+# ======================================
+
+.PHONY: raw-sprint-report
+raw-sprint-report: build ${SQUAD_RAW_SPRINT_REPORTS} ## Generate raw sprint reports
+
+.PHONY: ${SQUAD_RAW_SPRINT_REPORTS}
+${SQUAD_RAW_SPRINT_REPORTS}: raw-sprint-report-%:
+	@echo -------------------------------------------------------------------------------- 
+	@echo -- $* raw sprint report
+	@echo -------------------------------------------------------------------------------- 
+	@echo 
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report-raw --tsv
 
 # backlog-report                    {{{2
 # ======================================

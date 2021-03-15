@@ -35,6 +35,37 @@
         (assoc :time-in-blocked    (days-in-state :blocked))
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
+(defn- add-metadata [issue]
+  (let [buddiable? (every-pred user-level-task? (any-pred in-progress? closed?) (complement personal-development?))
+        discipline (fn [x] (cond
+                            (engineering? x)    :engineering
+                            (data-science? x)   :data-science
+                            (infrastructure? x) :infrastructure
+                            :else               :other))]
+    (assoc issue
+           :buddy-names       (string/join ", " (:buddies issue))
+           :user-level-task?  (user-level-task? issue)
+           :discipline        (discipline issue)
+           :delivered?        (and (deliverable? issue) (closed? issue))
+           :buddiable?        (buddiable? issue)
+           :buddied?          (buddied? issue))))
+
+(defn generate-sprint-report-raw
+  "Generate the report of raw sprint issues."
+  ([options]
+   (let [{:keys [board-name sprint-name]} options
+         sprint                           (jira/get-sprint-named board-name sprint-name)
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
+     (generate-sprint-report-raw options issues sprint)))
+
+  ([options issues sprint]
+   (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))
+         open-issues     (->> issues
+                              (filter open-in-sprint?))]
+     [{:title   "Raw issues"
+       :columns [:id :type :title :assignee :buddy-names :user-level-task? :discipline :delivered? :buddiable? :buddied?]
+       :rows    (map add-metadata issues)}])))
+
 ;; -----------------------------------------------------------------------------
 ;; Sprint names
 ;; -----------------------------------------------------------------------------
@@ -85,7 +116,7 @@
    :rows    (filter needs-size? issues)})
 
 (defn report-issues-needing-buddies [issues]
-  (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress? closed?) (complement personal-development?) (complement buddied?))]
+  (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress?) (complement personal-development?) (complement buddied?))]
     {:title   "Issues needing buddies"
      :columns [:id :type :title :assignee]
      :rows    (filter needs-buddy? issues)}))
