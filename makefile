@@ -12,7 +12,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 42 
+SPRINT_PREFIX=Sprint 42
 SQUAD_NAMES=Helix
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -23,7 +23,7 @@ SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.20-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.21-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -79,7 +79,7 @@ ${SQUAD_BUDDY_MAPS}: buddy-map-%:
 	@echo -- $* buddy-map
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --buddy-map > buddy-map.csv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX} $*" --buddy-map > buddy-map.csv
 	@${VEGA_LITE} buddy-map.vg.json > $*-buddy-map.png
 	@imgcat $*-buddy-map.png
 
@@ -96,7 +96,7 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@echo -- $* burndown
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --burndown > burndown.csv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX} $*" --burndown > burndown.csv
 	@${VEGA_LITE} burndown.vg.json > $*-burndown.png
 	@imgcat $*-burndown.png
 
@@ -113,7 +113,7 @@ ${SQUAD_DAILY_REPORTS}: daily-report-%:
 	@echo -- $* daily report
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --daily-report
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX} $*" --daily-report
 
 # sprint-report                     {{{2
 # ======================================
@@ -127,7 +127,7 @@ ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
 	@echo -- $* sprint report
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX} $*" --sprint-report
 
 # raw-sprint-report                 {{{2
 # ======================================
@@ -141,7 +141,7 @@ ${SQUAD_RAW_SPRINT_REPORTS}: raw-sprint-report-%:
 	@echo -- $* raw sprint report
 	@echo -------------------------------------------------------------------------------- 
 	@echo 
-	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX}$*" --sprint-report-raw --tsv
+	@./jira-reporter --board-name "${BOARD_NAME}" --sprint-name "${SPRINT_PREFIX} $*" --sprint-report-raw --tsv
 
 # backlog-report                    {{{2
 # ======================================

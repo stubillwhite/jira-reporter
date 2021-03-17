@@ -426,15 +426,17 @@
   "Generate a buddy map."
   ([options]
    (let [{:keys [board-name sprint-name]} options
+         sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
-     (generate-buddy-map options issues)))
+     (generate-buddy-map options sprint issues)))
 
-  ([options issues]
-   (let [pairings       (buddy-pairings issues)
-         counts-by-pair (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
-         assignees      (->> issues (map :assignee))
-         buddies        (->> issues (mapcat :buddies))
-         all-users      (->> (concat assignees buddies) (filter some?) (into #{}))]
+  ([options sprint issues]
+   (let [historical-issues (issues-at-date (date/truncate-to-days (:start-date sprint)) issues)
+         pairings          (buddy-pairings historical-issues)
+         counts-by-pair    (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
+         assignees         (->> issues (map :assignee))
+         buddies           (->> issues (mapcat :buddies))
+         all-users         (->> (concat assignees buddies) (filter some?) (into #{}))]
      (string/join "\n"
                   (concat ["Owner,Buddy,Count"]
                           (for [assignee all-users

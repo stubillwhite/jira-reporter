@@ -44,6 +44,7 @@
 ;; Public functions
 ;; -----------------------------------------------------------------------------
 
+;; TODO: Needs also to respect buddy, which needs to redirect through JIRA map
 (defn issue-at-date [date issue]
   "Returns the the issue in the state is was on the specified date, or nil if the issue did not exist. Only certain
   fields will reflect the state on the date, namely status, type, and history."
@@ -52,6 +53,7 @@
       (assoc issue
              :status  (field-value-at-date issue "status" date (:history issue))
              :type    (field-value-at-date issue "type" date (:history issue))
+             ;; :buddies (field-value-at-date issue "buddies" date (:history issue))
              :history history))))
 
 (defn issues-at-date [date issues]
