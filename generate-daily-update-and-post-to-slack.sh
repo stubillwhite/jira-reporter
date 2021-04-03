@@ -2,6 +2,8 @@
 
 set -euo pipefail # Exit on error, undefined symbol, or errors in pipe
 
+REPORTS_DIR=reports
+
 IMG_BACKGROUND=gray10
 IMG_FOREGROUND=gray80
 
@@ -36,6 +38,8 @@ function generate-report-and-post-to-slack() {
     ## slackcat --channel ${channel} ${team}-daily-report.png
     ## rm ${team}-daily-report.txt
     ## rm ${team}-daily-report.png
+    mv ${team}-daily-report.txt $REPORTS_DIR
+    mv ${team}-daily-report.png $REPORTS_DIR
 }
 
 function generate-burndown-and-post-to-slack() {
@@ -51,6 +55,8 @@ function generate-burndown-and-post-to-slack() {
     ## slackcat --channel ${channel} ${team}-burndown.png
     ## rm -f burndown.csv
     ## rm -f ${team}-burndown.png
+    mv burndown.csv         $REPORTS_DIR
+    mv ${team}-burndown.png $REPORTS_DIR
 }
 
 function generate-buddy-map-and-post-to-slack() {
@@ -66,8 +72,17 @@ function generate-buddy-map-and-post-to-slack() {
     ## slackcat --channel ${channel} ${team}-buddy-map.png
     ## rm -f buddy-map.csv
     ## rm -f ${team}-buddy-map.png
+    mv buddy-map.csv         $REPORTS_DIR
+    mv ${team}-buddy-map.png $REPORTS_DIR
 }
 
+rm -rf $REPORTS_DIR
+mkdir -p $REPORTS_DIR
 generate-report-and-post-to-slack    Helix recs-helix
 generate-burndown-and-post-to-slack  Helix recs-helix
 generate-buddy-map-and-post-to-slack Helix recs-helix
+
+generate-report-and-post-to-slack    Orion recs-orion
+generate-burndown-and-post-to-slack  Orion recs-orion
+generate-buddy-map-and-post-to-slack Orion recs-orion
+open $REPORTS_DIR

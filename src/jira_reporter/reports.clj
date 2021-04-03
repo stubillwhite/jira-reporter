@@ -50,6 +50,12 @@
            :buddiable?        (buddiable? issue)
            :buddied?          (buddied? issue))))
 
+(defn- raw-issues [issues sprint]
+  (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))]
+    (->> issues
+         (filter open-in-sprint?)
+         (map add-metadata))))
+
 (defn generate-sprint-report-raw
   "Generate the report of raw sprint issues."
   ([options]
@@ -59,12 +65,9 @@
      (generate-sprint-report-raw options issues sprint)))
 
   ([options issues sprint]
-   (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))
-         open-issues     (->> issues
-                              (filter open-in-sprint?))]
-     [{:title   "Raw issues"
-       :columns [:id :type :title :assignee :buddy-names :user-level-task? :discipline :delivered? :buddiable? :buddied?]
-       :rows    (map add-metadata issues)}])))
+   [{:title   "Raw issues"
+     :columns [:id :type :title :assignee :status :buddy-names :user-level-task? :discipline :delivered? :buddiable? :buddied?]
+     :rows    (raw-issues issues sprint)}]))
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint names
@@ -126,21 +129,6 @@
    :columns [:id :type :title :assignee]
    :rows    (filter needs-triage? issues)})
 
-(defn report-issue-allocation [issues]
-  {:title   "Issue discipline allocation"
-   :columns [:id :type :title :assignee]
-   :rows    (filter needs-triage? issues)})
-
-(defn report-issue-allocation [issues]
-  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
-    {:title   "Issue allocation"
-     :columns [:category :open :closed]
-     :rows [{:category "Data Science"         :open (count-of data-science?   open?)  :closed (count-of data-science?   closed?)}
-            {:category "Engineering"          :open (count-of engineering?    open?)  :closed (count-of engineering?    closed?)}
-            {:category "Infrastructure"       :open (count-of infrastructure? open?)  :closed (count-of infrastructure? closed?)}
-            {:category "Miscellaneous"        :open (count-of miscellaneous?  open?)  :closed (count-of miscellaneous?  closed?)}
-            {:category "Unallocated"          :open (count-of unallocated?    open?)  :closed (count-of unallocated?    closed?)}]}))
-
 (defn report-issues-needing-jira-clean-up [issues]
   (let [problem-types        {:missing-discipline-allocation unallocated?
                               :missing-team-assignment       missing-team-assignment?}
@@ -165,8 +153,9 @@
   "Generate the daily report for the current sprint."
   ([options]
    (let [{:keys [board-name sprint-name]} options
-         issues                           (issues-in-sprint-named board-name sprint-name)]
-     (generate-daily-report options issues)))
+         sprint                           (jira/get-sprint-named board-name sprint-name)
+         issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
+     (generate-daily-report options (raw-issues issues sprint))))
 
   ([options issues]
    [(report-issues-blocked issues)
@@ -177,7 +166,6 @@
     (report-issues-needing-sizing issues)
     (report-issues-needing-buddies issues)
     (report-issues-needing-triage issues)
-    (report-issue-allocation issues)
     (report-issues-needing-jira-clean-up issues)
     (report-personal-development issues)])) 
 

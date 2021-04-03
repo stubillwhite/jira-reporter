@@ -12,8 +12,8 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 42
-SQUAD_NAMES=Helix
+SPRINT_PREFIX=Sprint 44
+SQUAD_NAMES=Helix Orion
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
 SQUAD_BUDDY_MAPS=$(addprefix buddy-map-,${SQUAD_NAMES})
@@ -23,7 +23,7 @@ SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.21-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.22-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 

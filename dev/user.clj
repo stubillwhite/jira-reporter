@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 42 Helix")
+(def sprint-name  "Sprint 44 Orion")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -126,6 +126,9 @@
 
 (defn sprint-from-cache []
   (app/display-report config (reports/generate-sprint-report config (load-cached-issues) (load-cached-sprint))))
+
+(defn sprint-raw-from-cache []
+  (app/display-report config (reports/generate-sprint-report-raw config (load-cached-issues) (load-cached-sprint))))
 
 (defn daily-from-cache []
   (app/display-report config (reports/generate-daily-report config (load-cached-issues))))
