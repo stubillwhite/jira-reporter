@@ -12,7 +12,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 44
+SPRINT_PREFIX=Sprint 45
 SQUAD_NAMES=Helix Orion
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -23,7 +23,7 @@ SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.22-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.23-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
@@ -46,6 +46,11 @@ clean: ## Remove all artefacts
 	@echo 'Cleaning application'
 	@lein clean
 	@rm -f ./${APP_JAR}
+
+.PHONY: really-clean
+really-clean: clean ## Remove all artefacts and dependencies
+	@echo 'Cleaning dependencies'
+	@rm -rf ./node_modules
 
 # Application                       {{{2
 # ======================================
