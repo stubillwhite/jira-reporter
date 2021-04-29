@@ -47,8 +47,8 @@ clean: ## Remove all artefacts
 	@lein clean
 	@rm -f ./${APP_JAR}
 
-.PHONY: really-clean
-really-clean: clean ## Remove all artefacts and dependencies
+.PHONY: clean-all
+clean-all: clean ## Remove all artefacts and dependencies
 	@echo 'Cleaning dependencies'
 	@rm -rf ./node_modules
 
@@ -62,7 +62,7 @@ ${APP_JAR}:
 	@lein uberjar 
 	@mv target/${APP_JAR} ./${APP_JAR}
 
-build: ${APP_JAR}
+application: ${APP_JAR}
 
 # vega-lite                         {{{2
 # ======================================
@@ -73,13 +73,18 @@ ${VEGA_LITE}:
 
 vega: ${VEGA_LITE}
 
+# build                             {{{2
+# ======================================
+
+build: application vega
+
 # buddy-map                         {{{2
 # ======================================
 
 .PHONY: buddy-map 
-buddy-map: build vega ${SQUAD_BUDDY_MAPS} ## Generate buddy metrics
+buddy-map: ${SQUAD_BUDDY_MAPS} ## Generate buddy metrics
 
-${SQUAD_BUDDY_MAPS}: buddy-map-%:
+${SQUAD_BUDDY_MAPS}: buddy-map-%: build
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* buddy-map
 	@echo -------------------------------------------------------------------------------- 
@@ -88,15 +93,13 @@ ${SQUAD_BUDDY_MAPS}: buddy-map-%:
 	@${VEGA_LITE} buddy-map.vg.json > $*-buddy-map.png
 	@imgcat $*-buddy-map.png
 
-buddy-map-%: ${VEGA_LITE}
-
 # burndown                          {{{2
 # ======================================
 
 .PHONY: burndown 
-burndown: build vega ${SQUAD_BURNDOWNS} ## Generate burndown metrics
+burndown: ${SQUAD_BURNDOWNS} ## Generate burndown metrics
 
-${SQUAD_BURNDOWNS}: burndown-%:
+${SQUAD_BURNDOWNS}: burndown-%: build
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* burndown
 	@echo -------------------------------------------------------------------------------- 
@@ -105,15 +108,13 @@ ${SQUAD_BURNDOWNS}: burndown-%:
 	@${VEGA_LITE} burndown.vg.json > $*-burndown.png
 	@imgcat $*-burndown.png
 
-burndown-%: ${VEGA_LITE}
-
 # daily-report                      {{{2
 # ======================================
 
 .PHONY: daily-report
-daily-report: build ${SQUAD_DAILY_REPORTS} ## Generate daily reports
+daily-report: ${SQUAD_DAILY_REPORTS} ## Generate daily reports
 
-${SQUAD_DAILY_REPORTS}: daily-report-%:
+${SQUAD_DAILY_REPORTS}: daily-report-%: build
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* daily report
 	@echo -------------------------------------------------------------------------------- 
@@ -127,7 +128,7 @@ ${SQUAD_DAILY_REPORTS}: daily-report-%:
 sprint-report: build ${SQUAD_SPRINT_REPORTS} ## Generate sprint reports
 
 .PHONY: ${SQUAD_SPRINT_REPORTS}
-${SQUAD_SPRINT_REPORTS}: sprint-report-%:
+${SQUAD_SPRINT_REPORTS}: sprint-report-%: build
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* sprint report
 	@echo -------------------------------------------------------------------------------- 
@@ -141,7 +142,7 @@ ${SQUAD_SPRINT_REPORTS}: sprint-report-%:
 raw-sprint-report: build ${SQUAD_RAW_SPRINT_REPORTS} ## Generate raw sprint reports
 
 .PHONY: ${SQUAD_RAW_SPRINT_REPORTS}
-${SQUAD_RAW_SPRINT_REPORTS}: raw-sprint-report-%:
+${SQUAD_RAW_SPRINT_REPORTS}: raw-sprint-report-%: build
 	@echo -------------------------------------------------------------------------------- 
 	@echo -- $* raw sprint report
 	@echo -------------------------------------------------------------------------------- 
