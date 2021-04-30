@@ -419,7 +419,7 @@
      (generate-buddy-map options sprint issues)))
 
   ([options sprint issues]
-   (let [historical-issues (issues-at-date (date/truncate-to-days (:start-date sprint)) issues)
+   (let [historical-issues (issues-at-date (date/truncate-to-days (:end-date sprint)) issues)
          pairings          (buddy-pairings historical-issues)
          counts-by-pair    (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
          assignees         (->> issues (map :assignee))

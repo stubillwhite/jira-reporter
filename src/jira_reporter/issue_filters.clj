@@ -125,11 +125,14 @@
   [issue]
   (no-parent? issue))
 
+(declare bug?)
+
 (defn user-level-task?
   "Returns true if the issue is a self-contained user task, false otherwise."
   [issue]
   (or (task? issue)
       (subtask? issue)
+      (bug? issue)
       (and (story? issue) (no-subtasks? issue))))
 
 (defn sized?

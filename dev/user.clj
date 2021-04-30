@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 44 Orion")
+(def sprint-name  "Sprint 45 Orion")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -218,3 +218,6 @@
     (println (str "Closed:  " end-date))
     (println (str "Points:  " points))))
 
+;; (reports/buddy-pairings (load-cached-issues))
+
+;; (buddy-map-from-cache)

@@ -12,7 +12,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 45
+SPRINT_PREFIX=Sprint 46
 SQUAD_NAMES=Helix Orion
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
