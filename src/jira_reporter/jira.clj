@@ -80,7 +80,7 @@
    :buddies        (->> (get-in issue-json [:fields (keyword (buddy-field))]) (map :emailAddress) (map user-alias))
    :title          (get-in issue-json [:fields :summary])
    :points         (get-in issue-json [:fields (keyword (story-points-field))])
-   :team           (get-in issue-json [:fields (keyword (team-field))])
+   :team           (get-in issue-json [:fields (keyword (team-field)) :title])
    :epic           (get-in issue-json [:fields (keyword (epic-link-field))])
    :labels         (get-in issue-json [:fields :labels])
    :current-sprint (extract-sprint (get-in issue-json [:fields :sprint]))

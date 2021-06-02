@@ -72,7 +72,7 @@
                 {"key": "issue-2-subtask-2"}
             ],            
             "customfield_10002": 3.0,
-            "customfield_12604": "issue-2-team",
+            "customfield_12604": {"title": "issue-2-team"},
             "customfield_10236": "issue-2-epic",
             "labels": [],
             "sprint": {

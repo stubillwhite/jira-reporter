@@ -12,7 +12,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 46
+SPRINT_PREFIX=Sprint 48
 SQUAD_NAMES=Helix Orion
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
@@ -23,7 +23,7 @@ SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.23-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.24-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 
