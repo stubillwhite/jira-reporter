@@ -31,7 +31,8 @@
    history))
 
 (defn- field-value-at-date [issue field date history]
-  (let [history-for-field (filter (fn [x] (= (:field x) field)) history)
+  (let [sorted-history    (sort-by :date history)
+        history-for-field (filter (fn [x] (= (:field x) field)) sorted-history)
         filtered-history  (filter (fn [x] (before-or-equal? (:date x) date)) history-for-field)
         initial-value     (or (get (first history-for-field) :from)
                               (get issue (keyword field)))]

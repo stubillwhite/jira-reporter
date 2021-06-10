@@ -309,6 +309,13 @@
 (defn- format-date [date]
   (.format formatter date))
 
+;; (defn- calculate-burndown-metrics [issues]
+;;   (let [issues (filter (fn [x] (= (:id x) "SDPR-5103")) issues)]
+;;     (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :id) (string/join " ")))]
+;;       {:open   (count-of open?)
+;;        :closed (count-of closed?)
+;;        :total  (count-of identity)})))
+
 (defn- calculate-burndown-metrics [issues]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:open   (count-of open?)
@@ -381,8 +388,6 @@
        (take-while (fn [x] (and (before-or-equal? x (date/current-date)) (before-or-equal? x end-date))))
        (filter (fn [x] (date/working-day? x)))
        (map (fn [x] (calculate-epic-burndown-metrics-at-date x issues)))))
-
-
 
 (defn generate-epic-burndown
   "Generate an epic burndown."
