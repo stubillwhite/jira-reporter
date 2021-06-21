@@ -33,11 +33,7 @@ function generate-report-and-post-to-slack() {
         +repage                                     \
         ${team}-daily-report.png
 
-    ## Integration currently broken
-    ##
-    ## slackcat --channel ${channel} ${team}-daily-report.png
-    ## rm ${team}-daily-report.txt
-    ## rm ${team}-daily-report.png
+    slackcat --channel ${channel} ${team}-daily-report.png
     mv ${team}-daily-report.txt $REPORTS_DIR
     mv ${team}-daily-report.png $REPORTS_DIR
 }
@@ -50,11 +46,7 @@ function generate-burndown-and-post-to-slack() {
 
     make burndown-${team}
 
-    ## Integration currently broken
-    ##
-    ## slackcat --channel ${channel} ${team}-burndown.png
-    ## rm -f burndown.csv
-    ## rm -f ${team}-burndown.png
+    slackcat --channel ${channel} ${team}-burndown.png
     mv burndown.csv         $REPORTS_DIR
     mv ${team}-burndown.png $REPORTS_DIR
 }
@@ -67,11 +59,7 @@ function generate-buddy-map-and-post-to-slack() {
 
     make buddy-map-${team}
 
-    ## Integration currently broken
-    ##
-    ## slackcat --channel ${channel} ${team}-buddy-map.png
-    ## rm -f buddy-map.csv
-    ## rm -f ${team}-buddy-map.png
+    slackcat --channel ${channel} ${team}-buddy-map.png
     mv buddy-map.csv         $REPORTS_DIR
     mv ${team}-buddy-map.png $REPORTS_DIR
 }
