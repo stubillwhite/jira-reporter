@@ -11,8 +11,8 @@ COLOR_NONE=\033[0m
 COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
-PROJECT_NAME=SD Personalized Recommender
-SPRINT_PREFIX=Sprint 49
+PROJECT_NAME=Recommenders Team
+SPRINT_PREFIX=Sprint 50
 SQUAD_NAMES=Helix Orion
 
 SQUAD_BURNDOWNS=$(addprefix burndown-,${SQUAD_NAMES})
