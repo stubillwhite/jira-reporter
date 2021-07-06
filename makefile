@@ -23,7 +23,7 @@ SQUAD_RAW_SPRINT_REPORTS=$(addprefix raw-sprint-report-,${SQUAD_NAMES})
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.25-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.26-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 

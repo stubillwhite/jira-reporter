@@ -35,26 +35,29 @@
         (assoc :time-in-blocked    (days-in-state :blocked))
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
-(defn- add-metadata [issue]
-  (let [buddiable? (every-pred user-level-task? (any-pred in-progress? closed?) (complement personal-development?))
-        discipline (fn [x] (cond
-                            (engineering? x)    :engineering
-                            (data-science? x)   :data-science
-                            (infrastructure? x) :infrastructure
-                            :else               :other))]
+(defn- add-metadata [sprint issue]
+  (let [buddiable?        (every-pred user-level-task? (any-pred in-progress? closed?) (complement personal-development?))
+        discipline        (fn [x] (cond
+                                   (engineering? x)    :engineering
+                                   (data-science? x)   :data-science
+                                   (infrastructure? x) :infrastructure
+                                   :else               :other))
+        raised-in-sprint? (fn [x] (and (before-or-equal? (:start-date sprint) (:created issue))
+                                      (before-or-equal? (:created issue)     (:end-date sprint))))]
     (assoc issue
            :buddy-names       (string/join ", " (:buddies issue))
            :user-level-task?  (user-level-task? issue)
            :discipline        (discipline issue)
            :delivered?        (and (deliverable? issue) (closed? issue))
            :buddiable?        (buddiable? issue)
-           :buddied?          (buddied? issue))))
+           :buddied?          (buddied? issue)
+           :raised-in-sprint? (raised-in-sprint? issue))))
 
 (defn- raw-issues [issues sprint]
   (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))]
     (->> issues
          (filter open-in-sprint?)
-         (map add-metadata))))
+         (map (partial add-metadata sprint)))))
 
 (defn generate-sprint-report-raw
   "Generate the report of raw sprint issues."
@@ -66,7 +69,7 @@
 
   ([options issues sprint]
    [{:title   "Raw issues"
-     :columns [:id :type :title :assignee :status :buddy-names :user-level-task? :discipline :delivered? :buddiable? :buddied?]
+     :columns [:id :type :title :assignee :status :buddy-names :user-level-task? :discipline :delivered? :buddiable? :buddied? :raised-in-sprint?]
      :rows    (raw-issues issues sprint)}]))
 
 ;; -----------------------------------------------------------------------------
@@ -174,60 +177,43 @@
 ;; -----------------------------------------------------------------------------
 
 (defn report-work-committed [issues]
-  (let [add-was-delivered (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))]
-    {:title   "Stories and tasks committed to in this sprint"
-     :columns [:id :title :points :discipline :delivered]
-     :rows    (filter deliverable?
-                      (->> issues
-                           (map add-time-in-state)
-                           (map add-was-delivered)
-                           (sort-by (juxt :discipline :delivered :id))))}))
+  {:title   "Stories and tasks committed to in this sprint"
+   :columns [:id :title :points :discipline :delivered?]
+   :rows    (filter :user-level-task?
+                    (->> issues
+                         (sort-by (juxt :discipline :delivered? :id))))})
 
 (defn report-discipline-statistics-for-tasks [issues]
-  (let [unit-of-work? (fn [x] (or (task? x) (subtask? x) (and (story? x) (no-parent? x)))) ;; TODO: This is wrong
-        count-of      (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:title   "Statistics for tasks committed to and delivered in this sprint"
      :columns [:discipline :committed :delivered]
-     :rows    [{:discipline :engineering    :committed (count-of unit-of-work? engineering?)    :delivered (count-of unit-of-work? closed? engineering?)}
-               {:discipline :data-science   :committed (count-of unit-of-work? data-science?)   :delivered (count-of unit-of-work? closed? data-science?)}
-               {:discipline :infrastructure :committed (count-of unit-of-work? infrastructure?) :delivered (count-of unit-of-work? closed? infrastructure?)}]}))
+     :rows    [{:discipline :engineering    :committed (count-of engineering?)    :delivered (count-of :delivered? engineering?)}
+               {:discipline :data-science   :committed (count-of data-science?)   :delivered (count-of :delivered?  data-science?)}
+               {:discipline :infrastructure :committed (count-of infrastructure?) :delivered (count-of :delivered?  infrastructure?)}]}))
 
 (defn report-discipline-statistics-for-points [issues]
-  (let [sum-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
+  (let [total-points-of (fn [& preds] (->> issues (filter (apply every-pred preds)) (map :points) (filter identity) (apply +)))]
     {:title   "Statistics for points committed to and delivered in this sprint"
      :columns [:discipline :committed :delivered]
-     :rows    [{:discipline :engineering    :committed (sum-of deliverable? engineering?)    :delivered (sum-of deliverable? closed? engineering?)}
-               {:discipline :data-science   :committed (sum-of deliverable? data-science?)   :delivered (sum-of deliverable? closed? data-science?)}
-               {:discipline :infrastructure :committed (sum-of deliverable? infrastructure?) :delivered (sum-of deliverable? closed? infrastructure?)}]}))
-
-(defn- started-issues-with-buddy-status [issues]
-  (->> issues
-       (filter (every-pred (complement to-do?) (complement personal-development?) user-level-task?))
-       (map (fn [x] (assoc x
-                          :buddied?    (buddied? x)
-                          :buddy-names (string/join ", " (:buddies x)))))))
+     :rows    [{:discipline :engineering    :committed (total-points-of engineering?)    :delivered (total-points-of :delivered? engineering?)}
+               {:discipline :data-science   :committed (total-points-of data-science?)   :delivered (total-points-of :delivered? data-science?)}
+               {:discipline :infrastructure :committed (total-points-of infrastructure?) :delivered (total-points-of :delivered? infrastructure?)}]}))
 
 (defn report-buddying-statistics [issues]
-  (let [buddy-issues (started-issues-with-buddy-status issues)
-        count-of     (fn [& preds] (->> buddy-issues (filter (apply every-pred preds)) count))]
+  (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:title   "Statistics for tasks worked on which should have had buddies"
      :columns [:metric :total]
-     :rows    [{:metric "With buddies"    :total (count-of buddied?)}
-               {:metric "Without buddies" :total (count-of (complement buddied?))}]}))
+     :rows    [{:metric "With buddies"    :total (count-of :buddiable? :buddied?)}
+               {:metric "Without buddies" :total (count-of :buddiable? (complement :buddied?))}]}))
 
 (defn report-buddying-summary [issues]
-  (let [buddy-issues (started-issues-with-buddy-status issues)]
-    {:title   "Summary of tasks worked on which should have had buddies"
-     :columns [:id :title :assignee :buddy-names]
-     :rows    buddy-issues}))
-
-(defn- raised-in-sprint? [sprint issue]
-  (and (before-or-equal? (:start-date sprint) (:created issue))
-       (before-or-equal? (:created issue)     (:end-date sprint))))
+  {:title   "Summary of tasks worked on which should have had buddies"
+   :columns [:id :title :assignee :buddy-names]
+   :rows    (filter :buddiable? issues)})
 
 (defn report-issues-summary [issues sprint]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
-        raised?  (fn [x] (raised-in-sprint? sprint x))]
+        raised?  (fn [x] (:raised-in-sprint? x))]
     {:title   "Issue summary"
      :columns [:category :open :raised :closed]
      :rows [{:category "Story"   :open (count-of story?   open?) :raised (count-of story?   raised?) :closed (count-of story?   closed?)}
@@ -237,44 +223,25 @@
             {:category "GDPR"    :open (count-of gdpr?    open?) :raised (count-of gdpr?    raised?) :closed (count-of gdpr?    closed?)}
             {:category "Total"   :open (count-of open?)          :raised (count-of raised?)          :closed (count-of closed?)}]}))
 
-(defn- raised-in-sprint? [sprint issue]
-  (and (before-or-equal? (:start-date sprint) (:created issue))
-       (before-or-equal? (:created issue)     (:end-date sprint))))
-
 (defn report-issues-raised-in-sprint [issues sprint]
   {:title   "Issues raised in the sprint"
    :columns [:id :type :title]
-   :rows    (filter (partial raised-in-sprint? sprint) issues)})
+   :rows    (filter :raised-in-sprint? issues)})
 
 (defn report-issues-closed-in-sprint [issues sprint]
-  (let [add-was-delivered    (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))
-        add-raised-in-sprint (fn [x] (assoc x :raised-in-sprint? (raised-in-sprint? sprint x)))]
-    {:title   "Issues closed in the sprint"
-     :columns [:id :type :title :discipline :raised-in-sprint?]
-     :rows
-     (filter deliverable?
-             (->> issues
-                  (map add-was-delivered)
-                  (map add-raised-in-sprint)
-                  (filter (fn [x] (closed? x)))
-                  (sort-by (juxt :discipline :delivered :raised-in-sprint? :id))))}))
+  {:title   "Issues closed in the sprint"
+   :columns [:id :type :title :discipline :delivered? :raised-in-sprint?]
+   :rows    (->> issues
+                 (filter :user-level-task?)
+                 (filter :delivered?)
+                 (sort-by (juxt :discipline :raised-in-sprint? :id)))})
 
 (defn report-work-committed [issues]
-  (let [add-was-delivered (fn [x] (assoc x :delivered (and (deliverable? x) (closed? x))))]
-    {:title   "Stories and tasks committed to in this sprint"
-     :columns [:id :title :points :discipline :delivered]
-     :rows    (filter deliverable?
-                      (->> issues
-                           (map add-time-in-state)
-                           (map add-was-delivered)
-                           (sort-by (juxt :discipline :delivered :id))))}))
-
-(defn- add-discipline [x]
-  (assoc x :discipline (cond
-                         (engineering? x)    :engineering
-                         (data-science? x)   :data-science
-                         (infrastructure? x) :infrastructure
-                         :else               :other)))
+  {:title   "Stories and tasks committed to in this sprint"
+   :columns [:id :title :points :discipline :delivered?]
+   :rows    (->> issues
+                 (filter :user-level-task?)
+                 (sort-by (juxt :discipline :delivered? :id)))})
 
 (defn generate-sprint-report
   "Generate the sprint summary report."
@@ -282,23 +249,17 @@
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
-     (generate-sprint-report options issues sprint)))
+     (generate-sprint-report options (raw-issues issues sprint) sprint)))
 
   ([options issues sprint]
-   (let [open-in-sprint? (fn [x] (open? (issue-at-date (:start-date sprint) x)))
-         open-issues     (->> issues
-                              (filter open-in-sprint?)
-                              (map add-discipline))]
-     [
-      (report-work-committed open-issues)
-      (report-discipline-statistics-for-tasks open-issues)
-      (report-discipline-statistics-for-points open-issues)
-      (report-buddying-summary open-issues)
-      (report-buddying-statistics open-issues)
-      (report-issues-summary open-issues sprint)
-      (report-issues-raised-in-sprint open-issues sprint)
-      (report-issues-closed-in-sprint open-issues sprint)
-      ])))
+   [(report-work-committed issues)
+    (report-discipline-statistics-for-tasks issues)
+    (report-discipline-statistics-for-points issues)
+    (report-buddying-statistics issues)
+    (report-buddying-summary issues)
+    (report-issues-summary issues sprint)
+    (report-issues-raised-in-sprint issues sprint)
+    (report-issues-closed-in-sprint issues sprint)]))
 
 ;; -----------------------------------------------------------------------------
 ;; Burndown
