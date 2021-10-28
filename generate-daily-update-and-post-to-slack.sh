@@ -8,12 +8,12 @@ IMG_BACKGROUND=gray10
 IMG_FOREGROUND=gray80
 
 function generate-report-and-post-to-slack() {
-    declare team=$1 channel=$2
+    declare channel=$1
 
-    rm -f ${team}-daily-report.txt
-    rm -f ${team}-daily-report.png
+    rm -f daily-report.txt
+    rm -f daily-report.png
 
-    make daily-report-${team} > ${team}-daily-report.txt
+    make daily-report > daily-report.txt
 
     # Generate the PNG for Slack to avoid text wrapping
     #  - No idea how big it will be, so generate oversized and trim down
@@ -26,51 +26,46 @@ function generate-report-and-post-to-slack() {
         -pointsize 32                               \
         -fill ${IMG_FOREGROUND}                     \
         -annotate +32+60                            \
-        "@${team}-daily-report.txt"                 \
+        "@daily-report.txt"							\
         -trim                                       \
         -bordercolor ${IMG_BACKGROUND}              \
         -border 32                                  \
         +repage                                     \
-        ${team}-daily-report.png
+        daily-report.png
 
-    slackcat --channel ${channel} ${team}-daily-report.png
-    mv ${team}-daily-report.txt $REPORTS_DIR
-    mv ${team}-daily-report.png $REPORTS_DIR
+    slackcat --channel ${channel} daily-report.png
+    mv daily-report.txt $REPORTS_DIR
+    mv daily-report.png $REPORTS_DIR
 }
 
 function generate-burndown-and-post-to-slack() {
-    declare team=$1 channel=$2
+    declare channel=$1
 
     rm -f burndown.csv
-    rm -f ${team}-burndown.png
+    rm -f burndown.png
 
-    make burndown-${team}
+    make burndown
 
-    slackcat --channel ${channel} ${team}-burndown.png
-    mv burndown.csv         $REPORTS_DIR
-    mv ${team}-burndown.png $REPORTS_DIR
+    slackcat --channel ${channel} burndown.png
+    mv burndown.csv $REPORTS_DIR
+    mv burndown.png $REPORTS_DIR
 }
 
 function generate-buddy-map-and-post-to-slack() {
-    declare team=$1 channel=$2
+    declare channel=$1
 
     rm -f buddy-map.csv
-    rm -f ${team}-buddy-map.png
+    rm -f buddy-map.png
 
-    make buddy-map-${team}
+    make buddy-map
 
-    slackcat --channel ${channel} ${team}-buddy-map.png
-    mv buddy-map.csv         $REPORTS_DIR
-    mv ${team}-buddy-map.png $REPORTS_DIR
+    slackcat --channel ${channel} buddy-map.png
+    mv buddy-map.csv $REPORTS_DIR
+    mv buddy-map.png $REPORTS_DIR
 }
 
 rm -rf $REPORTS_DIR
 mkdir -p $REPORTS_DIR
-generate-report-and-post-to-slack    Helix recs-helix
-generate-burndown-and-post-to-slack  Helix recs-helix
-generate-buddy-map-and-post-to-slack Helix recs-helix
-
-generate-report-and-post-to-slack    Orion recs-orion
-generate-burndown-and-post-to-slack  Orion recs-orion
-generate-buddy-map-and-post-to-slack Orion recs-orion
-open $REPORTS_DIR
+generate-report-and-post-to-slack    recommenders-team
+generate-burndown-and-post-to-slack  recommenders-team
+generate-buddy-map-and-post-to-slack recommenders-team

@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 50 Orion")
+(def sprint-name  "Sprint 53 Orion")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -138,6 +138,9 @@
 
 ;; From real system
 
+(defn sprints []
+  (app/-main "--list-sprints" "--board-name" board-name))
+
 (defn burndown []
   (app/-main "--burndown" "--board-name" board-name "--sprint-name" sprint-name))
 
@@ -165,7 +168,7 @@
 ;; Historicals
 
 (def historical-sprints
-  (for [x (range 30 40)] (format "Sprint %d Helix" x)))
+  (for [x (range 50 56)] (format "Sprint %d Orion" x)))
 
 (defn build-metrics [report metric]
   (let [make-keyword (fn [k suffix] (keyword (str (symbol k) suffix "-" metric)))]
@@ -177,10 +180,10 @@
 
 (defn historical-statistics [sprint-name]
   (let [sprint (jira/get-sprint-named board-name sprint-name)
-        issues (jira/get-issues-in-sprint-named board-name sprint-name)]
+        issues (reports/raw-issues (jira/get-issues-in-sprint-named board-name sprint-name) sprint)]
     (merge 
-     (build-metrics (reports/report-discipline-statistics-for-tasks issues) "tasks")
-     (build-metrics (reports/report-discipline-statistics-for-points issues) "points")
+     (build-metrics (reports/report-user-level-task-statistics     issues) "tasks")
+     (build-metrics (reports/report-business-level-task-statistics issues) "points")
      {:sprint sprint-name})))
 
 (defn display-all-historical-stats []
@@ -221,3 +224,22 @@
 ;; (reports/buddy-pairings (load-cached-issues))
 
 ;; (buddy-map-from-cache)
+
+;; (def issues (load-cached-issues))
+;; 
+;; (->> issues
+;;      (map :id))
+;; 
+;; (def issue (->> issues
+;;                 (filter (fn [x] (= (:id x) "SDPR-5526")))
+;;                 (first)))
+;; 
+;; (pprint (:history issue))
+;; 
+;; 
+;; 
+;; (->> issue
+;;      (issue-filters/issue-at-date (date/parse-date "2021-09-26Z"))
+;;      ((fn [x] (select-keys x [:history :status])))
+;;      (pprint))
+;; 

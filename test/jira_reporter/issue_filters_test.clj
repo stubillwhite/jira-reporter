@@ -31,31 +31,6 @@
      :from  "todo"
      :to    to}))
 
-;; (deftest issue-at-date
-;;   (testing "given created after date then nil"
-;;     (is (nil? (issue-filters/issue-at-date date-6th {:created date-7th}))))
-  
-;;   (testing "given status changed then can restore previous history"
-;;     (let [history  [(status-change str-6th "in-progress") (status-change str-7th "closed")]
-;;           issue    (story "1" "closed" :created date-5th :history history)
-;;           expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
-;;       (is (= expected (issue-filters/issue-at-date date-6th issue)))))
-
-;;   (testing "problem case"
-;;     (let [history  [(status-change-x "2020-07-01T09:05:57Z" "in-progress") (status-change-x "2020-07-01T13:10:29Z" "closed")]
-;;           issue    (story "1" "closed" :created (date/parse-date-time "2020-06-25T11:56:45Z") :history history)
-;;           expected (-> issue (assoc :status "todo" :history []))]
-;;       (is (= expected (issue-filters/issue-at-date (date/parse-date-time "2020-06-25T15:59:14.608Z") issue)))))
-  
-;;   (testing "given non-status field changed then ignores changes"
-;;     (let [history  [(type-change str-5th "epic" "story")
-;;                     (status-change str-6th "in-progress")
-;;                     (status-change str-7th "closed")]
-;;           issue    (story "1" "closed" :created date-5th :history history)
-;;           expected (-> issue (assoc :status "in-progress" :history (drop-last history)))]
-;;       (is (= expected (issue-filters/issue-at-date date-6th issue)))))
-;;   )
-
 (deftest issue-at-date
   (let [history  [(type-change str-5th "epic" "story") (status-change str-6th "todo" "in-progress") (status-change str-7th "in-progress" "closed")]
         issue    (story "1" "closed" :created date-5th :history history)]
@@ -73,27 +48,6 @@
 
     (testing "given after multiple changes then changed state"
       (is (= issue (issue-filters/issue-at-date date-7th issue))))))
-
-
-;; {:history
-;;  ({:date
-;;    #object[java.time.ZonedDateTime 0x42afbe50 "2020-07-01T09:05:57Z[UTC]"],
-;;    :field "status",
-;;    :from "To Do",
-;;    :to "In Progress"}
-;;   {:date
-;;    #object[java.time.ZonedDateTime 0x7710d17c "2020-07-01T13:10:29Z[UTC]"],
-;;    :field "status",
-;;    :from "In Progress",
-;;    :to "Closed - DONE"}),
-;;  :type "Task",
-;;  :created
-;;  #object[java.time.ZonedDateTime 0xc098de1 "2020-06-25T11:56:45Z[UTC]"],
-;;  :status "Closed - DONE",
-;;  :id "SDPR-3840",
-;; }
-;; #object[java.time.ZonedDateTime 0x9f5d69e "2020-06-25T15:59:14.608Z[UTC]"]
-
 
 ;; TODO issues-at-date
 ;; (also remember to test when "issuetype" changes from "workflow" to "status" (not just status field))
@@ -127,9 +81,10 @@
     (testing "no-subtasks?"
       (is (= true (issue-filters/no-subtasks? {})))
       (is (= false (issue-filters/no-subtasks? {:subtask-ids ["subtask"]}))))
-    (testing "deliverable?"
-      (is (= true (issue-filters/deliverable? {})))
-      (is (= false (issue-filters/deliverable? {:parent-id "parent"}))))
+    (testing "business-deliverable?"
+      (is (= true (issue-filters/business-deliverable? {})))
+      (is (= false (issue-filters/business-deliverable? {:parent-id "parent"})))
+      (is (= false (issue-filters/business-deliverable? {:labels #{"recs_pd"}}))))
     (testing "sized?"
       (is (= true (issue-filters/sized? {:points 1.0})))
       (is (= false (issue-filters/sized? {}))))
@@ -158,9 +113,8 @@
       (is (= true (issue-filters/buddied? {:buddies ["someone"]})))
       (is (= false (issue-filters/buddied? {:buddies []}))))
     (testing "needs-size?"
-      (is (= true (issue-filters/needs-size? {})))
-      (is (= false (issue-filters/needs-size? {:points 1.0})))
-      (is (= false (issue-filters/needs-size? {:parent-id "parent-issue"}))))
+      (is (= true (issue-filters/needs-size? {:type "task"})))
+      (is (= false (issue-filters/needs-size? {:type "task" :points 1.0}))))
     (testing "needs-triage?"
       (is (= true (issue-filters/needs-triage? {:type "bug" :labels #{}})))
       (is (= false (issue-filters/needs-triage? {:type "task" :labels #{}})))
@@ -195,3 +149,5 @@
     (is (= true  (issue-filters/changed-state-in-the-last-day? (issue-modified-at (hours-offset -12)))))
     (is (= false (issue-filters/changed-state-in-the-last-day? (issue-modified-at (hours-offset -48)))))
     (is (= false (issue-filters/changed-state-in-the-last-day? {})))))
+
+

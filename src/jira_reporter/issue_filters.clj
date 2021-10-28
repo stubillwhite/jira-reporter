@@ -50,12 +50,15 @@
   "Returns the the issue in the state is was on the specified date, or nil if the issue did not exist. Only certain
   fields will reflect the state on the date, namely status, type, and history."
   (when (before-or-equal? (:created issue) date)
-    (let [history (take-while (fn [x] (before-or-equal? (:date x) date)) (:history issue))]
+    (let [pruned-history  (->> (:history issue)
+                               (sort-by :date)
+                               (take-while (fn [x] (before-or-equal? (:date x) date))))]
       (assoc issue
-             :status  (field-value-at-date issue "status" date (:history issue))
-             :type    (field-value-at-date issue "type" date (:history issue))
+             :status  (field-value-at-date issue "status"  date (:history issue))
+             :type    (field-value-at-date issue "type"    date (:history issue))
+             ;; :history (field-value-at-date issue "history" date (:history issue))
              ;; :buddies (field-value-at-date issue "buddies" date (:history issue))
-             :history history))))
+             :history pruned-history))))
 
 (defn issues-at-date [date issues]
   "See issue-at-date. Issues which were created after the specified date will be removed."
@@ -120,11 +123,13 @@
   [issue]
   (empty? (:subtask-ids issue)))
 
-;; TODO: Do we still need this?
-(defn deliverable?
+(declare personal-development?)
+
+(defn business-deliverable?
   "Returns true if the issue is a self-contained deliverable, false otherwise."
   [issue]
-  (no-parent? issue))
+  (and (no-parent? issue)
+       (not (personal-development? issue))))
 
 (declare bug?)
 
@@ -188,7 +193,7 @@
 (defn needs-size?
   "Returns true if the issue needs size, false otherwise."
   [issue]
-  (and (deliverable? issue) (not (sized? issue))))
+  (and (business-deliverable? issue) (not (sized? issue))))
 
 (defn needs-triage?
   "Returns true if the issue needs triage, false otherwise."
@@ -245,5 +250,5 @@
 (defn missing-team-assignment?
   "Returns true if the issue has not been assigned to a team, false otherwise."
   [issue]
-  (and (deliverable? issue)
+  (and (business-deliverable? issue)
        (nil? (:team issue))))

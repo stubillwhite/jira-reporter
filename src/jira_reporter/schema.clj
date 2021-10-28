@@ -17,9 +17,6 @@
 ;; Sprint
 ;; -----------------------------------------------------------------------------
 
-(spec/def ::sprint
-  (spec/keys :req-un [::id ::name ::start-date ::end-date ::state]))
-
 (defn to-zoned-date-time [ms]
   (-> (Instant/ofEpochMilli ms) (ZonedDateTime/ofInstant utc)))
 
@@ -38,10 +35,14 @@
 (spec/def ::state      string?)
 (spec/def ::start-date (spec/nilable zoned-date-time?))
 (spec/def ::end-date   (spec/nilable zoned-date-time?))
+
 ;; (spec/def ::start-date (spec/nilable ::zoned-date-time))
 ;; (spec/def ::end-date   (spec/nilable ::zoned-date-time))
 
 ;; (gen/generate (spec/gen ::sprint))
+
+(spec/def ::sprint
+  (spec/keys :req-un [::id ::name ::start-date ::end-date ::state]))
 
 ;; -----------------------------------------------------------------------------
 ;; Issue
