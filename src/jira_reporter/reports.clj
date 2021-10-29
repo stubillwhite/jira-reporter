@@ -46,7 +46,6 @@
         raised-in-sprint? (fn [x] (and (before-or-equal? (:start-date sprint) (:created issue))
                                       (before-or-equal? (:created issue)     (:end-date sprint))))]
     (assoc issue
-           :buddy-names           (string/join ", " (:buddies issue))
            :user-level-task?      (user-level-task? issue)
            :business-deliverable? (business-deliverable? issue)
            :discipline            (discipline issue)
@@ -78,7 +77,7 @@
 
   ([options issues sprint]
    [{:title   "Raw issues"
-     :columns [:id :type :title :assignee :status :buddy-names :user-level-task? :business-deliverable? :discipline :work-started? :work-complete? :buddiable? :buddied? :raised-in-sprint?]
+     :columns [:id :type :title :assignee :status :buddies :user-level-task? :business-deliverable? :discipline :work-started? :work-complete? :buddiable? :buddied? :raised-in-sprint?]
      :rows    (raw-issues issues sprint)}]))
 
 ;; -----------------------------------------------------------------------------
@@ -96,34 +95,43 @@
 ;; Daily report
 ;; -----------------------------------------------------------------------------
 
+(defn- buddies-to-str [x]
+  (assoc x :buddies (string/join ", " (:buddies x))))
+
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
-   :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred blocked?) issues)})
+   :columns [:id :type :title :assignee :buddies]
+   :rows    (->> issues
+                 (filter (every-pred blocked?))
+                 (map buddies-to-str))})
 
 (defn report-issues-started [issues]
   {:title   "Issues started yesterday"
    :columns [:id :type :title :assignee :buddies]
-   :rows    (->> issues 
+   :rows    (->> issues
                  (filter (every-pred changed-state-in-the-last-day? in-progress?))
-                 (map (fn [x] (update-in x [:buddies] (partial string/join ", ")))))})
+                 (map buddies-to-str))})
 
 (defn report-issues-in-progress [issues]
   {:title   "Issues still in progress"
    :columns [:id :type :title :assignee :buddies]
-   :rows   (->> issues
-                (filter (every-pred (complement changed-state-in-the-last-day?) in-progress? user-level-task?))
-                (map (fn [x] (update-in x [:buddies] (partial string/join ", ")))))})
+   :rows    (->> issues
+                 (filter (every-pred (complement changed-state-in-the-last-day?) in-progress? user-level-task?))
+                 (map buddies-to-str))})
 
 (defn report-issues-ready-for-release [issues]
   {:title   "Issues awaiting release"
-   :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred awaiting-deployment?) issues)})
+   :columns [:id :type :title :assignee :buddies]
+   :rows    (->> issues
+                 (filter (every-pred awaiting-deployment?))
+                 (map buddies-to-str))})
 
 (defn report-issues-closed [issues]
   {:title   "Issues closed yesterday"
-   :columns [:id :type :title :assignee]
-   :rows    (filter (every-pred changed-state-in-the-last-day? closed?) issues)})
+   :columns [:id :type :title :assignee :buddies]
+   :rows    (->> issues
+                 (filter (every-pred changed-state-in-the-last-day? closed?))
+                 (map buddies-to-str))})
 
 (defn report-issues-needing-sizing [issues]
   {:title   "Issues needing sizing"
@@ -175,10 +183,8 @@
     (report-issues-ready-for-release issues)
     (report-issues-closed issues)
     (report-issues-needing-sizing issues)
-    (report-issues-needing-buddies issues)
     (report-issues-needing-triage issues)
-    (report-issues-needing-jira-clean-up issues)
-    (report-personal-development issues)])) 
+    (report-issues-needing-jira-clean-up issues)])) 
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint report
