@@ -238,7 +238,8 @@
 (defn report-buddying-summary [issues]
   {:title   "Summary of tasks worked on which should have had buddies"
    :columns [:id :title :assignee :buddy-names]
-   :rows    (filter :buddiable? issues)})
+   :rows    (->> issues
+                 (filter (every-pred :work-started? :buddiable?)))})
 
 (defn report-issues-summary [issues sprint]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
