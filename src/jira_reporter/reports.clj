@@ -177,11 +177,12 @@
      (generate-daily-report options (raw-issues issues sprint))))
 
   ([options issues]
-   [(report-issues-blocked issues)
-    (report-issues-started issues)
-    (report-issues-in-progress issues)
-    (report-issues-ready-for-release issues)
-    (report-issues-closed issues)
+   [;; (report-issues-blocked issues)
+    ;; (report-issues-started issues)
+    ;; (report-issues-in-progress issues)
+    ;; (report-issues-ready-for-release issues)
+    ;; (report-issues-closed issues)
+    (report-issues-needing-buddies issues)
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)
     (report-issues-needing-jira-clean-up issues)])) 

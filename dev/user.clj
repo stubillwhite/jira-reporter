@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 59")
+(def sprint-name  "Sprint 63")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
