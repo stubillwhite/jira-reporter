@@ -147,12 +147,12 @@
 (defn report-buddying-commitments [issues]
   (let [commitments (build-buddying-commitments issues)]
     {:title   "Buddying commitments"
-     :columns [:user :count :tickets]
+     :columns [:user :count :issues]
      :rows    (sort-by :user
-                       (for [[user tickets] commitments]
-                         {:user    user
-                          :count   (count tickets)
-                          :tickets (string/join ", " (sort tickets))}))}))
+                       (for [[user buddy-issues] commitments]
+                         {:user   user
+                          :count  (count buddy-issues)
+                          :issues (string/join ", " (sort buddy-issues))}))}))
 
 (defn report-issues-needing-buddies [issues]
   (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress?) (complement personal-development?) (complement buddied?))]
