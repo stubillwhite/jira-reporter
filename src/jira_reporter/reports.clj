@@ -138,6 +138,22 @@
    :columns [:id :type :title :assignee]
    :rows    (filter needs-size? issues)})
 
+(defn- build-buddying-commitments [issues]
+  (let [add-commitments (fn [acc id buddies] (reduce (fn [acc buddy] (update acc buddy (fnil conj []) id)) acc buddies))]
+    (reduce (fn [acc {:keys [id buddies]}] (add-commitments acc id buddies))
+            {}
+            issues)))
+
+(defn report-buddying-commitments [issues]
+  (let [commitments (build-buddying-commitments issues)]
+    {:title   "Buddying commitments"
+     :columns [:user :count :tickets]
+     :rows    (sort-by :user
+                       (for [[user tickets] commitments]
+                         {:user    user
+                          :count   (count tickets)
+                          :tickets (string/join ", " (sort tickets))}))}))
+
 (defn report-issues-needing-buddies [issues]
   (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress?) (complement personal-development?) (complement buddied?))]
     {:title   "Issues needing buddies"
@@ -182,6 +198,7 @@
     ;; (report-issues-in-progress issues)
     ;; (report-issues-ready-for-release issues)
     ;; (report-issues-closed issues)
+    (report-buddying-commitments issues)
     (report-issues-needing-buddies issues)
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)
