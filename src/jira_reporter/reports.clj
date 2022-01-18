@@ -63,6 +63,9 @@
          (filter identity)
          (map (partial add-metadata sprint)))))
 
+(defn- buddies-to-str [x]
+  (assoc x :buddies (string/join ", " (:buddies x))))
+
 ;; -----------------------------------------------------------------------------
 ;; Sprint report raw
 ;; -----------------------------------------------------------------------------
@@ -78,7 +81,8 @@
   ([options issues sprint]
    [{:title   "Raw issues"
      :columns [:id :type :title :assignee :status :buddies :user-level-task? :business-deliverable? :discipline :work-started? :work-complete? :buddiable? :buddied? :raised-in-sprint?]
-     :rows    (raw-issues issues sprint)}]))
+     :rows    (->> (raw-issues issues sprint)
+                   (map buddies-to-str))}]))
 
 ;; -----------------------------------------------------------------------------
 ;; Sprint names
@@ -94,9 +98,6 @@
 ;; -----------------------------------------------------------------------------
 ;; Daily report
 ;; -----------------------------------------------------------------------------
-
-(defn- buddies-to-str [x]
-  (assoc x :buddies (string/join ", " (:buddies x))))
 
 (defn report-issues-blocked [issues]
   {:title   "Issues currently blocked"
@@ -250,14 +251,15 @@
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))]
     {:title   "Statistics for tasks worked on which should have had buddies"
      :columns [:metric :total]
-     :rows    [{:metric "With buddies"    :total (count-of :buddiable? :buddied?)}
-               {:metric "Without buddies" :total (count-of :buddiable? (complement :buddied?))}]}))
+     :rows    [{:metric "With buddies"    :total (count-of :work-started? :buddiable? :buddied?)}
+               {:metric "Without buddies" :total (count-of :work-started? :buddiable? (complement :buddied?))}]}))
 
 (defn report-buddying-summary [issues]
   {:title   "Summary of tasks worked on which should have had buddies"
-   :columns [:id :title :assignee :buddy-names]
+   :columns [:id :title :assignee :buddies]
    :rows    (->> issues
-                 (filter (every-pred :work-started? :buddiable?)))})
+                 (filter (every-pred :work-started? :buddiable?))
+                 (map buddies-to-str))})
 
 (defn report-issues-summary [issues sprint]
   (let [count-of (fn [& preds] (->> issues (filter (apply every-pred preds)) count))
