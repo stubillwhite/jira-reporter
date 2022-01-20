@@ -199,7 +199,7 @@
     ;; (report-issues-in-progress issues)
     ;; (report-issues-ready-for-release issues)
     ;; (report-issues-closed issues)
-    (report-buddying-commitments issues)
+    ;; (report-buddying-commitments issues)
     (report-issues-needing-buddies issues)
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)

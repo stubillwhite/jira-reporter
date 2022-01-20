@@ -12,7 +12,7 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=Recommenders Team
-SPRINT_PREFIX=Sprint 63
+SPRINT_PREFIX=Sprint 64
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
