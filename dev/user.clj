@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 63")
+(def sprint-name  "Sprint 64")
 (def board-name   "CORE Tribe")
 (def project-name "SD Personalized Recommender")
 
@@ -243,3 +243,14 @@
 ;;      ((fn [x] (select-keys x [:history :status])))
 ;;      (pprint))
 ;; 
+
+;; (defn- get-issues [sprint-name]
+;;   (let [sprint (jira/get-sprint-named board-name sprint-name)]
+;;     (rest-client/get-issues-for-sprint (:id sprint))))
+;; 
+;; (let [sprints     ["Sprint 63"]
+;;       last-sprint (jira/get-sprint-named board-name (last sprints))
+;;       issues      (mapcat get-issues sprints)
+;;       deduped     (for [[k vs] (group-by :id issues)] (first vs))]
+;;   (pprint (reports/generate-buddy-map nil last-sprint issues)))
+

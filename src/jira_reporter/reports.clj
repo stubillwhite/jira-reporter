@@ -140,20 +140,19 @@
    :rows    (filter needs-size? issues)})
 
 (defn- build-buddying-commitments [issues]
-  (let [add-commitments (fn [acc id buddies] (reduce (fn [acc buddy] (update acc buddy (fnil conj []) id)) acc buddies))]
-    (reduce (fn [acc {:keys [id buddies]}] (add-commitments acc id buddies))
+  (let [add-commitments (fn [acc assignee buddies] (reduce (fn [acc buddy] (update acc buddy (fnil conj []) assignee)) acc buddies))]
+    (reduce (fn [acc {:keys [assignee buddies]}] (add-commitments acc assignee buddies))
             {}
-            issues)))
+            (filter in-progress? issues))))
 
 (defn report-buddying-commitments [issues]
   (let [commitments (build-buddying-commitments issues)]
-    {:title   "Buddying commitments"
-     :columns [:user :count :issues]
-     :rows    (sort-by :user
-                       (for [[user buddy-issues] commitments]
-                         {:user   user
-                          :count  (count buddy-issues)
-                          :issues (string/join ", " (sort buddy-issues))}))}))
+    {:title   "Team members currently buddying on tickets in progress"
+     :columns [:buddy :for-owner]
+     :rows    (sort-by :buddy
+                       (for [[buddy assignees] commitments]
+                         {:buddy     buddy
+                          :for-owner (string/join ", " (sort assignees))}))}))
 
 (defn report-issues-needing-buddies [issues]
   (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress?) (complement personal-development?) (complement buddied?))]
@@ -199,7 +198,7 @@
     ;; (report-issues-in-progress issues)
     ;; (report-issues-ready-for-release issues)
     ;; (report-issues-closed issues)
-    ;; (report-buddying-commitments issues)
+    (report-buddying-commitments issues)
     (report-issues-needing-buddies issues)
     (report-issues-needing-sizing issues)
     (report-issues-needing-triage issues)
