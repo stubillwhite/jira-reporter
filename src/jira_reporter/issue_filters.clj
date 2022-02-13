@@ -115,8 +115,8 @@
 
 (defn no-parent?
   "Returns true if the issue has no parent, false otherwise."
-  [issue]
-  (nil? (:parent-id issue)))
+  [{:keys [parent-id epic]}]
+  (or (nil? parent-id) (= parent-id epic)))
 
 (defn no-subtasks?
   "Returns true if the issue has no subtasks, false otherwise."
@@ -125,13 +125,18 @@
 
 (declare personal-development?)
 
+(declare user-level-task?)
+
+(declare bug?)
+
 (defn business-deliverable?
   "Returns true if the issue is a self-contained deliverable, false otherwise."
   [issue]
-  (and (no-parent? issue)
-       (not (personal-development? issue))))
-
-(declare bug?)
+  (let [{:keys [parent-id epic]} issue]
+    (and (not (personal-development? issue))
+         (or (story? issue)
+             (and (task? issue) (no-subtasks? issue))
+             (and (bug? issue) (no-parent? issue))))))
 
 (defn user-level-task?
   "Returns true if the issue is a self-contained user task, false otherwise."
@@ -220,7 +225,8 @@
 (defn infrastructure?
   "Returns true if the issue is an infrastructure issue, false otherwise."
   [issue]
-  (has-labels? ["recs_infra"] issue))
+  (or (has-labels? ["recs_infra"] issue) 
+      (has-labels? ["kd_infra"] issue)))
 
 (defn support?
   "Returns true if the issue is a support issue, false otherwise."

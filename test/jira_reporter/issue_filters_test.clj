@@ -77,12 +77,17 @@
       (is (= false (issue-filters/subtask? {:type "not subtask"}))))
     (testing "no-parent?"
       (is (= true (issue-filters/no-parent? {})))
-      (is (= false (issue-filters/no-parent? {:parent-id "parent"}))))
+      (is (= true (issue-filters/no-parent? {:parent-id "epic" :epic "epic"})))
+      (is (= false (issue-filters/no-parent? {:parent-id "parent" :epic "epic"}))))
     (testing "no-subtasks?"
       (is (= true (issue-filters/no-subtasks? {})))
       (is (= false (issue-filters/no-subtasks? {:subtask-ids ["subtask"]}))))
     (testing "business-deliverable?"
-      (is (= true (issue-filters/business-deliverable? {})))
+      (is (= true (issue-filters/business-deliverable? {:type "story"})))
+      (is (= true (issue-filters/business-deliverable? {:type "story" :subtask-ids ["subtask"]})))
+      (is (= true (issue-filters/business-deliverable? {:type "task" :parent-id nil})))
+      (is (= true (issue-filters/business-deliverable? {:type "bug" :parent-id nil})))
+      (is (= true (issue-filters/business-deliverable? {:type "bug" :parent-id "epic" :epic "epic"})))
       (is (= false (issue-filters/business-deliverable? {:parent-id "parent"})))
       (is (= false (issue-filters/business-deliverable? {:labels #{"recs_pd"}}))))
     (testing "sized?"
@@ -131,6 +136,7 @@
       (is (= false (issue-filters/engineering? {:type "task" :labels #{}}))))
     (testing "infrastructure?"
       (is (= true (issue-filters/infrastructure? {:type "task" :labels #{"recs_infra"}})))
+      (is (= true (issue-filters/infrastructure? {:type "task" :labels #{"kd_infra"}})))
       (is (= false (issue-filters/infrastructure? {:type "task" :labels #{}}))))
     (testing "support?"
       (is (= true (issue-filters/support? {:type "task" :labels #{"recs_support"}})))
