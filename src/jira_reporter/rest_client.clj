@@ -133,5 +133,5 @@
   "Returns the issues with the specified IDs."
   [ids]
   (let [csv-ids (map (fn [xs] (str "'" (string/join "','" xs) "'"))
-                     (partition 20 ids))]
+                     (partition-all 20 ids))]
     (mapcat (fn [ids] (get-issues-for-jql-query (format "key in (%s)" ids))) csv-ids)))
