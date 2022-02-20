@@ -16,13 +16,13 @@
  :schema {:to-do-states            #{"To Do" "Ready" "Open" "Software Simplified Workflow for Project SDPR" "Ready for Dev"}
           :in-progress-states      #{"In Progress"}
           :blocked-states          #{"Blocked" "Progress Blocked"}
-          :closed-states           #{"Closed - DONE" "Closed" "Done" "Closed - Won't Do"}
+          :closed-states           #{"Closed - DONE" "Closed" "Done" "Closed - Won't Do" "closed - done" "closed" "done" "closed - won't do"}
           :deployment-states       #{"Deploy to SIT" "Deploy to Prod" "Ready for Release" "In Review" "In Test"}
           :epic-types              #{"Epic"}
           :story-types             #{"Story"}
           :task-types              #{"Task"}
           :subtask-types           #{"Sub-task" "Bug Sub-task"}
-          :bug-types               #{"Bug"}
+          :bug-types               #{"Bug" "Incident"}
           :gdpr-types              #{"GDPR Compliance"}
           :story-closed-state      "Closed"
           :story-open-state        "To Do"
