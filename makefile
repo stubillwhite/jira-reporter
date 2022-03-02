@@ -16,7 +16,7 @@ SPRINT_PREFIX=Sprint 66
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-0.1.28-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-0.1.29-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 

@@ -37,7 +37,7 @@
 
 (defn- add-metadata [sprint issue]
   (let [buddiable?        (every-pred user-level-task? (complement personal-development?))
-        work-started?     (any-pred in-progress? closed?)
+        work-started?     (any-pred in-progress? blocked? awaiting-deployment? closed?)
         discipline        (fn [x] (cond
                                    (engineering? x)    :engineering
                                    (data-science? x)   :data-science

@@ -60,7 +60,7 @@
 
 (def sprint-name  "Sprint 66")
 (def board-name   "CORE Tribe")
-(def project-name "SD Personalized Recommender")
+(def project-name "SDPR")
 
 (defn read-and-cache-raw-sprint-issues! []
   (let [sprint (jira/get-sprint-named board-name sprint-name)]
