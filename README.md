@@ -21,7 +21,7 @@ brew install "slackcat"
     - Add credentials
     - Add JIRA states
 - `lein uberjar`
-- `cp target/jira-reporter-0.1.4-SNAPSHOT-standalone.jar .`
+- `cp target/jira-reporter-1.0.0-SNAPSHOT-standalone.jar .`
 
 Run the tool with the script `./jira-reporter`.
 

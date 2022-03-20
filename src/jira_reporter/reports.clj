@@ -36,7 +36,7 @@
         (assoc :time-in-deployment (days-in-state :deployment)))))
 
 (defn- add-metadata [sprint issue]
-  (let [buddiable?        (every-pred user-level-task? (complement personal-development?))
+  (let [buddiable?        (every-pred user-level-task? (complement personal-development?) engineering?)
         work-started?     (any-pred in-progress? blocked? awaiting-deployment? closed?)
         discipline        (fn [x] (cond
                                    (engineering? x)    :engineering
@@ -417,14 +417,14 @@
    (let [{:keys [board-name sprint-name]} options
          sprint                           (jira/get-sprint-named board-name sprint-name)
          issues                           (jira/get-issues-in-sprint-named board-name sprint-name)]
-     (generate-buddy-map options sprint issues)))
+     (generate-buddy-map options sprint (raw-issues issues sprint))))
 
   ([options sprint issues]
-   (let [historical-issues (issues-at-date (date/truncate-to-days (:end-date sprint)) issues)
+   (let [historical-issues (issues-at-date (date/truncate-to-days (:end-date sprint)) (filter :buddiable? issues))
          pairings          (buddy-pairings historical-issues)
          counts-by-pair    (into {} (for [[k v] (group-by identity pairings)] [k (count v)]))
-         assignees         (->> issues (map :assignee))
-         buddies           (->> issues (mapcat :buddies))
+         assignees         (->> historical-issues (map :assignee))
+         buddies           (->> historical-issues (mapcat :buddies))
          all-users         (->> (concat assignees buddies) (filter some?) (into #{}))]
      (string/join "\n"
                   (concat ["Owner,Buddy,Count"]
@@ -524,70 +524,3 @@
        [(report-epic-counts-by-state all-issues)
         (report-epics-open all-issues)
         (report-epics-in-progress all-issues)]))))
-
-;; -----------------------------------------------------------------------------
-;; TODO: Sort all this out
-;; -----------------------------------------------------------------------------
-
-(defn- calculate-story-lead-time [story tasks]
-  (analysis/calculate-lead-time-in-days
-   (assoc story :history (->> (mapcat :history tasks)
-                              (sort-by :date)))))
-
-;; TODO: Wire in
-;; TODO: Should be if history is empty
-;; TODO: Merge story-closed-state with other states
-(defn- story-state [config tasks]
-  (let [all-tasks-closed? (every? closed? tasks)
-        no-tasks-started? (every? to-do? tasks)]
-    (cond
-      (all-tasks-closed? (every? closed? tasks)) (get-in config [:schema :story-closed-state])
-      (no-tasks-started? (every? closed? tasks)) (get-in config [:schema :story-to-do-state])
-      :else (get-in config [:schema :story-in-progress-state]))))
-
-(defn- build-story-history-from-tasks [config story tasks]
-  (assoc story
-         :history (->> (mapcat :history tasks)
-                       (sort-by :date))
-         :status (story-state config tasks)))
-
-(defn- story-metrics [issues]
-  (let [stories-by-id   (->> (filter story? issues) (group-by :id) (map-vals first))
-        issues-by-story (group-by :parent-id issues)]
-    (for [[k vs] (dissoc issues-by-story nil)]
-      (assoc (stories-by-id k)
-             :tasks-open      (->> vs (filter (every-pred task? open?))   count)
-             :tasks-closed    (->> vs (filter (every-pred task? closed?)) count)
-             :bugs-open       (->> vs (filter (every-pred bug? open?))    count)
-             :bugs-closed     (->> vs (filter (every-pred bug? closed?))  count)
-             :story-lead-time (calculate-story-lead-time (stories-by-id k) (issues-by-story k))))))
-
-(defn report-story-metrics [issues]
-  (println "\nStories and tasks in this sprint")
-  (pprint/print-table [:id :title :status :points :tasks-open :tasks-closed :bugs-open :bugs-closed :lead-time-in-days :story-lead-time]
-                      (story-metrics issues)))
-
-
-
-
-
-
-
-(defn report-task-time-in-state [issues]
-  (println "\nTask lead time in working days and working hours in state")
-  (pprint/print-table [:id :title :lead-time-in-days :todo :in-progress :blocked :deployment :other]
-                      (->> issues
-                           ;; (filter non-story?)
-                           (map #(merge % (:time-in-state %))))))  
-
-
-
-(defn generate-project-report
-  "Generate a report for a project."
-  ([config name]
-   (let [issues (map analysis/add-derived-fields (jira/get-issues-in-project-named name))]
-     (generate-project-report config name issues)))
-
-  ([config name issues]
-   (report-story-metrics issues)))
-
