@@ -155,7 +155,7 @@
                           :for-owner (string/join ", " (sort assignees))}))}))
 
 (defn report-issues-needing-buddies [issues]
-  (let [needs-buddy? (every-pred user-level-task? (any-pred in-progress?) (complement personal-development?) (complement buddied?))]
+  (let [needs-buddy? (every-pred :buddiable? (complement :buddied?) :work-started? (complement :work-complete?))]
     {:title   "Issues needing buddies"
      :columns [:id :type :title :assignee]
      :rows    (filter needs-buddy? issues)}))
