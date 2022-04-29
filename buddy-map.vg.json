@@ -3,7 +3,7 @@
   "data": {
     "url": "file:///Users/white1/Dev/my-stuff/jira-reporter/buddy-map.csv"
   },
-  "title": "Buddy heatmap",
+  "title": "Engineering buddy heatmap",
   "mark": "rect",
   "encoding": {
     "y": {
