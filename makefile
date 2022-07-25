@@ -12,11 +12,11 @@ COLOR_CLEAR_LINE=\r\033[K
 
 BOARD_NAME=CORE Tribe
 PROJECT_NAME=Recommenders Team
-SPRINT_PREFIX=Sprint 71
+SPRINT_PREFIX=Sprint 76
 
 VEGA_LITE=node_modules/vega-lite/bin/vl2png
 
-APP_JAR=jira-reporter-1.0.0-SNAPSHOT-standalone.jar
+APP_JAR=jira-reporter-1.0.1-SNAPSHOT-standalone.jar
 
 CMDSEP=;
 

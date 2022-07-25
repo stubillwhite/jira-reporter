@@ -58,7 +58,7 @@
 
 ;; Exploratory methods
 
-(def sprint-name  "Sprint 68")
+(def sprint-name  "Sprint 76")
 (def board-name   "CORE Tribe")
 (def project-name "SDPR")
 

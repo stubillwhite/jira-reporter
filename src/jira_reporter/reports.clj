@@ -1,13 +1,14 @@
 (ns jira-reporter.reports
-  (:require [clojure.pprint :as pprint]
-            [clojure.string :as string]
-            [jira-reporter.analysis :as analysis]
-            [jira-reporter.config :refer [config]]
-            [jira-reporter.date :as date]
-            [jira-reporter.issue-filters :refer :all]
-            [jira-reporter.jira :as jira]
-            [jira-reporter.utils :refer [any-pred def- map-vals]]
-            [taoensso.timbre :as timbre])
+  (:require
+   [clojure.pprint :as pprint]
+   [clojure.string :as string]
+   [jira-reporter.analysis :as analysis]
+   [jira-reporter.config :refer [config]]
+   [jira-reporter.issue-filters :refer :all]
+   [jira-reporter.jira :as jira]
+   [jira-reporter.date :as date]
+   [jira-reporter.utils :refer [any-pred def- map-vals]]
+   [taoensso.timbre :as timbre])
   (:import java.time.format.DateTimeFormatter
            java.time.temporal.ChronoUnit))
 
@@ -328,14 +329,15 @@
        (map (fn [x] (calculate-burndown-metrics-at-date x issues)))))
 
 (defn report-burndown [start-date end-date issues discipline]
-  (let [data (calculate-burndown start-date end-date issues)]
+  (let [data     (calculate-burndown start-date end-date issues)
+        duration (dec (date/working-days-between start-date end-date))]
     (map
      (partial string/join ",")
      (concat
       (map-indexed (fn [i x] [discipline "Remaining" i (:open x)]) data)
       (map-indexed (fn [i x] [discipline "Scope"     i (:total x)]) data)
       [[discipline "Ideal" 0 (:open (first data))]
-       [discipline "Ideal" 9 0]]))))
+       [discipline "Ideal" duration 0]]))))
 
 (defn generate-burndown
   "Generate a burndown."
